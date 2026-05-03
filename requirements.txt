@@ -1,0 +1,6 @@
+django>=4.2
+djangorestframework
+torch
+ultralytics
+opencv-python
+lime
