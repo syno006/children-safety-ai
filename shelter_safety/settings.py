@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core',
     'blessures_app',
+    'sanitation_app',
     'violence_app',
 ]
 

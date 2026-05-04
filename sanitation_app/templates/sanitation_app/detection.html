@@ -1,0 +1,508 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Détection Sanitaire — ShelterCare AI{% endblock %}
+{% block page_title %}Détection des Risques Sanitaires{% endblock %}
+{% block page_subtitle %}YOLO11s · cockroach · trash · wet_surface{% endblock %}
+
+{% block extra_css %}
+/* ── Upload zone ─────────────────────────────────────────── */
+.upload-zone {
+    border: 2px dashed rgba(196,150,60,.35);
+    border-radius: var(--r-xl);
+    padding: 2.75rem 2rem;
+    text-align: center; cursor: pointer;
+    background: var(--grad-card);
+    transition: border-color .25s, box-shadow .25s;
+    margin-bottom: 1.5rem;
+}
+.upload-zone:hover {
+    border-color: rgba(196,150,60,.65);
+    box-shadow: var(--shadow-sm);
+}
+.upload-zone:hover .upload-icon-ring {
+    background: rgba(196,150,60,.2);
+    border-color: rgba(196,150,60,.45);
+    transform: scale(1.06);
+}
+.upload-icon-ring {
+    width: 68px; height: 68px; border-radius: 50%;
+    background: rgba(196,150,60,.12);
+    border: 1.5px solid rgba(196,150,60,.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.7rem; color: var(--gold);
+    margin: 0 auto 1rem;
+    transition: all .25s var(--ease);
+}
+.upload-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.25rem; font-weight: 700;
+    color: var(--brown-deep); margin-bottom: .4rem;
+}
+.upload-sub {
+    font-size: .78rem; color: var(--brown-light);
+    line-height: 1.6; margin-bottom: .85rem;
+}
+.model-chip {
+    font-family: 'DM Mono', monospace; font-size: .72rem;
+    background: rgba(196,150,60,.12); color: var(--gold-deep);
+    padding: .12rem .45rem; border-radius: 6px;
+    border: 1px solid rgba(196,150,60,.2);
+}
+.upload-formats { display: inline-flex; gap: .4rem; margin-bottom: .9rem; }
+.fmt-pill {
+    background: rgba(196,150,60,.1); border: 1px solid rgba(196,150,60,.2);
+    color: var(--gold-deep); border-radius: var(--r-full);
+    font-size: .6rem; font-weight: 700; letter-spacing: .06em;
+    padding: .14rem .52rem; text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+}
+
+/* ── Risk score banner ───────────────────────────────────── */
+.risk-banner {
+    border-radius: var(--r-xl);
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: 1.75rem;
+    flex-wrap: wrap;
+}
+.risk-banner.risk-critical {
+    background: rgba(200,70,50,.06);
+    border: 1px solid rgba(200,70,50,.22);
+    border-left: 4px solid #c84632;
+    border-radius: 0 var(--r-xl) var(--r-xl) 0;
+}
+.risk-banner.risk-moderate {
+    background: rgba(196,150,60,.07);
+    border: 1px solid rgba(196,150,60,.22);
+    border-left: 4px solid var(--gold);
+    border-radius: 0 var(--r-xl) var(--r-xl) 0;
+}
+.risk-banner.risk-low {
+    background: rgba(50,160,80,.06);
+    border: 1px solid rgba(50,160,80,.2);
+    border-left: 4px solid #329e50;
+    border-radius: 0 var(--r-xl) var(--r-xl) 0;
+}
+.risk-icon-wrap {
+    width: 56px; height: 56px; border-radius: var(--r-md);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.65rem; flex-shrink: 0;
+}
+.risk-critical .risk-icon-wrap { background: rgba(200,70,50,.12); color: #c84632; }
+.risk-moderate .risk-icon-wrap { background: rgba(196,150,60,.12); color: var(--gold); }
+.risk-low      .risk-icon-wrap { background: rgba(50,160,80,.1);  color: #329e50; }
+.risk-meta { flex: 1; }
+.risk-small-label {
+    font-size: .62rem; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--brown-light); margin-bottom: .2rem;
+}
+.risk-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.75rem; font-weight: 700; line-height: 1.1;
+}
+.risk-critical .risk-title { color: #a8301e; }
+.risk-moderate .risk-title { color: var(--gold-deep); }
+.risk-low      .risk-title { color: #267042; }
+.score-block { min-width: 200px; }
+.score-head {
+    display: flex; justify-content: space-between;
+    align-items: baseline; margin-bottom: .45rem;
+}
+.score-label {
+    font-size: .62rem; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--brown-light);
+}
+.score-val {
+    font-family: 'DM Mono', monospace; font-size: .98rem;
+    font-weight: 500; color: var(--brown-deep);
+}
+.score-track {
+    height: 7px; background: rgba(196,150,60,.12);
+    border-radius: var(--r-full); overflow: hidden;
+}
+.score-fill { height: 100%; border-radius: var(--r-full); transition: width .8s var(--ease); }
+.risk-critical .score-fill { background: #c84632; }
+.risk-moderate .score-fill { background: var(--grad-gold); }
+.risk-low      .score-fill { background: #329e50; }
+
+/* ── KPI bar ─────────────────────────────────────────────── */
+.kpi-bar {
+    display: grid; grid-template-columns: repeat(4,1fr);
+    gap: 1.1rem; margin-bottom: 1.5rem;
+}
+@media(max-width:900px){ .kpi-bar{ grid-template-columns:repeat(2,1fr); } }
+.kpi-card {
+    background: var(--grad-card); border: 1px solid var(--border);
+    border-radius: var(--r-xl); padding: 1.1rem 1rem;
+    text-align: center; position: relative; overflow: hidden;
+    transition: transform .2s var(--ease), box-shadow .2s;
+}
+.kpi-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.kpi-icon {
+    width: 30px; height: 30px; border-radius: var(--r-sm);
+    background: rgba(196,150,60,.12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .8rem; color: var(--gold); margin: 0 auto .55rem;
+}
+.kpi-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.9rem; font-weight: 700;
+    color: var(--brown-deep); line-height: 1; margin-bottom: .3rem;
+}
+.kpi-lbl {
+    font-size: .6rem; font-weight: 600; color: var(--brown-light);
+    text-transform: uppercase; letter-spacing: .07em;
+}
+
+/* ── Detection grid ──────────────────────────────────────── */
+.det-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1.25rem; margin-bottom: 1.5rem;
+}
+@media(max-width:800px){ .det-grid{ grid-template-columns:1fr; } }
+
+.img-pane {
+    background: var(--grad-card); border: 1px solid var(--border);
+    border-radius: var(--r-xl); overflow: hidden;
+}
+.pane-head {
+    padding: .75rem 1.1rem; border-bottom: 1px solid var(--border-soft);
+    display: flex; align-items: center; justify-content: space-between;
+}
+.pane-title {
+    font-size: .78rem; font-weight: 600; color: var(--brown-deep);
+    display: flex; align-items: center; gap: .4rem;
+}
+.pane-badge {
+    font-family: 'DM Mono', monospace; font-size: .6rem;
+    background: rgba(196,150,60,.1); color: var(--gold-deep);
+    border: 1px solid rgba(196,150,60,.2);
+    border-radius: var(--r-full); padding: .14rem .52rem;
+}
+.img-body {
+    padding: 1rem; background: rgba(45,29,15,.03);
+    min-height: 260px; display: flex;
+    align-items: center; justify-content: center;
+}
+.img-body img { max-width: 100%; border-radius: var(--r-md); }
+
+/* ── Detection list pane ─────────────────────────────────── */
+.boxes-pane {
+    background: var(--grad-card); border: 1px solid var(--border);
+    border-radius: var(--r-xl); overflow: hidden; display: flex; flex-direction: column;
+}
+.count-pill {
+    font-family: 'DM Mono', monospace; font-size: .62rem; font-weight: 700;
+    background: var(--grad-gold); color: white;
+    border-radius: var(--r-full); padding: .16rem .55rem;
+}
+.boxes-scroll {
+    padding: .75rem; overflow-y: auto; max-height: 420px;
+    display: flex; flex-direction: column; gap: .65rem;
+}
+.box-card {
+    background: rgba(250,246,239,.75);
+    border: 1px solid rgba(196,150,60,.14);
+    border-radius: var(--r-lg);
+    padding: .85rem 1rem .85rem 1.2rem;
+    position: relative; overflow: hidden;
+    transition: box-shadow .2s;
+}
+.box-card:hover { box-shadow: var(--shadow-xs); }
+.box-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; background: var(--grad-gold);
+}
+.box-card.bc-roach::before { background: #c84632; }
+.box-card.bc-trash::before { background: var(--grad-gold); }
+.box-card.bc-wet::before   { background: #2878c8; }
+
+.box-top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: .65rem;
+}
+.box-id-wrap { display: flex; align-items: center; gap: .5rem; }
+.box-num {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--grad-gold);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .6rem; font-weight: 700; color: white;
+}
+.box-label { font-size: .8rem; font-weight: 600; color: var(--brown-deep); }
+
+.class-badge {
+    font-family: 'DM Mono', monospace; font-size: .65rem;
+    font-weight: 600; padding: .18rem .55rem; border-radius: var(--r-full);
+}
+.cb-cockroach { background: rgba(200,70,50,.12); color: #c84632; border: 1px solid rgba(200,70,50,.2); }
+.cb-trash     { background: rgba(196,150,60,.12); color: var(--gold-deep); border: 1px solid rgba(196,150,60,.2); }
+.cb-wet_surface{ background: rgba(50,130,200,.12); color: #2878c8; border: 1px solid rgba(50,130,200,.2); }
+
+.conf-badge {
+    font-family: 'DM Mono', monospace; font-size: .68rem;
+    padding: .18rem .55rem; border-radius: var(--r-full);
+}
+.conf-high { background: rgba(50,158,80,.11);  color: #267042; border: 1px solid rgba(50,158,80,.2); }
+.conf-mid  { background: rgba(196,150,60,.12); color: var(--gold-deep); border: 1px solid rgba(196,150,60,.2); }
+.conf-low  { background: rgba(200,70,50,.1);   color: #a83020; border: 1px solid rgba(200,70,50,.18); }
+
+.box-details { display: flex; flex-direction: column; gap: .3rem; }
+.detail-row  { display: flex; justify-content: space-between; align-items: center; font-size: .72rem; }
+.detail-lbl  { color: var(--brown-light); font-weight: 500; }
+.detail-val  {
+    font-family: 'DM Mono', monospace; font-size: .67rem; color: var(--brown-deep);
+    background: rgba(196,150,60,.08); padding: .1rem .42rem; border-radius: 5px;
+}
+.conf-mini { margin-top: .55rem; }
+.conf-track { height: 4px; background: rgba(196,150,60,.1); border-radius: var(--r-full); overflow: hidden; }
+.conf-fill  { height: 100%; border-radius: var(--r-full); transition: width .8s var(--ease); }
+
+/* ── Class summary ───────────────────────────────────────── */
+.class-summary {
+    display: grid; grid-template-columns: repeat(3,1fr);
+    gap: 1rem; margin-bottom: 1.5rem;
+}
+@media(max-width:640px){ .class-summary{ grid-template-columns:1fr; } }
+
+.cls-card {
+    background: var(--grad-card); border: 1px solid var(--border);
+    border-radius: var(--r-xl); padding: 1rem; text-align: center;
+}
+.cls-icon {
+    width: 36px; height: 36px; border-radius: var(--r-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; margin: 0 auto .6rem;
+}
+.ci-roach { background: rgba(200,70,50,.12); color: #c84632; }
+.ci-trash { background: rgba(196,150,60,.12); color: var(--gold); }
+.ci-wet   { background: rgba(50,130,200,.12); color: #2878c8; }
+.cls-count {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.75rem; font-weight: 700; color: var(--brown-deep); line-height: 1;
+}
+.cls-name { font-size: .65rem; color: var(--brown-light); margin-top: .25rem; }
+
+/* ── Empty state ─────────────────────────────────────────── */
+.empty-det { text-align: center; padding: 2rem; }
+.empty-det i { font-size: 2rem; display: block; margin-bottom: .5rem; color: rgba(196,150,60,.25); }
+.empty-det p { font-size: .75rem; color: var(--brown-light); }
+{% endblock %}
+
+{% block content %}
+
+<!-- Upload form -->
+<form method="post" enctype="multipart/form-data" id="uploadForm" class="reveal">
+    {% csrf_token %}
+    <label for="imageInput">
+        <div class="upload-zone" id="dropZone">
+            <div class="upload-icon-ring">
+                <i class="fas fa-shield-virus"></i>
+            </div>
+            <div class="upload-title">Déposer une image de l'espace à analyser</div>
+            <p class="upload-sub">
+                Analysée par <span class="model-chip">YOLO11s</span> —
+                détection de <span class="model-chip">cockroach</span>,
+                <span class="model-chip">trash</span>,
+                <span class="model-chip">wet_surface</span>
+            </p>
+            <div class="upload-formats">
+                <span class="fmt-pill">JPG</span>
+                <span class="fmt-pill">PNG</span>
+                <span class="fmt-pill">WebP</span>
+            </div><br>
+            <span class="btn btn-gold btn-sm" style="margin-top:.6rem;">
+                <i class="fas fa-folder-open"></i> Parcourir les fichiers
+            </span>
+        </div>
+    </label>
+    <input type="file" name="image" id="imageInput" accept="image/*"
+           style="display:none;" onchange="this.form.submit()">
+</form>
+
+{% if result %}
+
+<!-- Risk banner -->
+<div class="section-head mt-3 reveal reveal-delay-1">
+    <div class="section-title">
+        <div class="section-title-icon"><i class="fas fa-circle-check"></i></div>
+        Score de risque hygiénique
+    </div>
+    <span class="badge badge-gold"><i class="fas fa-robot"></i> YOLO11s</span>
+</div>
+
+<div class="risk-banner risk-{{ result.risk_level }} reveal reveal-delay-1">
+    <div class="risk-icon-wrap">
+        {% if result.risk_level == 'critical' %}
+            <i class="fas fa-triangle-exclamation"></i>
+        {% elif result.risk_level == 'moderate' %}
+            <i class="fas fa-circle-exclamation"></i>
+        {% else %}
+            <i class="fas fa-circle-check"></i>
+        {% endif %}
+    </div>
+    <div class="risk-meta">
+        <div class="risk-small-label">Niveau de risque</div>
+        <div class="risk-title">
+            {% if result.risk_level == 'critical' %}Risque Critique
+            {% elif result.risk_level == 'moderate' %}Risque Modéré
+            {% else %}Risque Faible{% endif %}
+        </div>
+    </div>
+    <div class="score-block">
+        <div class="score-head">
+            <span class="score-label">Score d'hygiène</span>
+            <span class="score-val">{{ result.risk_score }}/100</span>
+        </div>
+        <div class="score-track">
+            <div class="score-fill" style="width:{{ result.risk_score }}%;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- KPI bar -->
+<div class="kpi-bar reveal reveal-delay-1">
+    <div class="kpi-card">
+        <div class="kpi-icon"><i class="fas fa-bullseye"></i></div>
+        <div class="kpi-val">{{ result.count|default:0 }}</div>
+        <div class="kpi-lbl">Éléments détectés</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon"><i class="fas fa-expand"></i></div>
+        <div class="kpi-val">{{ result.total_area|floatformat:1 }}%</div>
+        <div class="kpi-lbl">Surface totale</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon"><i class="fas fa-arrow-trend-up"></i></div>
+        <div class="kpi-val">{{ result.max_confidence|floatformat:1 }}%</div>
+        <div class="kpi-lbl">Confiance max</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon"><i class="fas fa-chart-bar"></i></div>
+        <div class="kpi-val">{{ result.avg_confidence|floatformat:1 }}%</div>
+        <div class="kpi-lbl">Confiance moy.</div>
+    </div>
+</div>
+
+<!-- Class summary -->
+<div class="class-summary reveal reveal-delay-2">
+    <div class="cls-card">
+        <div class="cls-icon ci-roach"><i class="fas fa-bug"></i></div>
+        <div class="cls-count">{{ result.class_counts.cockroach|default:0 }}</div>
+        <div class="cls-name">Cafard(s)</div>
+    </div>
+    <div class="cls-card">
+        <div class="cls-icon ci-trash"><i class="fas fa-trash"></i></div>
+        <div class="cls-count">{{ result.class_counts.trash|default:0 }}</div>
+        <div class="cls-name">Déchet(s)</div>
+    </div>
+    <div class="cls-card">
+        <div class="cls-icon ci-wet"><i class="fas fa-droplet"></i></div>
+        <div class="cls-count">{{ result.class_counts.wet_surface|default:0 }}</div>
+        <div class="cls-name">Surface(s) mouillée(s)</div>
+    </div>
+</div>
+
+<!-- Detection grid: annotated image + box list -->
+<div class="det-grid reveal reveal-delay-2">
+
+    <div class="img-pane">
+        <div class="pane-head">
+            <div class="pane-title"><i class="fas fa-image"></i> Image annotée</div>
+            <span class="pane-badge">YOLO11s</span>
+        </div>
+        <div class="img-body">
+            {% if annotated %}
+            <img src="data:image/jpeg;base64,{{ annotated }}" alt="Détections YOLO11s">
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="boxes-pane">
+        <div class="pane-head">
+            <div class="pane-title"><i class="fas fa-list-ul"></i> Détails des détections</div>
+            <span class="count-pill">{{ result.count }} détection{{ result.count|pluralize:"s" }}</span>
+        </div>
+        <div class="boxes-scroll">
+            {% for det in result.detections %}
+            <div class="box-card bc-{{ det.label }}">
+                <div class="box-top">
+                    <div class="box-id-wrap">
+                        <div class="box-num">{{ forloop.counter }}</div>
+                        <span class="box-label">
+                            <span class="class-badge cb-{{ det.label }}">{{ det.label }}</span>
+                        </span>
+                    </div>
+                    <span class="conf-badge
+                        {% if det.confidence >= 70 %}conf-high
+                        {% elif det.confidence >= 50 %}conf-mid
+                        {% else %}conf-low{% endif %}">
+                        {{ det.confidence|floatformat:1 }}%
+                    </span>
+                </div>
+                <div class="box-details">
+                    <div class="detail-row">
+                        <span class="detail-lbl">Position</span>
+                        <span class="detail-val">({{ det.x1 }}, {{ det.y1 }}) → ({{ det.x2 }}, {{ det.y2 }})</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-lbl">Taille</span>
+                        <span class="detail-val">{{ det.width }} × {{ det.height }} px</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-lbl">Surface</span>
+                        <span class="detail-val">{{ det.area_percentage|floatformat:1 }}% de l'image</span>
+                    </div>
+                </div>
+                <div class="conf-mini">
+                    <div class="conf-track">
+                        <div class="conf-fill" style="width:{{ det.confidence }}%; background:
+                            {% if det.confidence >= 70 %}#329e50
+                            {% elif det.confidence >= 50 %}#C4963C
+                            {% else %}#c84632{% endif %};"></div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-det">
+                <i class="fas fa-magnifying-glass"></i>
+                <p>Aucun risque sanitaire détecté</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const zone = document.getElementById('dropZone');
+    if (!zone) return;
+
+    zone.addEventListener('dragover', e => {
+        e.preventDefault();
+        zone.style.borderColor = 'rgba(196,150,60,.7)';
+        zone.style.boxShadow   = '0 0 0 4px rgba(196,150,60,.08)';
+    });
+    zone.addEventListener('dragleave', () => {
+        zone.style.borderColor = 'rgba(196,150,60,.35)';
+        zone.style.boxShadow   = '';
+    });
+    zone.addEventListener('drop', e => {
+        e.preventDefault();
+        document.getElementById('imageInput').files = e.dataTransfer.files;
+        document.getElementById('uploadForm').submit();
+    });
+
+    /* Animate score / confidence bars */
+    document.querySelectorAll('.score-fill, .conf-fill').forEach(el => {
+        const target = el.style.width;
+        el.style.width = '0';
+        requestAnimationFrame(() => setTimeout(() => { el.style.width = target; }, 150));
+    });
+})();
+</script>
+{% endblock %}
