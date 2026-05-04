@@ -1,0 +1,617 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Classification IA — ShelterCare AI{% endblock %}
+
+{% block page_title %}Classification des Blessures{% endblock %}
+{% block page_subtitle %}EfficientNet-B3 · Analyse XAI par Grad-CAM{% endblock %}
+
+{% block extra_css %}
+
+/* ── Upload zone ─────────────────────────────────────────── */
+.upload-zone {
+    border: 2px dashed rgba(196,150,60,.35);
+    border-radius: var(--r-xl);
+    padding: 2.75rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    background: var(--grad-card);
+    transition: border-color .25s, background .25s, box-shadow .25s;
+    margin-bottom: 1.5rem;
+}
+.upload-zone:hover {
+    border-color: rgba(196,150,60,.65);
+    box-shadow: var(--shadow-sm);
+}
+.upload-zone:hover .upload-icon-ring {
+    background: rgba(196,150,60,.2);
+    border-color: rgba(196,150,60,.45);
+    transform: scale(1.05);
+}
+
+.upload-icon-ring {
+    width: 68px; height: 68px;
+    border-radius: 50%;
+    background: rgba(196,150,60,.12);
+    border: 1.5px solid rgba(196,150,60,.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.7rem;
+    color: var(--gold);
+    margin: 0 auto 1rem;
+    transition: all .25s var(--ease);
+}
+
+.upload-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--brown-deep);
+    margin-bottom: .4rem;
+}
+
+.upload-sub {
+    font-size: .78rem;
+    color: var(--brown-light);
+    line-height: 1.6;
+    margin-bottom: .85rem;
+}
+
+.model-chip {
+    font-family: 'DM Mono', monospace;
+    font-size: .72rem;
+    background: rgba(196,150,60,.12);
+    color: var(--gold-deep);
+    padding: .15rem .5rem;
+    border-radius: 6px;
+    border: 1px solid rgba(196,150,60,.2);
+}
+
+.upload-formats {
+    display: inline-flex;
+    gap: .4rem;
+    margin-bottom: 1rem;
+}
+
+.fmt-pill {
+    background: rgba(196,150,60,.1);
+    border: 1px solid rgba(196,150,60,.2);
+    color: var(--gold-deep);
+    border-radius: var(--r-full);
+    font-size: .6rem;
+    font-weight: 700;
+    letter-spacing: .07em;
+    padding: .15rem .55rem;
+    text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+}
+
+/* ── Result banner ───────────────────────────────────────── */
+.result-banner {
+    border-radius: var(--r-xl);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+.result-banner.urgence-haute {
+    background: rgba(200,70,50,.06);
+    border: 1px solid rgba(200,70,50,.22);
+    border-left: 4px solid #c84632;
+    border-radius: 0 var(--r-xl) var(--r-xl) 0;
+}
+.result-banner.urgence-modere {
+    background: rgba(196,150,60,.07);
+    border: 1px solid rgba(196,150,60,.22);
+    border-left: 4px solid var(--gold);
+    border-radius: 0 var(--r-xl) var(--r-xl) 0;
+}
+.result-banner.non-urgent {
+    background: rgba(50,160,80,.06);
+    border: 1px solid rgba(50,160,80,.2);
+    border-left: 4px solid #329e50;
+    border-radius: 0 var(--r-xl) var(--r-xl) 0;
+}
+
+.result-content {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.result-icon-wrap {
+    width: 56px; height: 56px;
+    border-radius: var(--r-md);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.65rem;
+    flex-shrink: 0;
+}
+.urgence-haute  .result-icon-wrap { background: rgba(200,70,50,.12); color: #c84632; }
+.urgence-modere .result-icon-wrap { background: rgba(196,150,60,.12); color: var(--gold); }
+.non-urgent     .result-icon-wrap { background: rgba(50,160,80,.1);   color: #329e50; }
+
+.result-meta { flex: 1; }
+
+.result-small-label {
+    font-size: .62rem;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--brown-light);
+    margin-bottom: .2rem;
+}
+
+.result-diag {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+.urgence-haute  .result-diag { color: #a8301e; }
+.urgence-modere .result-diag { color: var(--gold-deep); }
+.non-urgent     .result-diag { color: #267042; }
+
+.conf-block { min-width: 200px; }
+
+.conf-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: .45rem;
+}
+.conf-label {
+    font-size: .62rem;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--brown-light);
+}
+.conf-val {
+    font-family: 'DM Mono', monospace;
+    font-size: .98rem;
+    font-weight: 500;
+    color: var(--brown-deep);
+}
+.conf-track {
+    height: 7px;
+    background: rgba(196,150,60,.12);
+    border-radius: var(--r-full);
+    overflow: hidden;
+}
+.conf-fill { height: 100%; border-radius: var(--r-full); transition: width .8s var(--ease); }
+.urgence-haute  .conf-fill { background: #c84632; }
+.urgence-modere .conf-fill { background: var(--grad-gold); }
+.non-urgent     .conf-fill { background: #329e50; }
+
+/* ── Probability rows ────────────────────────────────────── */
+.prob-list {
+    display: flex;
+    flex-direction: column;
+    gap: .7rem;
+    margin-bottom: 1.5rem;
+}
+
+.prob-row {
+    background: var(--grad-card);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--r-lg);
+    padding: .85rem 1rem;
+    transition: box-shadow .2s;
+}
+.prob-row:hover { box-shadow: var(--shadow-xs); }
+
+.prob-row-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: .45rem;
+}
+
+.prob-class {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--brown-deep);
+}
+.prob-dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.prob-pct {
+    font-family: 'DM Mono', monospace;
+    font-size: .8rem;
+    font-weight: 500;
+    color: var(--brown-light);
+}
+
+.prob-track {
+    height: 5px;
+    background: rgba(196,150,60,.1);
+    border-radius: var(--r-full);
+    overflow: hidden;
+}
+.prob-fill {
+    height: 100%;
+    border-radius: var(--r-full);
+    transition: width .8s var(--ease);
+}
+
+/* ── XAI Section ─────────────────────────────────────────── */
+.xai-section {
+    background: var(--grad-hero);
+    border-radius: var(--r-xl);
+    padding: 1.75rem;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+.xai-section::before {
+    content: '';
+    position: absolute; top: -55px; right: -55px;
+    width: 170px; height: 170px;
+    border-radius: 50%;
+    border: 38px solid rgba(196,150,60,.1);
+    pointer-events: none;
+}
+.xai-section::after {
+    content: '';
+    position: absolute; bottom: -40px; left: 10%;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    border: 28px solid rgba(196,150,60,.07);
+    pointer-events: none;
+}
+
+.xai-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    background: rgba(196,150,60,.18);
+    border: 1px solid rgba(196,150,60,.3);
+    color: var(--sand);
+    border-radius: var(--r-full);
+    font-size: .62rem;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: .22rem .7rem;
+    margin-bottom: .65rem;
+}
+
+.xai-heading {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--ivory);
+    margin-bottom: .2rem;
+}
+
+.xai-sub {
+    font-size: .75rem;
+    color: rgba(213,187,138,.55);
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+}
+
+.xai-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+@media (max-width: 700px) { .xai-grid { grid-template-columns: 1fr; } }
+
+.xai-card {
+    background: rgba(45,29,15,.5);
+    border: 1px solid rgba(196,150,60,.2);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+}
+
+.xai-card-head {
+    padding: .7rem 1rem;
+    background: rgba(45,29,15,.4);
+    border-bottom: 1px solid rgba(196,150,60,.14);
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--sand);
+}
+
+.xai-card-icon {
+    width: 24px; height: 24px;
+    border-radius: 6px;
+    background: rgba(196,150,60,.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .7rem;
+    color: var(--gold);
+}
+
+.xai-img-zone {
+    min-height: 230px;
+    background: rgba(20,12,5,.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+.xai-img-zone img {
+    max-width: 100%;
+    max-height: 260px;
+    border-radius: var(--r-md);
+}
+
+.xai-placeholder {
+    text-align: center;
+    color: rgba(196,150,60,.35);
+}
+.xai-placeholder i {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: .5rem;
+    color: rgba(196,150,60,.3);
+}
+.xai-placeholder p {
+    font-size: .7rem;
+    color: rgba(213,187,138,.35);
+}
+
+.xai-legend {
+    padding: .75rem 1rem;
+    background: rgba(45,29,15,.35);
+    border-top: 1px solid rgba(196,150,60,.12);
+}
+.legend-row {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    font-size: .68rem;
+    color: rgba(213,187,138,.6);
+    margin-bottom: .25rem;
+    line-height: 1.4;
+}
+.legend-row:last-child { margin-bottom: 0; }
+.leg-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.xai-note {
+    font-size: .7rem;
+    color: rgba(213,187,138,.5);
+    line-height: 1.6;
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 640px) {
+    .result-content { flex-direction: column; text-align: center; }
+    .conf-block { width: 100%; }
+}
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Upload form ──────────────────────────────────────── -->
+<form method="post" enctype="multipart/form-data" id="uploadForm" class="reveal">
+    {% csrf_token %}
+    <label for="imageInput">
+        <div class="upload-zone" id="dropZone">
+            <div class="upload-icon-ring">
+                <i class="fas fa-cloud-arrow-up"></i>
+            </div>
+            <div class="upload-title">Déposer une image médicale</div>
+            <p class="upload-sub">
+                Glissez-déposez ou cliquez pour sélectionner<br>
+                Analysée par <span class="model-chip">EfficientNet-B3</span>
+                avec explicabilité <span class="model-chip">Grad-CAM</span>
+            </p>
+            <div class="upload-formats">
+                <span class="fmt-pill">JPG</span>
+                <span class="fmt-pill">PNG</span>
+                <span class="fmt-pill">WebP</span>
+                <span class="fmt-pill">TIFF</span>
+            </div>
+            <span class="btn btn-gold btn-sm">
+                <i class="fas fa-folder-open"></i> Parcourir les fichiers
+            </span>
+        </div>
+    </label>
+    <input type="file" name="image" id="imageInput" accept="image/*"
+           style="display:none;" onchange="this.form.submit()">
+</form>
+
+{% if result %}
+
+<!-- ── Diagnostic banner ─────────────────────────────────── -->
+<div class="section-head mt-3 reveal reveal-delay-1">
+    <div class="section-title">
+        <div class="section-title-icon"><i class="fas fa-circle-check"></i></div>
+        Résultat du diagnostic
+    </div>
+    <span class="badge badge-gold">
+        <i class="fas fa-robot"></i> EfficientNet-B3
+    </span>
+</div>
+
+<div class="result-banner
+    {% if result.urgency == 'haute' %}urgence-haute
+    {% elif result.urgency == 'modere' %}urgence-modere
+    {% else %}non-urgent{% endif %} reveal reveal-delay-1">
+    <div class="result-content">
+        <div class="result-icon-wrap">
+            {% if result.urgency == 'haute' %}
+                <i class="fas fa-triangle-exclamation"></i>
+            {% elif result.urgency == 'modere' %}
+                <i class="fas fa-circle-exclamation"></i>
+            {% else %}
+                <i class="fas fa-circle-check"></i>
+            {% endif %}
+        </div>
+        <div class="result-meta">
+            <div class="result-small-label">Diagnostic</div>
+            <div class="result-diag
+                {% if result.urgency == 'haute' %}urgence-haute
+                {% elif result.urgency == 'modere' %}urgence-modere
+                {% else %}non-urgent{% endif %}">
+                {{ result.prediction }}
+            </div>
+        </div>
+        <div class="conf-block">
+            <div class="conf-head">
+                <span class="conf-label">Confiance</span>
+                <span class="conf-val">{{ result.confidence_score|floatformat:1 }}%</span>
+            </div>
+            <div class="conf-track">
+                <div class="conf-fill
+                    {% if result.urgency == 'haute' %}urgence-haute
+                    {% elif result.urgency == 'modere' %}urgence-modere
+                    {% else %}non-urgent{% endif %}"
+                    style="width: {{ result.confidence_score }}%;">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Probability distribution ──────────────────────────── -->
+<div class="section-head mt-3 reveal reveal-delay-2">
+    <div class="section-title">
+        <div class="section-title-icon"><i class="fas fa-chart-pie"></i></div>
+        Distribution des probabilités
+    </div>
+</div>
+
+<div class="prob-list reveal reveal-delay-2">
+    {% for class, prob in result.probabilities.items %}
+    <div class="prob-row">
+        <div class="prob-row-top">
+            <div class="prob-class">
+                <span class="prob-dot" style="background:
+                    {% if class == 'Urgent' %}#c84632
+                    {% elif class == 'Non-Urgent' %}#329e50
+                    {% else %}#C4963C{% endif %};"></span>
+                {{ class }}
+            </div>
+            <span class="prob-pct">{{ prob|floatformat:1 }}%</span>
+        </div>
+        <div class="prob-track">
+            <div class="prob-fill" style="width: {{ prob }}%; background:
+                {% if class == 'Urgent' %}#c84632
+                {% elif class == 'Non-Urgent' %}#329e50
+                {% else %}#C4963C{% endif %};"></div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- ── XAI / Grad-CAM ─────────────────────────────────────── -->
+<div class="xai-section reveal reveal-delay-3">
+    <div class="xai-badge">
+        <i class="fas fa-brain"></i>
+        Explainability · XAI
+    </div>
+    <div class="xai-heading">Visualisation Grad-CAM</div>
+    <p class="xai-sub">
+        Zones d'attention du réseau de neurones — où le modèle <span style="font-family:'DM Mono',monospace;font-size:.72rem;color:rgba(213,187,138,.75);">EfficientNet-B3</span>
+        a focalisé son analyse pour établir ce diagnostic.
+    </p>
+
+    <div class="xai-grid">
+        <!-- Heatmap -->
+        <div class="xai-card">
+            <div class="xai-card-head">
+                <div class="xai-card-icon"><i class="fas fa-fire"></i></div>
+                Heatmap Grad-CAM
+            </div>
+            <div class="xai-img-zone">
+                {% if result.heatmap and result.heatmap.b64 %}
+                <img src="data:image/jpeg;base64,{{ result.heatmap.b64 }}" alt="Grad-CAM Heatmap">
+                {% else %}
+                <div class="xai-placeholder">
+                    <i class="fas fa-chart-line"></i>
+                    <p>Heatmap générée après analyse</p>
+                </div>
+                {% endif %}
+            </div>
+            <div class="xai-legend">
+                <div class="legend-row">
+                    <span class="leg-dot" style="background:#e05c3a;"></span>
+                    Zones critiques pour la décision
+                </div>
+                <div class="legend-row">
+                    <span class="leg-dot" style="background:#3a9e60;"></span>
+                    Zones peu pertinentes
+                </div>
+                <div class="legend-row">
+                    <span class="leg-dot" style="background:#3a6de0;"></span>
+                    Zones neutres
+                </div>
+            </div>
+        </div>
+
+        <!-- Overlay -->
+        <div class="xai-card">
+            <div class="xai-card-head">
+                <div class="xai-card-icon"><i class="fas fa-layer-group"></i></div>
+                Superposition
+            </div>
+            <div class="xai-img-zone">
+                {% if result.heatmap and result.heatmap.overlay_b64 %}
+                <img src="data:image/jpeg;base64,{{ result.heatmap.overlay_b64 }}" alt="Grad-CAM Overlay">
+                {% else %}
+                <div class="xai-placeholder">
+                    <i class="fas fa-image"></i>
+                    <p>Overlay sur image originale</p>
+                </div>
+                {% endif %}
+            </div>
+            <div class="xai-legend">
+                <div class="xai-note">
+                    La heatmap superposée à l'image originale révèle exactement les régions
+                    analysées par le modèle pour établir ce diagnostic.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const zone = document.getElementById('dropZone');
+    if (!zone) return;
+
+    zone.addEventListener('dragover', e => {
+        e.preventDefault();
+        zone.style.borderColor = 'rgba(196,150,60,.7)';
+        zone.style.boxShadow   = '0 0 0 4px rgba(196,150,60,.08)';
+    });
+    zone.addEventListener('dragleave', () => {
+        zone.style.borderColor = 'rgba(196,150,60,.35)';
+        zone.style.boxShadow   = '';
+    });
+    zone.addEventListener('drop', e => {
+        e.preventDefault();
+        const input = document.getElementById('imageInput');
+        input.files = e.dataTransfer.files;
+        document.getElementById('uploadForm').submit();
+    });
+
+    /* Animate confidence bars on load */
+    document.querySelectorAll('.conf-fill, .prob-fill').forEach(el => {
+        const target = el.style.width;
+        el.style.width = '0';
+        requestAnimationFrame(() => {
+            setTimeout(() => { el.style.width = target; }, 120);
+        });
+    });
+})();
+</script>
+{% endblock %}

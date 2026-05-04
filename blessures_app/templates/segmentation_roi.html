@@ -1,0 +1,217 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-cut"></i> Segmentation ciblée sur la blessure</h2>
+        <span class="badge-right">U-Net • Ciblé ROI</span>
+    </div>
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data" id="uploadForm">
+            {% csrf_token %}
+            <div class="upload-area" onclick="document.getElementById('imageInput').click()">
+                <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea;"></i>
+                <p>Cliquez pour télécharger une image</p>
+                <input type="file" name="image" id="imageInput" accept="image/*" style="display: none;" onchange="this.form.submit()">
+            </div>
+        </form>
+
+        {% if result %}
+        <div class="results-container">
+            <div class="stats-header">
+                <div class="stat-card">
+                    <div class="stat-value">{{ result.num_lesions|default:0 }}</div>
+                    <div class="stat-label">Blessures détectées</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ result.area_percentage|floatformat:1|default:"0" }}%</div>
+                    <div class="stat-label">Surface totale</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ result.roi_area_percentage|floatformat:1|default:"0" }}%</div>
+                    <div class="stat-label">de la ROI</div>
+                </div>
+            </div>
+
+            <div class="segmentation-grid">
+                <div class="image-section">
+                    <h4><i class="fas fa-image"></i> Image avec détection + segmentation</h4>
+                    <div class="image-container">
+                        <img src="data:image/jpeg;base64,{{ image_data }}" alt="Résultat">
+                    </div>
+                    <div class="legend">
+                        <div><span style="background: #00ff00;"></span> Boîte de détection</div>
+                        <div><span style="background: #ff5050;"></span> Segmentation de la blessure</div>
+                        <div><span style="background: #00ff00; width: 4px; height: 4px;"></span> Contour précis</div>
+                    </div>
+                </div>
+
+                {% if lesion_images %}
+                <div class="lesions-section">
+                    <h4><i class="fas fa-microscope"></i> Détail par blessure</h4>
+                    <div class="lesions-list">
+                        {% for lesion in lesion_images %}
+                        <div class="lesion-card">
+                            <div class="lesion-header">
+                                <span class="lesion-title">Blessure #{{ lesion.id }}</span>
+                                <span class="lesion-area">{{ lesion.area|floatformat:1 }}% de l'image</span>
+                            </div>
+                            <div class="lesion-image">
+                                <img src="data:image/jpeg;base64,{{ lesion.image }}" alt="Blessure {{ lesion.id }}">
+                            </div>
+                            <div class="lesion-details">
+                                <div class="detail-row">
+                                    <span>Surface de la blessure:</span>
+                                    <span>{{ lesion.roi_area|floatformat:1 }}% de la zone</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="info-note">
+                <i class="fas fa-info-circle"></i>
+                <strong>Note:</strong> La segmentation est appliquée UNIQUEMENT à l'intérieur des boîtes de détection,
+                ce qui permet d'ignorer le bruit en dehors de la zone d'intérêt.
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.results-container {
+    margin-top: 2rem;
+}
+.stats-header {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+.stat-card {
+    background: linear-gradient(135deg, #1e1e2e 0%, #252540 100%);
+    border-radius: 16px;
+    padding: 1rem;
+    text-align: center;
+    border: 1px solid #2a2a3e;
+}
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    background: linear-gradient(135deg, #fff 0%, #aaa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.stat-label {
+    font-size: 0.75rem;
+    color: #888;
+    margin-top: 0.3rem;
+}
+.segmentation-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+.image-section h4, .lesions-section h4 {
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    color: #888;
+}
+.image-container {
+    background: #1e1e2e;
+    border-radius: 16px;
+    padding: 1rem;
+    text-align: center;
+}
+.image-container img {
+    max-width: 100%;
+    border-radius: 12px;
+}
+.legend {
+    margin-top: 1rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    font-size: 0.75rem;
+}
+.legend span {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    margin-right: 0.3rem;
+    vertical-align: middle;
+}
+.lesions-list {
+    background: #1e1e2e;
+    border-radius: 16px;
+    padding: 1rem;
+    max-height: 500px;
+    overflow-y: auto;
+}
+.lesion-card {
+    background: #2a2a3e;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+.lesion-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+.lesion-title {
+    color: #667eea;
+}
+.lesion-area {
+    color: #ff9800;
+    font-size: 0.8rem;
+}
+.lesion-image {
+    margin: 0.5rem 0;
+    text-align: center;
+}
+.lesion-image img {
+    max-width: 100%;
+    border-radius: 8px;
+    max-height: 150px;
+}
+.lesion-details {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+}
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.3rem 0;
+}
+.info-note {
+    background: #1a1a2e;
+    border: 1px solid #2a2a3e;
+    border-radius: 12px;
+    padding: 1rem;
+    font-size: 0.8rem;
+    color: #aaa;
+    text-align: center;
+}
+.info-note i {
+    color: #667eea;
+    margin-right: 0.5rem;
+}
+@media (max-width: 768px) {
+    .segmentation-grid {
+        grid-template-columns: 1fr;
+    }
+    .stats-header {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+{% endblock %}

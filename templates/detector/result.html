@@ -1,0 +1,313 @@
+{% extends "detector/base.html" %}
+{% block title %}Analysis Result — Echo Heaven{% endblock %}
+
+{% block extra_head %}
+<style>
+  .result-hero {
+    border-radius: var(--radius-lg);
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid;
+  }
+
+  .result-hero.violent {
+    background: linear-gradient(135deg, rgba(193,68,14,.18) 0%, rgba(22,32,50,.9) 100%);
+    border-color: rgba(193,68,14,.35);
+  }
+
+  .result-hero.safe {
+    background: linear-gradient(135deg, rgba(42,122,75,.15) 0%, rgba(22,32,50,.9) 100%);
+    border-color: rgba(42,122,75,.3);
+  }
+
+  .result-hero::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: .4;
+  }
+
+  .result-hero.violent::before { background: var(--ember); }
+  .result-hero.safe::before    { background: var(--safe); }
+
+  .result-verdict {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: .5rem;
+  }
+
+  .result-hero.violent .result-verdict { color: #ff7a5a; }
+  .result-hero.safe    .result-verdict { color: #5ada8a; }
+
+  .gauge-ring {
+    width: 160px;
+    height: 160px;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .gauge-ring svg {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+  }
+
+  .gauge-bg   { fill: none; stroke: rgba(255,255,255,.07); stroke-width: 10; }
+  .gauge-fill { fill: none; stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1); }
+
+  .gauge-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .gauge-pct {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.6rem;
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .gauge-sub {
+    font-size: .7rem;
+    color: rgba(245,240,232,.45);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-top: .25rem;
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .detail-block {
+    background: rgba(22,32,50,.8);
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    text-align: center;
+  }
+
+  .detail-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.75rem;
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .detail-lbl {
+    font-size: .78rem;
+    color: rgba(245,240,232,.4);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-top: .4rem;
+  }
+
+  .alert-flash {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--radius);
+    background: rgba(193,68,14,.12);
+    border: 1px solid rgba(193,68,14,.3);
+    animation: flashBorder 2s ease-in-out 3;
+  }
+
+  @keyframes flashBorder {
+    0%, 100% { border-color: rgba(193,68,14,.3); }
+    50%       { border-color: rgba(193,68,14,.8); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Result Hero ──────────────────────────────────────────────────────── -->
+<div class="result-hero {% if record.alert %}violent{% else %}safe{% endif %} fade-up">
+  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1.5rem;">
+
+    <div>
+      <div style="display:flex; align-items:center; gap:.75rem; margin-bottom:1rem;">
+        <span class="badge badge-{{ record.risk_level|lower }}">
+          {{ record.risk_icon }} {{ record.risk_level }} Risk
+        </span>
+        <span style="font-size:.8rem; color:rgba(245,240,232,.4);">#{{ record.pk }}</span>
+      </div>
+
+      {% if record.alert %}
+        <div class="result-verdict">🚨 Violence Detected</div>
+        <p style="font-size:.95rem; color:rgba(245,240,232,.6); margin-top:.5rem; max-width:480px;">
+          The AI model identified violent behavioral patterns. 
+          Immediate caregiver attention is recommended.
+        </p>
+      {% else %}
+        <div class="result-verdict">✅ No Violence Detected</div>
+        <p style="font-size:.95rem; color:rgba(245,240,232,.6); margin-top:.5rem; max-width:480px;">
+          The footage appears safe. Continue monitoring and maintain 
+          regular check-ins as per shelter protocols.
+        </p>
+      {% endif %}
+
+      <div style="margin-top:1.25rem; display:flex; gap:.75rem; flex-wrap:wrap;">
+        <a href="{% url 'upload' %}" class="btn btn-primary">📹 Analyze Another</a>
+        <a href="{% url 'history' %}" class="btn btn-ghost">📋 View History</a>
+        <a href="{% url 'index' %}" class="btn btn-ghost">🏠 Dashboard</a>
+      </div>
+    </div>
+
+    <!-- Gauge -->
+    <div class="gauge-ring">
+      <svg viewBox="0 0 160 160">
+        <circle class="gauge-bg" cx="80" cy="80" r="68" />
+        <circle class="gauge-fill"
+          cx="80" cy="80" r="68"
+          stroke="{% if record.alert %}#e05a28{% else %}#3daa68{% endif %}"
+          stroke-dasharray="427.26"
+          stroke-dashoffset="{{ 427.26|add:"-"|add:record.prob_violent|floatformat:0 }}"
+          id="gaugeCircle"
+          data-pct="{{ record.prob_violent }}"
+        />
+      </svg>
+      <div class="gauge-center">
+        <div class="gauge-pct" style="color:{% if record.alert %}#ff7a5a{% else %}#5ada8a{% endif %};">
+          {{ record.prob_violent }}%
+        </div>
+        <div class="gauge-sub">P(Violent)</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── Alert for HIGH risk ────────────────────────────────────────────────── -->
+{% if record.risk_level == 'HIGH' %}
+<div class="alert-flash fade-up fade-up-1">
+  <div style="font-size:2rem; flex-shrink:0;">🚨</div>
+  <div>
+    <strong style="color:#ff7a5a; font-size:.95rem;">HIGH RISK ALERT</strong><br>
+    <span style="font-size:.86rem; color:rgba(245,240,232,.6);">
+      Violent probability exceeds 75%. This clip requires immediate review by a qualified caregiver 
+      or child protection officer. Document the incident per your shelter's protocol.
+    </span>
+  </div>
+</div>
+{% endif %}
+
+<!-- ── Detail grid ────────────────────────────────────────────────────────── -->
+<div class="detail-grid fade-up fade-up-2">
+  <div class="detail-block">
+    <div class="detail-val" style="color:#ff7a5a;">{{ record.prob_violent }}%</div>
+    <div class="detail-lbl">P(Violent)</div>
+  </div>
+  <div class="detail-block">
+    <div class="detail-val" style="color:#5ada8a;">{{ record.prob_safe }}%</div>
+    <div class="detail-lbl">P(Safe)</div>
+  </div>
+  <div class="detail-block">
+    <div class="detail-val" style="color:var(--gold-lt);">{{ record.confidence }}%</div>
+    <div class="detail-lbl">Confidence</div>
+  </div>
+</div>
+
+<!-- ── Probability bars ───────────────────────────────────────────────────── -->
+<div class="card fade-up fade-up-3" style="margin-bottom:1.5rem;">
+  <div class="card-title">📊 Probability Breakdown</div>
+  <div style="margin-top:1rem; display:flex; flex-direction:column; gap:1.25rem;">
+
+    <div>
+      <div style="display:flex; justify-content:space-between; margin-bottom:.5rem; font-size:.88rem;">
+        <span style="color:#ff7a5a; font-weight:600;">⚠ Violent</span>
+        <span class="mono">{{ record.prob_violent }}%</span>
+      </div>
+      <div class="prob-bar" style="height:14px;">
+        <div class="prob-fill prob-fill-violent" style="width:{{ record.prob_violent }}%;"></div>
+      </div>
+    </div>
+
+    <div>
+      <div style="display:flex; justify-content:space-between; margin-bottom:.5rem; font-size:.88rem;">
+        <span style="color:#5ada8a; font-weight:600;">✓ Non-Violent</span>
+        <span class="mono">{{ record.prob_safe }}%</span>
+      </div>
+      <div class="prob-bar" style="height:14px;">
+        <div class="prob-fill prob-fill-safe" style="width:{{ record.prob_safe }}%;"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── File + Video info ──────────────────────────────────────────────────── -->
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;" class="fade-up fade-up-4">
+
+  <div class="card">
+    <div class="card-title">📁 File Details</div>
+    <div style="display:flex; flex-direction:column; gap:.75rem; margin-top:.5rem; font-size:.88rem;">
+      <div style="display:flex; justify-content:space-between;">
+        <span style="color:rgba(245,240,232,.5);">Original Name</span>
+        <span class="mono" style="font-size:.8rem; text-align:right; max-width:200px; overflow:hidden; text-overflow:ellipsis;">{{ record.original_filename }}</span>
+      </div>
+      <div style="height:1px; background:rgba(255,255,255,.05);"></div>
+      <div style="display:flex; justify-content:space-between;">
+        <span style="color:rgba(245,240,232,.5);">Analysis ID</span>
+        <span class="mono">#{{ record.pk }}</span>
+      </div>
+      <div style="height:1px; background:rgba(255,255,255,.05);"></div>
+      <div style="display:flex; justify-content:space-between;">
+        <span style="color:rgba(245,240,232,.5);">Processed</span>
+        <span>{{ record.created_at|date:"M d, Y H:i" }}</span>
+      </div>
+      <div style="height:1px; background:rgba(255,255,255,.05);"></div>
+      <div style="display:flex; justify-content:space-between;">
+        <span style="color:rgba(245,240,232,.5);">Alert Triggered</span>
+        <span style="color:{% if record.alert %}#ff7a5a{% else %}#5ada8a{% endif %}; font-weight:600;">
+          {% if record.alert %}YES{% else %}NO{% endif %}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🎥 Shelter Video</div>
+    <video controls style="width:100%; border-radius:10px; margin-top:.5rem; background:#000; aspect-ratio:16/9; object-fit:contain;">
+      <source src="{{ video_url }}" />
+      Your browser does not support video playback.
+    </video>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Animate gauge on load
+const circle = document.getElementById('gaugeCircle');
+if (circle) {
+  const pct = parseFloat(circle.dataset.pct) / 100;
+  const circumference = 427.26;
+  const offset = circumference * (1 - pct);
+  // Start fully hidden, animate to final
+  circle.style.strokeDashoffset = circumference;
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      circle.style.strokeDashoffset = offset;
+    }, 300);
+  });
+}
+</script>
+{% endblock %}

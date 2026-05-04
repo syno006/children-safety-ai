@@ -1,0 +1,317 @@
+{% extends "detector/base.html" %}
+{% block title %}Analyze Video — Echo Heaven{% endblock %}
+
+{% block extra_head %}
+<style>
+  .upload-zone {
+    border: 2px dashed rgba(200,150,42,.3);
+    border-radius: var(--radius-lg);
+    padding: 3.5rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    background: rgba(22,32,50,.5);
+    position: relative;
+  }
+
+  .upload-zone:hover,
+  .upload-zone.drag-over {
+    border-color: var(--gold);
+    background: rgba(200,150,42,.07);
+    transform: scale(1.01);
+  }
+
+  .upload-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  .upload-icon {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+    display: block;
+    filter: drop-shadow(0 4px 12px rgba(200,150,42,.3));
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-8px); }
+  }
+
+  .file-preview {
+    display: none;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.25rem;
+    padding: 1rem 1.25rem;
+    background: rgba(200,150,42,.08);
+    border: 1px solid rgba(200,150,42,.2);
+    border-radius: var(--radius);
+  }
+
+  .file-preview.visible { display: flex; }
+
+  .file-icon {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--gold), var(--ember));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; flex-shrink: 0;
+  }
+
+  .file-info { flex: 1; text-align: left; }
+  .file-name { font-weight: 600; font-size: .9rem; color: var(--cream); }
+  .file-size { font-size: .78rem; color: rgba(245,240,232,.45); margin-top: .2rem; }
+
+  .progress-bar {
+    display: none;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255,255,255,.08);
+    overflow: hidden;
+    margin-top: 1.25rem;
+  }
+
+  .progress-bar.visible { display: block; }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--ember));
+    width: 0%;
+    transition: width .3s ease;
+    animation: shimmer 1.5s infinite;
+    background-size: 200% 100%;
+  }
+
+  @keyframes shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position:  200% 0; }
+  }
+
+  .analyzing-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(13,27,42,.85);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+  }
+
+  .analyzing-overlay.visible { display: flex; }
+
+  .spinner {
+    width: 64px; height: 64px;
+    border: 3px solid rgba(200,150,42,.2);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .analyzing-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    color: var(--cream);
+  }
+
+  .analyzing-sub {
+    font-size: .88rem;
+    color: rgba(245,240,232,.5);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="hero-strip fade-up">
+  <h1>Upload <em>Shelter Footage</em></h1>
+  <p>Our AI model analyzes behavioral patterns to detect violence or distress among children in shelters.</p>
+</div>
+
+{% if error %}
+<div class="alert-banner alert-danger fade-up">
+  <span style="font-size:1.2rem;">⚠️</span>
+  <div>
+    <strong>Upload Error</strong><br>
+    <span style="font-size:.88rem;">{{ error }}</span>
+  </div>
+</div>
+{% endif %}
+
+<div style="display:grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+
+  <!-- Upload Form -->
+  <div class="card fade-up fade-up-1">
+    <div class="card-title">📹 Video Upload</div>
+
+    <form method="post" action="{% url 'analyze' %}" enctype="multipart/form-data" id="uploadForm">
+      {% csrf_token %}
+
+      <div class="upload-zone" id="dropZone">
+        <input type="file" name="video" id="videoInput" accept=".mp4,.avi,.mov,.mkv,.webm" required />
+        <span class="upload-icon">🎬</span>
+        <div style="font-family:'Cormorant Garamond',serif; font-size:1.4rem; color:var(--cream); margin-bottom:.5rem;">
+          Drop your video here
+        </div>
+        <div style="font-size:.88rem; color:rgba(245,240,232,.45);">
+          or click to browse files
+        </div>
+        <div style="margin-top:1rem; display:flex; gap:.5rem; justify-content:center; flex-wrap:wrap;">
+          <span style="padding:.2rem .6rem; border-radius:6px; background:rgba(255,255,255,.06); font-size:.75rem; font-family:'DM Mono',monospace; color:rgba(245,240,232,.4);">MP4</span>
+          <span style="padding:.2rem .6rem; border-radius:6px; background:rgba(255,255,255,.06); font-size:.75rem; font-family:'DM Mono',monospace; color:rgba(245,240,232,.4);">AVI</span>
+          <span style="padding:.2rem .6rem; border-radius:6px; background:rgba(255,255,255,.06); font-size:.75rem; font-family:'DM Mono',monospace; color:rgba(245,240,232,.4);">MOV</span>
+          <span style="padding:.2rem .6rem; border-radius:6px; background:rgba(255,255,255,.06); font-size:.75rem; font-family:'DM Mono',monospace; color:rgba(245,240,232,.4);">MKV</span>
+          <span style="padding:.2rem .6rem; border-radius:6px; background:rgba(255,255,255,.06); font-size:.75rem; font-family:'DM Mono',monospace; color:rgba(245,240,232,.4);">WEBM</span>
+        </div>
+      </div>
+
+      <!-- File preview -->
+      <div class="file-preview" id="filePreview">
+        <div class="file-icon">🎥</div>
+        <div class="file-info">
+          <div class="file-name" id="fileName">—</div>
+          <div class="file-size" id="fileSize">—</div>
+        </div>
+        <button type="button" id="clearFile" style="background:none;border:none;color:rgba(245,240,232,.4);cursor:pointer;font-size:1.2rem;">✕</button>
+      </div>
+
+      <div class="progress-bar" id="progressBar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+
+      <div style="margin-top:1.5rem; display:flex; gap:.75rem; align-items:center;">
+        <button type="submit" class="btn btn-primary" id="submitBtn" style="flex:1; justify-content:center; padding:.85rem;">
+          🧠 Analyze for Violence
+        </button>
+        <a href="{% url 'index' %}" class="btn btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Info sidebar -->
+  <div style="display:flex; flex-direction:column; gap:1rem;">
+
+    <div class="card fade-up fade-up-2">
+      <div class="card-title" style="font-size:1rem;">🤖 Model Info</div>
+      <div style="display:flex; flex-direction:column; gap:.75rem; margin-top:.25rem;">
+        {% for label, val in model_specs %}{% endfor %}
+        <div style="display:flex; justify-content:space-between; font-size:.84rem;">
+          <span style="color:rgba(245,240,232,.5);">Architecture</span>
+          <span class="mono" style="font-size:.78rem;">EfficientNet-B4</span>
+        </div>
+        <div style="height:1px; background:rgba(255,255,255,.06);"></div>
+        <div style="display:flex; justify-content:space-between; font-size:.84rem;">
+          <span style="color:rgba(245,240,232,.5);">Temporal Model</span>
+          <span class="mono" style="font-size:.78rem;">Bi-LSTM + Attention</span>
+        </div>
+        <div style="height:1px; background:rgba(255,255,255,.06);"></div>
+        <div style="display:flex; justify-content:space-between; font-size:.84rem;">
+          <span style="color:rgba(245,240,232,.5);">Frames Analyzed</span>
+          <span class="mono" style="font-size:.78rem;">16 per video</span>
+        </div>
+        <div style="height:1px; background:rgba(255,255,255,.06);"></div>
+        <div style="display:flex; justify-content:space-between; font-size:.84rem;">
+          <span style="color:rgba(245,240,232,.5);">Classes</span>
+          <span class="mono" style="font-size:.78rem;">Violent / NonViolent</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card fade-up fade-up-3">
+      <div class="card-title" style="font-size:1rem;">🛡️ Privacy First</div>
+      <p style="font-size:.84rem; color:rgba(245,240,232,.5); line-height:1.65; margin-top:.25rem;">
+        No facial recognition. Anonymized behavioral tracking only. 
+        All data processed locally. Compliant with child protection frameworks.
+      </p>
+    </div>
+
+    <div class="card fade-up fade-up-4" style="border-color:rgba(193,68,14,.2); background:rgba(193,68,14,.06);">
+      <div class="card-title" style="font-size:1rem; color:#ff9a7a;">⚠️ Important</div>
+      <p style="font-size:.84rem; color:rgba(245,240,232,.5); line-height:1.65; margin-top:.25rem;">
+        This tool assists trained caregivers. Always follow up AI alerts 
+        with human verification and proper child protection protocols.
+      </p>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Analyzing overlay -->
+<div class="analyzing-overlay" id="analyzingOverlay">
+  <div class="spinner"></div>
+  <div class="analyzing-text">Analyzing footage…</div>
+  <div class="analyzing-sub">EfficientNet-B4 is processing {{ MAX_FRAMES|default:16 }} frames</div>
+  <div style="width:280px; height:4px; background:rgba(255,255,255,.08); border-radius:2px; overflow:hidden;">
+    <div id="aiProgress" style="height:100%; background:linear-gradient(90deg,var(--gold),var(--ember)); width:0%; transition:width .5s ease; border-radius:2px;"></div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const input    = document.getElementById('videoInput');
+const dropZone = document.getElementById('dropZone');
+const preview  = document.getElementById('filePreview');
+const nameEl   = document.getElementById('fileName');
+const sizeEl   = document.getElementById('fileSize');
+const clearBtn = document.getElementById('clearFile');
+const form     = document.getElementById('uploadForm');
+const overlay  = document.getElementById('analyzingOverlay');
+const aiProg   = document.getElementById('aiProgress');
+
+function formatBytes(bytes) {
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+}
+
+function showPreview(file) {
+  nameEl.textContent = file.name;
+  sizeEl.textContent = formatBytes(file.size);
+  preview.classList.add('visible');
+}
+
+input.addEventListener('change', () => {
+  if (input.files[0]) showPreview(input.files[0]);
+});
+
+clearBtn.addEventListener('click', () => {
+  input.value = '';
+  preview.classList.remove('visible');
+});
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) { showPreview(file); /* assign to input via DataTransfer */ }
+});
+
+form.addEventListener('submit', () => {
+  overlay.classList.add('visible');
+  let pct = 0;
+  const iv = setInterval(() => {
+    pct = Math.min(pct + Math.random() * 8, 90);
+    aiProg.style.width = pct + '%';
+  }, 400);
+  window.addEventListener('beforeunload', () => {
+    clearInterval(iv);
+    aiProg.style.width = '100%';
+  });
+});
+</script>
+{% endblock %}

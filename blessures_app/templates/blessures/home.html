@@ -1,0 +1,454 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Analyse des Blessures — ShelterCare AI{% endblock %}
+
+{% block page_title %}Analyse des Blessures{% endblock %}
+{% block page_subtitle %}Classification · Détection · Segmentation par IA{% endblock %}
+
+{% block extra_css %}
+/* ── Hero banner ──────────────────────────────────────────── */
+.blessures-hero {
+    background: var(--grad-hero);
+    border-radius: var(--r-xl);
+    padding: 2.5rem 2rem 2.25rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+.blessures-hero::before {
+    content: '';
+    position: absolute; top: -70px; right: -70px;
+    width: 240px; height: 240px;
+    border-radius: 50%;
+    border: 55px solid rgba(196,150,60,.12);
+    pointer-events: none;
+}
+.blessures-hero::after {
+    content: '';
+    position: absolute; bottom: -50px; left: 22%;
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    border: 36px solid rgba(196,150,60,.08);
+    pointer-events: none;
+}
+
+/* Live indicator pill */
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    background: rgba(196,150,60,.2);
+    border: 1px solid rgba(196,150,60,.35);
+    color: var(--sand);
+    padding: .28rem .85rem;
+    border-radius: var(--r-full);
+    font-size: .65rem;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+}
+.hero-badge .pulse-dot {
+    width: 6px; height: 6px;
+    background: var(--sand);
+    border-radius: 50%;
+    animation: badge-pulse 2s ease-in-out infinite;
+}
+@keyframes badge-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: .35; transform: scale(.65); }
+}
+
+.blessures-hero h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--ivory);
+    line-height: 1.1;
+    margin-bottom: .55rem;
+}
+.blessures-hero h2 em {
+    font-style: italic;
+    color: var(--sand);
+}
+.blessures-hero p {
+    color: rgba(213,187,138,.65);
+    font-size: .875rem;
+    line-height: 1.65;
+    max-width: 500px;
+    margin-bottom: 1.75rem;
+}
+
+/* Pipeline flow strip */
+.pipeline-strip {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    flex-wrap: wrap;
+}
+.pipe-step {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    background: rgba(196,150,60,.12);
+    border: 1px solid rgba(196,150,60,.22);
+    border-radius: var(--r-full);
+    padding: .32rem .85rem;
+    font-size: .69rem;
+    font-weight: 600;
+    color: var(--sand);
+}
+.pipe-num {
+    width: 17px; height: 17px;
+    background: var(--grad-gold);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .58rem; font-weight: 700;
+    color: white;
+}
+.pipe-arrow {
+    color: rgba(196,150,60,.38);
+    font-size: .9rem;
+}
+
+/* ── Model cards grid ─────────────────────────────────────── */
+.models-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+@media (max-width: 1000px) { .models-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 640px)  { .models-grid { grid-template-columns: 1fr; } }
+
+.model-card {
+    background: var(--grad-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: .0rem;
+    text-decoration: none;
+    color: inherit;
+    transition: transform .25s var(--ease), box-shadow .25s;
+}
+.model-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(196,150,60,.3);
+}
+
+/* Decorative corner glow per card */
+.model-card::before {
+    content: '';
+    position: absolute; top: -35px; right: -35px;
+    width: 110px; height: 110px;
+    border-radius: 50%;
+    pointer-events: none;
+}
+.card-classif::before { background: radial-gradient(circle, rgba(196,150,60,.18) 0%, transparent 70%); }
+.card-detect::before  { background: radial-gradient(circle, rgba(140,94,30,.15) 0%, transparent 70%); }
+.card-seg::before     { background: radial-gradient(circle, rgba(94,61,34,.12) 0%, transparent 70%); }
+
+/* Icon wrapper */
+.card-icon {
+    width: 50px; height: 50px;
+    border-radius: var(--r-md);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.35rem;
+    margin-bottom: 1rem;
+}
+.card-classif .card-icon { background: rgba(196,150,60,.15); }
+.card-detect  .card-icon { background: rgba(140,94,30,.12); }
+.card-seg     .card-icon { background: rgba(94,61,34,.1); }
+
+/* Tag pill */
+.card-tag {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(196,150,60,.12);
+    color: var(--gold-deep);
+    border: 1px solid rgba(196,150,60,.2);
+    border-radius: var(--r-full);
+    font-size: .62rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    padding: .18rem .65rem;
+    margin-bottom: .7rem;
+    text-transform: uppercase;
+}
+
+/* Model badge (monospace) */
+.card-model-name {
+    font-family: 'DM Mono', monospace;
+    font-size: .68rem;
+    font-weight: 500;
+    color: var(--amber);
+    background: rgba(140,94,30,.1);
+    padding: .18rem .55rem;
+    border-radius: 6px;
+    display: inline-block;
+    margin-bottom: .6rem;
+}
+
+.card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--brown-deep);
+    line-height: 1.2;
+    margin-bottom: .45rem;
+}
+
+.card-desc {
+    font-size: .8rem;
+    color: var(--brown-light);
+    line-height: 1.65;
+    flex: 1;
+    margin-bottom: 1.1rem;
+}
+
+/* Mini stats row */
+.card-stats {
+    display: flex;
+    gap: 1.1rem;
+    padding: .85rem 0;
+    border-top: 1px solid var(--border-soft);
+    border-bottom: 1px solid var(--border-soft);
+    margin-bottom: 1.1rem;
+}
+.stat-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--brown-deep);
+    line-height: 1;
+    margin-bottom: .18rem;
+}
+.stat-lbl {
+    font-size: .6rem;
+    font-weight: 600;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+
+/* ── Full pipeline card ───────────────────────────────────── */
+.pipeline-card {
+    background: var(--grad-hero);
+    border-radius: var(--r-xl);
+    padding: 1.75rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+.pipeline-card::after {
+    content: '';
+    position: absolute; top: -40px; right: -40px;
+    width: 150px; height: 150px;
+    border-radius: 50%;
+    border: 32px solid rgba(196,150,60,.1);
+    pointer-events: none;
+}
+.pipeline-left h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: var(--ivory);
+    margin-bottom: .35rem;
+}
+.pipeline-left h3 em { font-style: italic; color: var(--sand); }
+.pipeline-left p {
+    color: rgba(213,187,138,.6);
+    font-size: .8rem;
+    line-height: 1.6;
+    max-width: 380px;
+}
+.pipeline-nodes {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    margin-top: 1.1rem;
+    flex-wrap: wrap;
+}
+.pipe-node {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    background: rgba(196,150,60,.14);
+    border: 1px solid rgba(196,150,60,.22);
+    border-radius: var(--r-sm);
+    padding: .35rem .7rem;
+    font-size: .67rem;
+    font-weight: 600;
+    color: var(--sand);
+}
+.pipe-plus {
+    color: rgba(196,150,60,.35);
+    font-size: .9rem;
+    font-weight: 500;
+}
+.pipe-eq {
+    color: rgba(196,150,60,.5);
+    font-size: .9rem;
+}
+@media (max-width: 700px) {
+    .pipeline-card { flex-direction: column; align-items: flex-start; }
+}
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Hero ─────────────────────────────────────────────── -->
+<div class="blessures-hero reveal">
+    <div class="hero-badge">
+        <span class="pulse-dot"></span>
+        Modèles IA actifs
+    </div>
+    <h2>Analyse des <em>Blessures</em><br>par Intelligence Artificielle</h2>
+    <p>
+        Trois modèles spécialisés travaillent en synergie pour détecter,
+        classifier et segmenter les blessures avec précision clinique.
+    </p>
+
+    <!-- Pipeline flow -->
+    <div class="pipeline-strip">
+        <div class="pipe-step"><span class="pipe-num">1</span> Image</div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step"><span class="pipe-num">2</span> Classification</div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step"><span class="pipe-num">3</span> Détection</div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step"><span class="pipe-num">4</span> Segmentation</div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step"><span class="pipe-num">5</span> Rapport</div>
+    </div>
+</div>
+
+<!-- ── Model cards ───────────────────────────────────────── -->
+<div class="models-grid">
+
+    <!-- Classification -->
+    <a href="{% url 'blessures:classification' %}" class="model-card card-classif reveal reveal-delay-1">
+        <div class="card-icon"><i class="fas fa-tag"></i></div>
+        <div class="card-tag">Classification</div>
+        <div class="card-model-name">EfficientNet-B3</div>
+        <div class="card-title">Identifier la nature de la blessure</div>
+        <p class="card-desc">
+            Classe la blessure parmi des catégories médicales (brûlure,
+            lacération, contusion…) avec un score de confiance pour chaque
+            diagnostic possible.
+        </p>
+        <div class="card-stats">
+            <div>
+                <div class="stat-val">94.2%</div>
+                <div class="stat-lbl">Précision Top-1</div>
+            </div>
+            <div>
+                <div class="stat-val">8</div>
+                <div class="stat-lbl">Catégories</div>
+            </div>
+            <div>
+                <div class="stat-val">~0.3s</div>
+                <div class="stat-lbl">Inférence</div>
+            </div>
+        </div>
+        <span class="btn btn-gold btn-sm">
+            <i class="fas fa-arrow-right"></i> Tester le modèle
+        </span>
+    </a>
+
+    <!-- Détection -->
+    <a href="{% url 'blessures:detection' %}" class="model-card card-detect reveal reveal-delay-2">
+        <div class="card-icon"><i class="fas fa-crosshairs"></i></div>
+        <div class="card-tag">Détection</div>
+        <div class="card-model-name">YOLOv8s</div>
+        <div class="card-title">Localiser les zones affectées</div>
+        <p class="card-desc">
+            Détecte et encadre chaque blessure par une boîte englobante
+            avec un score de confiance en temps réel, même sur des images
+            multi-lésions.
+        </p>
+        <div class="card-stats">
+            <div>
+                <div class="stat-val">91.7%</div>
+                <div class="stat-lbl">mAP@0.5</div>
+            </div>
+            <div>
+                <div class="stat-val">15ms</div>
+                <div class="stat-lbl">Vitesse GPU</div>
+            </div>
+            <div>
+                <div class="stat-val">Multi</div>
+                <div class="stat-lbl">Objets</div>
+            </div>
+        </div>
+        <span class="btn btn-gold btn-sm">
+            <i class="fas fa-arrow-right"></i> Tester le modèle
+        </span>
+    </a>
+
+    <!-- Segmentation -->
+    <a href="{% url 'blessures:segmentation' %}" class="model-card card-seg reveal reveal-delay-3">
+        <div class="card-icon"><i class="fas fa-scissors"></i></div>
+        <div class="card-tag">Segmentation</div>
+        <div class="card-model-name">U-Net</div>
+        <div class="card-title">Délimiter pixel par pixel</div>
+        <p class="card-desc">
+            Génère un masque de segmentation précis au pixel pour évaluer
+            la surface exacte et la profondeur de la lésion cutanée en
+            vue d'une prise en charge adaptée.
+        </p>
+        <div class="card-stats">
+            <div>
+                <div class="stat-val">89.5%</div>
+                <div class="stat-lbl">Dice IoU</div>
+            </div>
+            <div>
+                <div class="stat-val">512px</div>
+                <div class="stat-lbl">Résolution</div>
+            </div>
+            <div>
+                <div class="stat-val">px</div>
+                <div class="stat-lbl">Précision</div>
+            </div>
+        </div>
+        <span class="btn btn-gold btn-sm">
+            <i class="fas fa-arrow-right"></i> Tester le modèle
+        </span>
+    </a>
+
+</div>
+
+<!-- ── Pipeline complet ──────────────────────────────────── -->
+<div class="pipeline-card reveal">
+    <div class="pipeline-left">
+        <h3>Pipeline <em>Complet</em></h3>
+        <p>
+            Exécutez les trois modèles en séquence pour obtenir un rapport
+            d'analyse exhaustif — classification, localisation et délimitation
+            précise — en une seule passe.
+        </p>
+        <div class="pipeline-nodes">
+            <div class="pipe-node"><i class="fas fa-tag"></i> Classification</div>
+            <span class="pipe-plus">+</span>
+            <div class="pipe-node"><i class="fas fa-crosshairs"></i> Détection</div>
+            <span class="pipe-plus">+</span>
+            <div class="pipe-node"><i class="fas fa-scissors"></i> Segmentation</div>
+            <span class="pipe-eq">=</span>
+            <div class="pipe-node"><i class="fas fa-file-medical"></i> Rapport complet</div>
+        </div>
+    </div>
+    <a href="{% url 'blessures:full_pipeline' %}" class="btn btn-gold">
+        <i class="fas fa-rocket"></i> Lancer le pipeline complet
+    </a>
+</div>
+
+{% endblock %}

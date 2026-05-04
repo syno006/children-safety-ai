@@ -1,0 +1,403 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-rocket"></i> Pipeline Complet</h2>
+        <span class="badge-right">Classification + Détection + Segmentation</span>
+    </div>
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data" id="uploadForm">
+            {% csrf_token %}
+            <div class="upload-area" onclick="document.getElementById('imageInput').click()">
+                <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea;"></i>
+                <p>Cliquez pour télécharger une image</p>
+                <input type="file" name="image" id="imageInput" accept="image/*" style="display: none;" onchange="this.form.submit()">
+            </div>
+        </form>
+
+        {% if result %}
+        <!-- Résumé des scores -->
+        <div class="scores-summary">
+            <div class="score-card classification-score">
+                <div class="score-icon"><i class="fas fa-tag"></i></div>
+                <div class="score-info">
+                    <div class="score-label">Classification</div>
+                    <div class="score-value">{{ result.classification.emoji }} {{ result.classification.prediction }}</div>
+                    <div class="score-detail">{{ result.classification.confidence_score|floatformat:1 }}% confiance</div>
+                </div>
+            </div>
+            <div class="score-card detection-score">
+                <div class="score-icon"><i class="fas fa-crosshairs"></i></div>
+                <div class="score-info">
+                    <div class="score-label">Détection</div>
+                    <div class="score-value">{{ result.detection.count|default:0 }} blessure(s)</div>
+                    <div class="score-detail">Confiance max: {{ result.detection.max_confidence|floatformat:1|default:0 }}%</div>
+                </div>
+            </div>
+            <div class="score-card segmentation-score">
+                <div class="score-icon"><i class="fas fa-chart-line"></i></div>
+                <div class="score-info">
+                    <div class="score-label">Segmentation</div>
+                    <div class="score-value">{{ result.segmentation.area_percentage|floatformat:1|default:0 }}% zone</div>
+                    <div class="score-detail">{{ result.segmentation.area_pixels|default:0 }} pixels affectés</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Résultats détaillés -->
+        <div class="pipeline-tabs">
+            <div class="tab-buttons">
+                <button class="tab-btn active" data-tab="classification">Classification</button>
+                <button class="tab-btn" data-tab="detection">Détection</button>
+                <button class="tab-btn" data-tab="segmentation">Segmentation</button>
+            </div>
+
+            <div class="tab-content active" id="tab-classification">
+                <div class="tab-inner">
+                    <div class="probabilities">
+                        <h4>Probabilités par classe</h4>
+                        {% for class, prob in result.classification.probabilities.items %}
+                        <div class="prob-item">
+                            <div class="prob-label">
+                                <span style="color: {{ result.classification.color }};">●</span> {{ class }}
+                                <span class="prob-value">{{ prob|floatformat:1 }}%</span>
+                            </div>
+                            <div class="probability-bar">
+                                <div class="probability-fill" style="width: {{ prob }}%; background: {{ result.classification.color }};"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="classification-metrics">
+                        <div class="metric">
+                            <div class="metric-value">{{ result.classification.confidence_score|floatformat:1 }}%</div>
+                            <div class="metric-label">Confiance max</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">{{ result.classification.prediction_confidence.entropy|floatformat:2 }}</div>
+                            <div class="metric-label">Entropie</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">{{ result.classification.prediction_confidence.margin|floatformat:2 }}%</div>
+                            <div class="metric-label">Marge</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="tab-detection">
+                <div class="tab-inner">
+                    <div class="detection-stats">
+                        <div class="stat">
+                            <div class="stat-value">{{ result.detection.count|default:0 }}</div>
+                            <div class="stat-label">Blessures</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">{{ result.detection.total_area|floatformat:1|default:0 }}%</div>
+                            <div class="stat-label">Surface</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">{{ result.detection.max_confidence|floatformat:1|default:0 }}%</div>
+                            <div class="stat-label">Confiance max</div>
+                        </div>
+                    </div>
+                    <div class="detection-boxes">
+                        {% for box in result.detection.boxes %}
+                        <div class="box-detail">
+                            <div class="box-header">
+                                <span>Blessure #{{ forloop.counter }}</span>
+                                <span class="confidence" style="background: {% if box.confidence > 0.7 %}#00c853{% elif box.confidence > 0.5 %}#ff9800{% else %}#ff5722{% endif %};">{{ box.confidence|floatformat:1 }}%</span>
+                            </div>
+                            <div class="box-coords">Position: ({{ box.x1 }}, {{ box.y1 }}) → ({{ box.x2 }}, {{ box.y2 }})</div>
+                            <div class="box-area">Surface: {{ box.area_percentage|floatformat:1 }}% de l'image</div>
+                        </div>
+                        {% empty %}
+                        <div class="no-data">Aucune blessure détectée</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="tab-segmentation">
+                <div class="tab-inner">
+                    <div class="segmentation-stats">
+                        <div class="stat">
+                            <div class="stat-value">{{ result.segmentation.area_percentage|floatformat:1|default:0 }}%</div>
+                            <div class="stat-label">Zone affectée</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">{{ result.segmentation.area_pixels|default:0 }}</div>
+                            <div class="stat-label">Pixels affectés</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">{{ result.segmentation.seg_stats.compactness|floatformat:2|default:'N/A' }}</div>
+                            <div class="stat-label">Compacité</div>
+                        </div>
+                    </div>
+                    <div class="center-info">
+                        <div class="info-label">Centre de masse:</div>
+                        <div class="info-value">X={{ result.segmentation.seg_stats.center.x|default:0 }}, Y={{ result.segmentation.seg_stats.center.y|default:0 }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Galerie d'images -->
+        <div class="image-gallery">
+            <h4><i class="fas fa-images"></i> Visualisation</h4>
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <div class="gallery-label">Originale</div>
+                    <img src="data:image/jpeg;base64,{{ image_data }}" alt="Original">
+                </div>
+                {% if detection_image %}
+                <div class="gallery-item">
+                    <div class="gallery-label">Détection</div>
+                    <img src="data:image/jpeg;base64,{{ detection_image }}" alt="Détection">
+                </div>
+                {% endif %}
+                {% if segmentation_image %}
+                <div class="gallery-item">
+                    <div class="gallery-label">Segmentation</div>
+                    <img src="data:image/jpeg;base64,{{ segmentation_image }}" alt="Segmentation">
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Tabs
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const tabId = btn.dataset.tab;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(`tab-${tabId}`).classList.add('active');
+    });
+});
+</script>
+
+<style>
+.scores-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+.score-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #1e1e2e 0%, #252540 100%);
+    border: 1px solid #2a2a3e;
+}
+.score-icon {
+    width: 50px;
+    height: 50px;
+    background: rgba(102, 126, 234, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #667eea;
+}
+.score-info {
+    flex: 1;
+}
+.score-label {
+    font-size: 0.7rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.score-value {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin: 0.2rem 0;
+}
+.score-detail {
+    font-size: 0.7rem;
+    color: #888;
+}
+.pipeline-tabs {
+    background: #1e1e2e;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+.tab-buttons {
+    display: flex;
+    background: #161622;
+}
+.tab-btn {
+    flex: 1;
+    padding: 1rem;
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+.tab-btn.active {
+    color: #667eea;
+    background: #1e1e2e;
+    border-bottom: 2px solid #667eea;
+}
+.tab-content {
+    display: none;
+    padding: 1.5rem;
+}
+.tab-content.active {
+    display: block;
+}
+.tab-inner {
+    animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.probabilities, .classification-metrics, .detection-stats, .segmentation-stats {
+    margin-bottom: 1.5rem;
+}
+.probabilities h4 {
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+    color: #888;
+}
+.prob-item {
+    margin-bottom: 1rem;
+}
+.prob-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.3rem;
+    font-size: 0.85rem;
+}
+.prob-value {
+    color: #888;
+}
+.probability-bar {
+    background: #2a2a3e;
+    border-radius: 20px;
+    overflow: hidden;
+    height: 8px;
+}
+.probability-fill {
+    height: 100%;
+    border-radius: 20px;
+    transition: width 0.5s ease;
+}
+.classification-metrics, .detection-stats, .segmentation-stats {
+    display: flex;
+    gap: 1rem;
+    text-align: center;
+}
+.metric, .stat {
+    flex: 1;
+    background: #2a2a3e;
+    border-radius: 12px;
+    padding: 0.8rem;
+}
+.metric-value, .stat-value {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+.metric-label, .stat-label {
+    font-size: 0.7rem;
+    color: #888;
+    margin-top: 0.2rem;
+}
+.detection-boxes {
+    max-height: 300px;
+    overflow-y: auto;
+}
+.box-detail {
+    background: #2a2a3e;
+    border-radius: 12px;
+    padding: 0.8rem;
+    margin-bottom: 0.8rem;
+}
+.box-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+.confidence {
+    padding: 0.2rem 0.5rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+.box-coords, .box-area {
+    font-size: 0.75rem;
+    color: #888;
+    margin-bottom: 0.2rem;
+}
+.center-info {
+    background: #2a2a3e;
+    border-radius: 12px;
+    padding: 0.8rem;
+    text-align: center;
+}
+.info-label {
+    font-size: 0.7rem;
+    color: #888;
+    margin-bottom: 0.2rem;
+}
+.info-value {
+    font-size: 1rem;
+    font-weight: bold;
+}
+.image-gallery {
+    margin-top: 2rem;
+}
+.image-gallery h4 {
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    color: #888;
+}
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+.gallery-item {
+    background: #1e1e2e;
+    border-radius: 16px;
+    padding: 0.8rem;
+    text-align: center;
+}
+.gallery-label {
+    font-size: 0.7rem;
+    color: #888;
+    margin-bottom: 0.5rem;
+}
+.gallery-item img {
+    max-width: 100%;
+    border-radius: 12px;
+}
+.no-data {
+    text-align: center;
+    padding: 2rem;
+    color: #888;
+}
+@media (max-width: 768px) {
+    .scores-summary, .gallery-grid {
+        grid-template-columns: 1fr;
+    }
+    .classification-metrics, .detection-stats, .segmentation-stats {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}

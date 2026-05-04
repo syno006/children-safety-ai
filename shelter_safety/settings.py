@@ -37,6 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'core',
+    'blessures_app',
+    'violence_app',
 ]
 
 MIDDLEWARE = [
@@ -54,7 +57,7 @@ ROOT_URLCONF = 'shelter_safety.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -114,4 +117,46 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ============================================================
+# CONFIGURATION DES MODÈLES DE BLESSURES
+# ============================================================
+
+# Chemins des modèles
+MODELS_DIR = BASE_DIR / 'blessures_app' / 'models'
+VIOLENCE_MAIN_MODEL = BASE_DIR / 'models' / 'violence' / 'best_main_model.pt'
+VIOLENCE_YOLO_MODEL = BASE_DIR / 'models' / 'violence' / 'yolo26n.pt'
+VIOLENCE_MEDIAPIPE_MODEL = BASE_DIR / 'models' / 'violence' / 'best_pose_mlp.pt'
+MODEL_WEIGHTS_PATH = VIOLENCE_MAIN_MODEL
+
+# Paramètres des modèles de classification
+URGENT_THRESHOLD = 0.35
+IMG_SIZE = 224
+
+# Paramètres YOLO
+YOLO_CONF_THRESHOLD = 0.20
+
+# Paramètres segmentation
+SEG_IMG_SIZE = 256
+
+# Classes
+URGENCY_CLASSES = ['Urgent', 'Non-Urgent', 'Incertain']
+URGENCY_EMOJI = {0: '🔴 Urgent', 1: '🟢 Non-Urgent', 2: '🟡 Incertain'}
+URGENCY_COLORS = {0: '#e74c3c', 1: '#27ae60', 2: '#f39c12'}
+
+INJURY_TO_URGENCY = {
+    'burn': 0,
+    'cut': 0,
+    'laceration': 0,
+    'infected': 0,
+    'abrasion': 1,
+    'bruise': 1,
+    'rash': 2,
+}
+
+MODEL_CACHE_TIMEOUT = 3600

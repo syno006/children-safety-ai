@@ -1,0 +1,844 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Tableau de bord — ShelterCare AI{% endblock %}
+{% block page_title %}Tableau de bord{% endblock %}
+{% block page_subtitle %}Protection quotidienne des enfants en refuge{% endblock %}
+
+{% block extra_css %}
+<style>
+
+/* ===== HERO BANNER ===== */
+.hero-banner {
+    position: relative;
+    background: var(--grad-hero);
+    border-radius: var(--r-xl);
+    padding: 2.5rem 2.75rem;
+    overflow: hidden;
+    margin-bottom: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+/* Decorative arcs */
+.hero-banner::before {
+    content: '';
+    position: absolute;
+    top: -90px; right: -90px;
+    width: 340px; height: 340px;
+    border-radius: 50%;
+    border: 60px solid rgba(196,150,60,.12);
+    pointer-events: none;
+}
+.hero-banner::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: 35%;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    border: 40px solid rgba(196,150,60,.07);
+    pointer-events: none;
+}
+
+.hero-text { position: relative; z-index: 1; max-width: 480px; }
+
+.hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    background: rgba(196,150,60,.2);
+    color: var(--sand);
+    padding: .3rem .85rem;
+    border-radius: var(--r-full);
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: .9rem;
+    border: 1px solid rgba(196,150,60,.25);
+}
+
+.hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.1rem;
+    font-weight: 700;
+    color: var(--cream);
+    line-height: 1.2;
+    margin-bottom: .65rem;
+}
+
+.hero-title em {
+    font-style: italic;
+    color: var(--sand);
+}
+
+.hero-desc {
+    font-size: .85rem;
+    color: rgba(245,237,216,.6);
+    line-height: 1.6;
+    margin-bottom: 1.4rem;
+}
+
+.hero-cta {
+    display: flex;
+    gap: .75rem;
+    flex-wrap: wrap;
+}
+
+/* Hero stats column */
+.hero-stats {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: .85rem;
+    min-width: 220px;
+}
+
+.hero-stat-pill {
+    background: rgba(255,252,245,.08);
+    border: 1px solid rgba(196,150,60,.2);
+    border-radius: var(--r-lg);
+    padding: .85rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    backdrop-filter: blur(8px);
+}
+
+.hsp-icon {
+    width: 38px; height: 38px;
+    background: rgba(196,150,60,.2);
+    border-radius: var(--r-sm);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--sand);
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.hsp-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: var(--cream);
+    line-height: 1;
+}
+
+.hsp-lbl {
+    font-size: .65rem;
+    color: rgba(213,187,138,.55);
+    letter-spacing: .04em;
+    margin-top: .15rem;
+}
+
+/* ===== KPI CARDS ===== */
+.kpi-card {
+    background: var(--grad-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: 1.4rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+    transition: all .25s var(--ease);
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 80px; height: 80px;
+    border-radius: 0 var(--r-xl) 0 80px;
+    background: rgba(196,150,60,.06);
+    transition: background .25s;
+}
+.kpi-card:hover::before { background: rgba(196,150,60,.12); }
+.kpi-card:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); }
+
+.kpi-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.kpi-icon {
+    width: 44px; height: 44px;
+    border-radius: var(--r-md);
+    background: rgba(196,150,60,.12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+    color: var(--gold);
+}
+
+.kpi-trend {
+    font-size: .68rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: .2rem;
+    padding: .2rem .55rem;
+    border-radius: var(--r-full);
+}
+.kpi-trend.up   { background: rgba(60,160,90,.1);  color: #2d7a48; }
+.kpi-trend.down { background: rgba(200,80,60,.1);  color: #b04030; }
+.kpi-trend.flat { background: rgba(196,150,60,.1); color: var(--gold-deep); }
+
+.kpi-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--brown-deep);
+    line-height: 1;
+}
+
+.kpi-label { font-size: .78rem; color: var(--text-soft); font-weight: 500; }
+.kpi-sub   { font-size: .68rem; color: var(--text-muted); }
+
+/* ===== SAFETY SCORE RING ===== */
+.safety-ring-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: .5rem 0;
+}
+
+.ring-svg { transform: rotate(-90deg); }
+.ring-track { fill: none; stroke: rgba(196,150,60,.15); }
+.ring-fill  {
+    fill: none;
+    stroke: url(#ringGrad);
+    stroke-linecap: round;
+    stroke-dasharray: 283;
+    stroke-dashoffset: 62; /* 100 - 78% of 283 ≈ 62 */
+    transition: stroke-dashoffset 1.2s var(--ease);
+}
+
+.ring-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.ring-score {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--brown-deep);
+    line-height: 1;
+}
+
+.ring-lbl {
+    font-size: .68rem;
+    color: var(--text-soft);
+    margin-top: .15rem;
+}
+
+.ring-container {
+    position: relative;
+    width: 130px; height: 130px;
+}
+
+.score-breakdown {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+}
+
+.score-bar-row {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    font-size: .75rem;
+}
+.score-bar-label { width: 90px; color: var(--text-soft); flex-shrink: 0; }
+.score-bar-track {
+    flex: 1;
+    height: 5px;
+    background: rgba(196,150,60,.12);
+    border-radius: var(--r-full);
+    overflow: hidden;
+}
+.score-bar-fill {
+    height: 100%;
+    background: var(--grad-gold);
+    border-radius: var(--r-full);
+}
+.score-bar-pct { font-size: .68rem; color: var(--text-muted); font-family: 'DM Mono', monospace; width: 32px; text-align: right; }
+
+/* ===== ALERT ITEMS ===== */
+.alert-feed { display: flex; flex-direction: column; gap: .6rem; }
+
+.alert-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: .9rem 1rem;
+    border-radius: var(--r-lg);
+    border: 1px solid var(--border-soft);
+    background: var(--surface);
+    transition: all .2s;
+    cursor: pointer;
+}
+.alert-row:hover { border-color: var(--gold); box-shadow: var(--shadow-xs); }
+
+.alert-dot {
+    width: 36px; height: 36px;
+    border-radius: var(--r-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .95rem;
+    flex-shrink: 0;
+}
+.alert-dot.red    { background: rgba(200,80,60,.1);  color: #b04030; }
+.alert-dot.amber  { background: rgba(196,150,60,.12); color: var(--gold-deep); }
+.alert-dot.green  { background: rgba(60,160,90,.1);  color: #2d7a48; }
+
+.alert-body { flex: 1; min-width: 0; }
+.alert-name { font-size: .82rem; font-weight: 600; color: var(--brown-deep); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.alert-meta { font-size: .67rem; color: var(--text-soft); margin-top: .15rem; }
+
+/* ===== ACTIVITY FEED ===== */
+.activity-feed { display: flex; flex-direction: column; }
+
+.act-item {
+    display: flex;
+    align-items: flex-start;
+    gap: .85rem;
+    padding: .85rem 0;
+    border-bottom: 1px solid var(--border-soft);
+    position: relative;
+}
+.act-item:last-child { border-bottom: none; }
+
+.act-line {
+    position: absolute;
+    left: 11px; top: 38px;
+    bottom: 0;
+    width: 1px;
+    background: var(--border-soft);
+}
+.act-item:last-child .act-line { display: none; }
+
+.act-dot {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: rgba(196,150,60,.12);
+    border: 2px solid rgba(196,150,60,.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .6rem;
+    color: var(--gold);
+    flex-shrink: 0;
+    margin-top: .1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.act-text { font-size: .8rem; color: var(--text); line-height: 1.45; }
+.act-time { font-size: .65rem; color: var(--text-soft); margin-top: .15rem; font-family: 'DM Mono', monospace; }
+
+/* ===== QUICK ACTIONS ===== */
+.qa-grid {
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    gap: .75rem;
+}
+
+.qa-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .55rem;
+    padding: 1.15rem .75rem;
+    border-radius: var(--r-lg);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-soft);
+    text-decoration: none;
+    font-size: .75rem;
+    font-weight: 600;
+    text-align: center;
+    transition: all .2s var(--ease);
+    cursor: pointer;
+}
+
+.qa-btn i {
+    font-size: 1.3rem;
+    color: var(--gold);
+    transition: transform .2s var(--ease);
+}
+
+.qa-btn:hover {
+    background: var(--grad-gold);
+    color: white;
+    border-color: transparent;
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+}
+.qa-btn:hover i { color: white; transform: scale(1.2); }
+
+/* ===== INSIGHT CARD ===== */
+.insight-card {
+    background: linear-gradient(135deg, #5E3D22, #432B16);
+    border-radius: var(--r-xl);
+    padding: 1.6rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    margin-top: 1.25rem;
+}
+.insight-card::before {
+    content: '';
+    position: absolute;
+    right: -50px; top: -50px;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    border: 40px solid rgba(196,150,60,.12);
+}
+
+.insight-icon {
+    width: 52px; height: 52px;
+    background: rgba(196,150,60,.2);
+    border-radius: var(--r-md);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+    color: var(--sand);
+    flex-shrink: 0;
+}
+
+.insight-text { flex: 1; position: relative; z-index: 1; }
+.insight-label {
+    font-size: .65rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: rgba(213,187,138,.55);
+    font-weight: 700;
+    margin-bottom: .35rem;
+}
+.insight-quote {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    font-style: italic;
+    color: var(--cream);
+    line-height: 1.5;
+}
+
+/* ===== REFUGES MAP MINI ===== */
+.refuges-list {
+    display: flex;
+    flex-direction: column;
+    gap: .55rem;
+    margin-top: .5rem;
+}
+
+.refuge-row {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    padding: .7rem .9rem;
+    border-radius: var(--r-lg);
+    background: var(--surface-2);
+    border: 1px solid var(--border-soft);
+    transition: all .2s;
+}
+.refuge-row:hover { border-color: var(--gold); }
+
+.refuge-indicator {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.ri-green  { background: #3ca05a; box-shadow: 0 0 0 3px rgba(60,160,90,.15); }
+.ri-amber  { background: var(--gold); box-shadow: 0 0 0 3px rgba(196,150,60,.2); }
+.ri-red    { background: #c85040;  box-shadow: 0 0 0 3px rgba(200,80,60,.15); }
+
+.refuge-name { font-size: .8rem; font-weight: 600; color: var(--brown-deep); flex: 1; }
+.refuge-count { font-size: .68rem; color: var(--text-soft); font-family: 'DM Mono', monospace; }
+
+/* ===== RESPONSIVE TWEAKS ===== */
+@media (max-width: 900px) {
+    .hero-stats { display: none; }
+    .hero-title { font-size: 1.65rem; }
+}
+@media (max-width: 640px) {
+    .hero-banner { padding: 1.5rem; }
+    .hero-title  { font-size: 1.4rem; }
+    .qa-grid { grid-template-columns: repeat(2,1fr); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ═══════════════════════ HERO ═══════════════════════ -->
+<div class="hero-banner reveal">
+    <div class="hero-text">
+        <div class="hero-tag">
+            <i class="fas fa-circle-check"></i> Système actif · Mise à jour il y a 3 min
+        </div>
+        <h2 class="hero-title">
+            Comment assurer la <em>sécurité</em> des enfants<br>chaque jour en refuge ?
+        </h2>
+        <p class="hero-desc">
+            ShelterCare AI surveille en continu 156 refuges, analyse les signaux de risque
+            et guide votre équipe pour une protection holistique 24h/24.
+        </p>
+        <div class="hero-cta">
+            <a href="{% url 'detection' %}" class="btn btn-gold">
+                <i class="fas fa-robot"></i> Lancer une analyse
+            </a>
+            <a href="{% url 'index' %}" class="btn btn-outline" style="border-color:rgba(196,150,60,.3);color:var(--sand);">
+                <i class="fas fa-chart-line"></i> Voir rapports
+            </a>
+        </div>
+    </div>
+
+    <div class="hero-stats">
+        <div class="hero-stat-pill">
+            <div class="hsp-icon"><i class="fas fa-child"></i></div>
+            <div>
+                <div class="hsp-val">234</div>
+                <div class="hsp-lbl">Enfants suivis</div>
+            </div>
+        </div>
+        <div class="hero-stat-pill">
+            <div class="hsp-icon"><i class="fas fa-shield-halved"></i></div>
+            <div>
+                <div class="hsp-val">98%</div>
+                <div class="hsp-lbl">Taux de détection</div>
+            </div>
+        </div>
+        <div class="hero-stat-pill">
+            <div class="hsp-icon"><i class="fas fa-stopwatch"></i></div>
+            <div>
+                <div class="hsp-val">&lt;2 min</div>
+                <div class="hsp-lbl">Temps de réponse</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════ KPI STRIP ═══════════════════════ -->
+<div class="grid-4 reveal reveal-delay-1">
+
+    <div class="kpi-card">
+        <div class="kpi-top">
+            <div class="kpi-icon"><i class="fas fa-child"></i></div>
+            <div class="kpi-trend up"><i class="fas fa-arrow-up"></i> +12</div>
+        </div>
+        <div class="kpi-value" data-count="234">0</div>
+        <div class="kpi-label">Enfants suivis</div>
+        <div class="kpi-sub">dans 156 refuges actifs</div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-top">
+            <div class="kpi-icon"><i class="fas fa-check-circle"></i></div>
+            <div class="kpi-trend up"><i class="fas fa-arrow-up"></i> +89</div>
+        </div>
+        <div class="kpi-value" data-count="1247">0</div>
+        <div class="kpi-label">Interventions</div>
+        <div class="kpi-sub">ce mois-ci</div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-top">
+            <div class="kpi-icon"><i class="fas fa-triangle-exclamation"></i></div>
+            <div class="kpi-trend down"><i class="fas fa-arrow-down"></i> −2</div>
+        </div>
+        <div class="kpi-value" data-count="3">0</div>
+        <div class="kpi-label">Alertes actives</div>
+        <div class="kpi-sub">requièrent attention</div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-top">
+            <div class="kpi-icon"><i class="fas fa-star"></i></div>
+            <div class="kpi-trend flat"><i class="fas fa-minus"></i> stable</div>
+        </div>
+        <div class="kpi-value">4.9</div>
+        <div class="kpi-label">Satisfaction équipe</div>
+        <div class="kpi-sub">sur 5 — dernier audit</div>
+    </div>
+</div>
+
+<!-- ═══════════════════════ ROW 2 ═══════════════════════ -->
+<div class="grid-70-30 mt-3 reveal reveal-delay-2">
+
+    <!-- Left col: Alertes + Activité -->
+    <div style="display:flex;flex-direction:column;gap:1.25rem;">
+
+        <!-- Alertes récentes -->
+        <div class="card">
+            <div class="section-head">
+                <div class="section-title">
+                    <div class="section-title-icon"><i class="fas fa-bell"></i></div>
+                    Alertes récentes
+                </div>
+                <span class="badge badge-red"><span class="live-dot"></span> 3 nouvelles</span>
+            </div>
+
+            <div class="alert-feed">
+                <div class="alert-row">
+                    <div class="alert-dot red"><i class="fas fa-triangle-exclamation"></i></div>
+                    <div class="alert-body">
+                        <div class="alert-name">Blessure suspecte détectée — Enfant #A12</div>
+                        <div class="alert-meta"><i class="fas fa-location-dot" style="width:12px"></i> Refuge Saint-Paul &nbsp;·&nbsp; <i class="fas fa-clock" style="width:12px"></i> Il y a 15 min</div>
+                    </div>
+                    <a href="#" class="btn btn-outline btn-xs">Voir</a>
+                </div>
+                <div class="alert-row">
+                    <div class="alert-dot amber"><i class="fas fa-temperature-high"></i></div>
+                    <div class="alert-body">
+                        <div class="alert-name">Température anormale détectée</div>
+                        <div class="alert-meta"><i class="fas fa-location-dot" style="width:12px"></i> Salle commune B &nbsp;·&nbsp; <i class="fas fa-clock" style="width:12px"></i> Il y a 1h</div>
+                    </div>
+                    <a href="#" class="btn btn-outline btn-xs">Voir</a>
+                </div>
+                <div class="alert-row">
+                    <div class="alert-dot green"><i class="fas fa-face-smile"></i></div>
+                    <div class="alert-body">
+                        <div class="alert-name">Progrès émotionnel positif — 3 enfants</div>
+                        <div class="alert-meta"><i class="fas fa-location-dot" style="width:12px"></i> Unité thérapeutique &nbsp;·&nbsp; <i class="fas fa-clock" style="width:12px"></i> Il y a 2h</div>
+                    </div>
+                    <a href="#" class="btn btn-outline btn-xs">Voir</a>
+                </div>
+            </div>
+            <div style="margin-top:1rem;text-align:center;">
+                <a href="#" class="btn btn-ghost btn-sm"><i class="fas fa-list"></i> Toutes les alertes</a>
+            </div>
+        </div>
+
+        <!-- Activité récente -->
+        <div class="card">
+            <div class="section-head">
+                <div class="section-title">
+                    <div class="section-title-icon"><i class="fas fa-clock-rotate-left"></i></div>
+                    Activité récente
+                </div>
+                <a href="{% url 'history' %}" class="btn btn-ghost btn-sm">Historique complet <i class="fas fa-arrow-right"></i></a>
+            </div>
+
+            <div class="activity-feed">
+                <div class="act-item">
+                    <div class="act-line"></div>
+                    <div class="act-dot"><i class="fas fa-robot"></i></div>
+                    <div>
+                        <div class="act-text">Analyse IA effectuée pour <strong>12 enfants</strong> — Refuge Nord</div>
+                        <div class="act-time">Aujourd'hui · 10:30</div>
+                    </div>
+                </div>
+                <div class="act-item">
+                    <div class="act-line"></div>
+                    <div class="act-dot"><i class="fas fa-file-lines"></i></div>
+                    <div>
+                        <div class="act-text">Rapport hebdomadaire <strong>généré</strong> et envoyé à l'équipe</div>
+                        <div class="act-time">Aujourd'hui · 09:15</div>
+                    </div>
+                </div>
+                <div class="act-item">
+                    <div class="act-line"></div>
+                    <div class="act-dot"><i class="fas fa-users"></i></div>
+                    <div>
+                        <div class="act-text">Formation du personnel <strong>programmée</strong> — vendredi 14h</div>
+                        <div class="act-time">Hier · 16:40</div>
+                    </div>
+                </div>
+                <div class="act-item">
+                    <div class="act-dot"><i class="fas fa-arrows-rotate"></i></div>
+                    <div>
+                        <div class="act-text">Mise à jour du <strong>système de détection</strong> v2.1 déployée</div>
+                        <div class="act-time">Hier · 08:00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right col: Safety score + Quick actions + Refuges -->
+    <div style="display:flex;flex-direction:column;gap:1.25rem;">
+
+        <!-- Safety score -->
+        <div class="card">
+            <div class="section-title" style="margin-bottom:1.25rem;">
+                <div class="section-title-icon"><i class="fas fa-shield-alt"></i></div>
+                Niveau de sécurité
+            </div>
+
+            <div class="safety-ring-wrap">
+                <div class="ring-container">
+                    <svg class="ring-svg" width="130" height="130" viewBox="0 0 100 100">
+                        <defs>
+                            <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%"   stop-color="#D4A84B"/>
+                                <stop offset="100%" stop-color="#A87B2A"/>
+                            </linearGradient>
+                        </defs>
+                        <circle class="ring-track" cx="50" cy="50" r="45" stroke-width="8"/>
+                        <circle class="ring-fill"  cx="50" cy="50" r="45" stroke-width="8" id="ringCircle"/>
+                    </svg>
+                    <div class="ring-center">
+                        <div class="ring-score">78%</div>
+                        <div class="ring-lbl">Global</div>
+                    </div>
+                </div>
+
+                <div class="score-breakdown" style="margin-top:.5rem;">
+                    <div class="score-bar-row">
+                        <span class="score-bar-label">Physique</span>
+                        <div class="score-bar-track"><div class="score-bar-fill" style="width:84%"></div></div>
+                        <span class="score-bar-pct">84%</span>
+                    </div>
+                    <div class="score-bar-row">
+                        <span class="score-bar-label">Émotionnel</span>
+                        <div class="score-bar-track"><div class="score-bar-fill" style="width:71%"></div></div>
+                        <span class="score-bar-pct">71%</span>
+                    </div>
+                    <div class="score-bar-row">
+                        <span class="score-bar-label">Environnement</span>
+                        <div class="score-bar-track"><div class="score-bar-fill" style="width:90%"></div></div>
+                        <span class="score-bar-pct">90%</span>
+                    </div>
+                    <div class="score-bar-row">
+                        <span class="score-bar-label">Équipe</span>
+                        <div class="score-bar-track"><div class="score-bar-fill" style="width:68%"></div></div>
+                        <span class="score-bar-pct">68%</span>
+                    </div>
+                </div>
+
+                <a href="{% url 'index' %}" class="btn btn-gold btn-sm" style="margin-top:.5rem;width:100%;justify-content:center;">
+                    <i class="fas fa-chart-line"></i> Rapport détaillé
+                </a>
+            </div>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="card">
+            <div class="section-title" style="margin-bottom:1rem;">
+                <div class="section-title-icon"><i class="fas fa-bolt"></i></div>
+                Actions rapides
+            </div>
+            <div class="qa-grid">
+                <a href="{% url 'detection' %}" class="qa-btn">
+                    <i class="fas fa-camera"></i>
+                    <span>Nouvelle analyse</span>
+                </a>
+                <a href="#" class="qa-btn">
+                    <i class="fas fa-file-export"></i>
+                    <span>Générer rapport</span>
+                </a>
+                <a href="#" class="qa-btn">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Ajouter enfant</span>
+                </a>
+                <a href="#" class="qa-btn">
+                    <i class="fas fa-chalkboard-user"></i>
+                    <span>Former équipe</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Refuges status -->
+        <div class="card">
+            <div class="section-title" style="margin-bottom:1rem;">
+                <div class="section-title-icon"><i class="fas fa-house-chimney-medical"></i></div>
+                Refuges actifs
+            </div>
+            <div class="refuges-list">
+                <div class="refuge-row">
+                    <div class="refuge-indicator ri-green"></div>
+                    <div class="refuge-name">Refuge Saint-Paul</div>
+                    <div class="refuge-count">42 enfants</div>
+                </div>
+                <div class="refuge-row">
+                    <div class="refuge-indicator ri-green"></div>
+                    <div class="refuge-name">Maison du Soleil</div>
+                    <div class="refuge-count">38 enfants</div>
+                </div>
+                <div class="refuge-row">
+                    <div class="refuge-indicator ri-amber"></div>
+                    <div class="refuge-name">Foyer Espérance</div>
+                    <div class="refuge-count">29 enfants</div>
+                </div>
+                <div class="refuge-row">
+                    <div class="refuge-indicator ri-red"></div>
+                    <div class="refuge-name">Centre Nord B</div>
+                    <div class="refuge-count">18 enfants</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════ INSIGHT ═══════════════════════ -->
+<div class="insight-card reveal reveal-delay-3">
+    <div class="insight-icon"><i class="fas fa-lightbulb"></i></div>
+    <div class="insight-text">
+        <div class="insight-label"><i class="fas fa-star" style="color:var(--gold);margin-right:.3rem;"></i>Conseil du jour — Astuce #42</div>
+        <div class="insight-quote">
+            "La vigilance collective est la clé d'une protection efficace.
+            Impliquez toute l'équipe dans l'observation quotidienne des comportements."
+        </div>
+    </div>
+    <a href="#" class="btn btn-outline btn-sm" style="border-color:rgba(196,150,60,.3);color:var(--sand);flex-shrink:0;">
+        Voir tous les conseils
+    </a>
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+/* ── Animated KPI counters ── */
+const kpiObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+        if (!e.isIntersecting || e.target.dataset.done) return;
+        e.target.dataset.done = 1;
+        const target = +e.target.dataset.count;
+        if (!target) return;
+        let val = 0;
+        const step = Math.max(1, Math.ceil(target / 45));
+        const t = setInterval(() => {
+            val = Math.min(val + step, target);
+            e.target.textContent = val.toLocaleString('fr-FR');
+            if (val >= target) clearInterval(t);
+        }, 28);
+    });
+}, { threshold: .3 });
+
+document.querySelectorAll('[data-count]').forEach(el => kpiObserver.observe(el));
+
+/* ── Animated ring on scroll ── */
+const ring = document.getElementById('ringCircle');
+const ringObs = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) {
+        const pct = 78;
+        const circ = 2 * Math.PI * 45; // ≈ 283
+        const offset = circ * (1 - pct / 100);
+        ring.style.strokeDashoffset = offset;
+        ringObs.disconnect();
+    }
+}, { threshold: .4 });
+
+if (ring) {
+    ring.style.strokeDashoffset = 283; // start hidden
+    ring.style.transition = 'stroke-dashoffset 1.3s cubic-bezier(.22,.68,0,1.2)';
+    ringObs.observe(ring);
+}
+
+/* ── Live dot pulse ── */
+const style = document.createElement('style');
+style.textContent = `.live-dot{display:inline-block;width:6px;height:6px;background:#e05c3a;border-radius:50%;margin-right:.4rem;animation:livePulse 1.5s ease-in-out infinite;}
+@keyframes livePulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.6);}}`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

@@ -1,0 +1,477 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Echo Heaven — Child Safety Monitor{% endblock %}</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ═══════════════════════════════════════════════════════════════
+       ECHO HEAVEN — Design System
+       Palette: deep navy / warm cream / ember red / guardian gold
+    ═══════════════════════════════════════════════════════════════ */
+    :root {
+      --navy:      #0d1b2a;
+      --navy-mid:  #162032;
+      --navy-soft: #1e2f46;
+      --cream:     #f5f0e8;
+      --cream-dim: #e8e0d0;
+      --ember:     #c1440e;
+      --ember-lt:  #e05a28;
+      --gold:      #c8962a;
+      --gold-lt:   #e8b84b;
+      --safe:      #2a7a4b;
+      --safe-lt:   #3daa68;
+      --medium:    #b86a10;
+      --text:      #1a1a2e;
+      --text-mid:  #4a4a6a;
+      --text-soft: #7a7a9a;
+      --radius:    12px;
+      --radius-lg: 20px;
+      --shadow:    0 4px 24px rgba(13,27,42,.18);
+      --shadow-lg: 0 12px 48px rgba(13,27,42,.28);
+      --transition: .28s cubic-bezier(.4,0,.2,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--navy);
+      color: var(--cream);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Animated background grain ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(200,150,42,.07) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 80% 80%, rgba(193,68,14,.06) 0%, transparent 60%),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size: cover, cover, 200px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Navbar ────────────────────────────────────────────────── */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2.5rem;
+      height: 68px;
+      background: rgba(13,27,42,.88);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(200,150,42,.15);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      text-decoration: none;
+    }
+
+    .nav-brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--ember) 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+
+    .nav-brand-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--cream);
+      letter-spacing: .03em;
+    }
+
+    .nav-brand-text span { color: var(--gold-lt); }
+
+    .nav-links {
+      display: flex;
+      gap: .25rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .45rem .9rem;
+      border-radius: 8px;
+      font-size: .88rem;
+      font-weight: 500;
+      color: rgba(245,240,232,.65);
+      text-decoration: none;
+      transition: var(--transition);
+      letter-spacing: .02em;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      background: rgba(200,150,42,.12);
+      color: var(--gold-lt);
+    }
+
+    .nav-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: .2rem .6rem;
+      background: linear-gradient(135deg, var(--ember) 0%, var(--ember-lt) 100%);
+      border-radius: 20px;
+      font-size: .7rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    /* ── Layout ────────────────────────────────────────────────── */
+    .page-wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem 4rem;
+    }
+
+    /* ── Hero strip ─────────────────────────────────────────────── */
+    .hero-strip {
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-strip h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 700;
+      line-height: 1.15;
+      color: var(--cream);
+    }
+
+    .hero-strip h1 em {
+      font-style: italic;
+      color: var(--gold-lt);
+    }
+
+    .hero-strip p {
+      margin-top: .6rem;
+      font-size: .97rem;
+      color: rgba(245,240,232,.6);
+      max-width: 560px;
+      line-height: 1.65;
+    }
+
+    /* ── Cards ──────────────────────────────────────────────────── */
+    .card {
+      background: rgba(22,32,50,.8);
+      border: 1px solid rgba(200,150,42,.12);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      backdrop-filter: blur(8px);
+      transition: var(--transition);
+    }
+
+    .card:hover {
+      border-color: rgba(200,150,42,.25);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .card-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--cream);
+      margin-bottom: .8rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    /* ── Stat blocks ─────────────────────────────────────────────── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-block {
+      background: rgba(22,32,50,.9);
+      border: 1px solid rgba(200,150,42,.1);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-block::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--accent, var(--gold));
+    }
+
+    .stat-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 2rem;
+      font-weight: 500;
+      color: var(--gold-lt);
+      line-height: 1;
+    }
+
+    .stat-label {
+      margin-top: .4rem;
+      font-size: .8rem;
+      color: rgba(245,240,232,.5);
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    /* ── Buttons ─────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .65rem 1.4rem;
+      border-radius: 10px;
+      font-size: .9rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: var(--transition);
+      letter-spacing: .02em;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold) 0%, var(--ember) 100%);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(193,68,14,.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(193,68,14,.4);
+    }
+
+    .btn-ghost {
+      background: rgba(200,150,42,.1);
+      color: var(--gold-lt);
+      border: 1px solid rgba(200,150,42,.2);
+    }
+
+    .btn-ghost:hover {
+      background: rgba(200,150,42,.2);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #9b1a1a 0%, var(--ember) 100%);
+      color: #fff;
+    }
+
+    /* ── Risk badges ─────────────────────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      padding: .25rem .75rem;
+      border-radius: 20px;
+      font-size: .78rem;
+      font-weight: 600;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    .badge-high   { background: rgba(193,68,14,.2);  color: #ff7a5a; border: 1px solid rgba(193,68,14,.35); }
+    .badge-medium { background: rgba(200,130,0,.2);  color: #ffc05a; border: 1px solid rgba(200,130,0,.35); }
+    .badge-low    { background: rgba(42,122,75,.2);  color: #5ada8a; border: 1px solid rgba(42,122,75,.35);  }
+    .badge-safe   { background: rgba(42,122,75,.15); color: #4dba74; border: 1px solid rgba(42,122,75,.25);  }
+
+    /* ── Progress bar ────────────────────────────────────────────── */
+    .prob-bar {
+      height: 8px;
+      border-radius: 4px;
+      background: rgba(255,255,255,.08);
+      overflow: hidden;
+      margin-top: .4rem;
+    }
+
+    .prob-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width .8s cubic-bezier(.4,0,.2,1);
+    }
+
+    .prob-fill-violent { background: linear-gradient(90deg, var(--ember) 0%, #ff6b6b 100%); }
+    .prob-fill-safe    { background: linear-gradient(90deg, var(--safe)  0%, var(--safe-lt) 100%); }
+
+    /* ── Table ───────────────────────────────────────────────────── */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .88rem;
+    }
+
+    .data-table th {
+      text-align: left;
+      padding: .75rem 1rem;
+      color: rgba(245,240,232,.45);
+      font-size: .75rem;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      border-bottom: 1px solid rgba(200,150,42,.1);
+      font-weight: 500;
+    }
+
+    .data-table td {
+      padding: .9rem 1rem;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+      color: rgba(245,240,232,.85);
+      vertical-align: middle;
+    }
+
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: rgba(200,150,42,.04); }
+
+    .mono { font-family: 'DM Mono', monospace; font-size: .85em; }
+
+    /* ── Alerts ──────────────────────────────────────────────────── */
+    .alert-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1rem 1.25rem;
+      border-radius: var(--radius);
+      margin-bottom: 1.5rem;
+      font-size: .9rem;
+      animation: slideIn .4s ease;
+    }
+
+    .alert-danger {
+      background: rgba(193,68,14,.15);
+      border: 1px solid rgba(193,68,14,.35);
+      color: #ffbba0;
+    }
+
+    .alert-success {
+      background: rgba(42,122,75,.15);
+      border: 1px solid rgba(42,122,75,.35);
+      color: #a0ffbf;
+    }
+
+    /* ── Animations ──────────────────────────────────────────────── */
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(193,68,14,.4); }
+      50%       { box-shadow: 0 0 0 16px rgba(193,68,14,0); }
+    }
+
+    .pulse { animation: pulse-glow 2s infinite; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-up { animation: fadeUp .5s ease forwards; }
+    .fade-up-1 { animation-delay: .1s; opacity: 0; }
+    .fade-up-2 { animation-delay: .2s; opacity: 0; }
+    .fade-up-3 { animation-delay: .3s; opacity: 0; }
+    .fade-up-4 { animation-delay: .4s; opacity: 0; }
+
+    /* ── Scrollbar ───────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--navy); }
+    ::-webkit-scrollbar-thumb { background: rgba(200,150,42,.3); border-radius: 3px; }
+
+    /* ── Divider ─────────────────────────────────────────────────── */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(200,150,42,.2), transparent);
+      margin: 2rem 0;
+    }
+
+    /* ── Footer ──────────────────────────────────────────────────── */
+    .footer {
+      margin-top: 4rem;
+      padding: 1.5rem 2.5rem;
+      border-top: 1px solid rgba(200,150,42,.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: .8rem;
+      color: rgba(245,240,232,.3);
+    }
+
+    .footer-mission {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: .95rem;
+      color: rgba(200,150,42,.5);
+    }
+  </style>
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <!-- ── Navbar ──────────────────────────────────────────────────────────── -->
+  <nav class="navbar">
+    <a href="{% url 'index' %}" class="nav-brand">
+      <div class="nav-brand-icon">🕊️</div>
+      <span class="nav-brand-text">Echo <span>Heaven</span></span>
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="{% url 'index' %}"     class="{% if request.resolver_match.url_name == 'index'     %}active{% endif %}">📊 Dashboard</a></li>
+      <li><a href="{% url 'upload' %}"    class="{% if request.resolver_match.url_name == 'upload'    %}active{% endif %}">📹 Analyze</a></li>
+      <li><a href="{% url 'history' %}"   class="{% if request.resolver_match.url_name == 'history'   %}active{% endif %}">📋 History</a></li>
+      <li><a href="{% url 'detection' %}" class="{% if request.resolver_match.url_name == 'detection' %}active{% endif %}">🤖 Détection</a></li>
+    </ul>
+
+    <div class="nav-badge">AI Monitoring</div>
+  </nav>
+
+  <!-- ── Page Content ────────────────────────────────────────────────────── -->
+  <main class="page-wrapper">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- ── Footer ──────────────────────────────────────────────────────────── -->
+  <footer class="footer">
+    <span>© 2025 Echo Heaven — IEEE Sight Tunisia</span>
+    <span class="footer-mission">"Every child deserves a safe shelter."</span>
+    <span>Powered by EfficientNet-B4 + Bi-LSTM</span>
+  </footer>
+
+  {% block extra_scripts %}
+    {% block extra_js %}{% endblock %}
+  {% endblock %}
+</body>
+</html>

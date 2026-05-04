@@ -1,0 +1,175 @@
+{% extends "detector/base.html" %}
+{% block title %}Dashboard — Echo Heaven{% endblock %}
+
+{% block content %}
+
+<!-- ── Hero ─────────────────────────────────────────────────────────────── -->
+<div class="hero-strip fade-up">
+  <h1>Child Safety <em>Intelligence</em> Dashboard</h1>
+  <p>Real-time violence & behavioral risk detection for children in shelters.
+     Powered by AI, built for caregivers.</p>
+</div>
+
+<!-- ── Stats ─────────────────────────────────────────────────────────────── -->
+<div class="stat-grid">
+  <div class="stat-block fade-up fade-up-1" style="--accent: var(--gold);">
+    <div class="stat-num">{{ stats.total }}</div>
+    <div class="stat-label">Total Analyses</div>
+  </div>
+  <div class="stat-block fade-up fade-up-2" style="--accent: var(--ember);">
+    <div class="stat-num">{{ stats.violent }}</div>
+    <div class="stat-label">Violent Incidents</div>
+  </div>
+  <div class="stat-block fade-up fade-up-3" style="--accent: var(--safe);">
+    <div class="stat-num">{{ stats.safe }}</div>
+    <div class="stat-label">Safe Videos</div>
+  </div>
+  <div class="stat-block fade-up fade-up-4" style="--accent: #c1440e;">
+    <div class="stat-num">{{ stats.high }}</div>
+    <div class="stat-label">High-Risk Alerts</div>
+  </div>
+</div>
+
+<!-- ── Quick Action ──────────────────────────────────────────────────────── -->
+<div style="display:grid; grid-template-columns: 1fr 2fr; gap:1.5rem; margin-bottom:2rem;">
+
+  <div class="card fade-up fade-up-1" style="display:flex; flex-direction:column; align-items:flex-start; gap:1rem;">
+    <div class="card-title">🎬 Analyze New Video</div>
+    <p style="font-size:.88rem; color:rgba(245,240,232,.55); line-height:1.6;">
+      Upload CCTV or shelter footage. Our EfficientNet-B4 + Bi-LSTM model 
+      classifies violent behaviors in seconds.
+    </p>
+    <a href="{% url 'upload' %}" class="btn btn-primary" style="margin-top:auto;">
+      � Upload Video
+    </a>
+  </div>
+
+  <!-- How it works -->
+  <div class="card fade-up fade-up-2">
+    <div class="card-title">⚡ How Echo Heaven Works</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:.5rem;">
+      {% for step in "1234" %}{% endfor %}
+      <div style="display:flex; gap:.75rem; align-items:flex-start;">
+        <div style="width:32px; height:32px; border-radius:8px; background:rgba(200,150,42,.15); border:1px solid rgba(200,150,42,.25); display:flex; align-items:center; justify-content:center; font-size:.9rem; flex-shrink:0;">📹</div>
+        <div>
+          <div style="font-size:.85rem; font-weight:600; color:var(--cream);">Upload Video</div>
+          <div style="font-size:.78rem; color:rgba(245,240,232,.45); margin-top:.2rem;">MP4, AVI, MOV, MKV supported</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:.75rem; align-items:flex-start;">
+        <div style="width:32px; height:32px; border-radius:8px; background:rgba(200,150,42,.15); border:1px solid rgba(200,150,42,.25); display:flex; align-items:center; justify-content:center; font-size:.9rem; flex-shrink:0;">🧠</div>
+        <div>
+          <div style="font-size:.85rem; font-weight:600; color:var(--cream);">AI Frame Analysis</div>
+          <div style="font-size:.78rem; color:rgba(245,240,232,.45); margin-top:.2rem;">16 frames extracted & processed</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:.75rem; align-items:flex-start;">
+        <div style="width:32px; height:32px; border-radius:8px; background:rgba(200,150,42,.15); border:1px solid rgba(200,150,42,.25); display:flex; align-items:center; justify-content:center; font-size:.9rem; flex-shrink:0;">📊</div>
+        <div>
+          <div style="font-size:.85rem; font-weight:600; color:var(--cream);">Risk Scoring</div>
+          <div style="font-size:.78rem; color:rgba(245,240,232,.45); margin-top:.2rem;">Violent probability 0–100%</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:.75rem; align-items:flex-start;">
+        <div style="width:32px; height:32px; border-radius:8px; background:rgba(200,150,42,.15); border:1px solid rgba(200,150,42,.25); display:flex; align-items:center; justify-content:center; font-size:.9rem; flex-shrink:0;">🚨</div>
+        <div>
+          <div style="font-size:.85rem; font-weight:600; color:var(--cream);">Alert Generation</div>
+          <div style="font-size:.78rem; color:rgba(245,240,232,.45); margin-top:.2rem;">Instant HIGH/MEDIUM/LOW alert</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Recent Analyses ────────────────────────────────────────────────────── -->
+<div class="card fade-up fade-up-3">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+    <div class="card-title" style="margin-bottom:0;">📋 Recent Analyses</div>
+    <a href="{% url 'history' %}" class="btn btn-ghost" style="padding:.4rem .9rem; font-size:.82rem;">View All</a>
+  </div>
+
+  {% if recent %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>File</th>
+        <th>Result</th>
+        <th>Risk</th>
+        <th>P(Violent)</th>
+        <th>Date</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for rec in recent %}
+      <tr>
+        <td>
+          <span class="mono" style="font-size:.82rem;">
+            {{ rec.original_filename|truncatechars:30 }}
+          </span>
+        </td>
+        <td>
+          {% if rec.alert %}
+            <span style="color:#ff7a5a; font-weight:600;">⚠ Violent</span>
+          {% else %}
+            <span style="color:#5ada8a; font-weight:600;">✓ Safe</span>
+          {% endif %}
+        </td>
+        <td>
+          <span class="badge badge-{{ rec.risk_level|lower }}">
+            {{ rec.risk_icon }} {{ rec.risk_level }}
+          </span>
+        </td>
+        <td>
+          <div style="display:flex; align-items:center; gap:.5rem; min-width:120px;">
+            <div class="prob-bar" style="flex:1;">
+              <div class="prob-fill {% if rec.alert %}prob-fill-violent{% else %}prob-fill-safe{% endif %}"
+                   style="width:{{ rec.prob_violent }}%"></div>
+            </div>
+            <span class="mono" style="font-size:.82rem; width:42px; text-align:right;">{{ rec.prob_violent }}%</span>
+          </div>
+        </td>
+        <td style="color:rgba(245,240,232,.45); font-size:.82rem;">
+          {{ rec.created_at|date:"M d, H:i" }}
+        </td>
+        <td>
+          <a href="{% url 'result' rec.pk %}" class="btn btn-ghost" style="padding:.3rem .7rem; font-size:.78rem;">
+            View
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div style="text-align:center; padding:3rem 0; color:rgba(245,240,232,.35);">
+    <div style="font-size:2.5rem; margin-bottom:.75rem;">🕊️</div>
+    <div style="font-family:'Cormorant Garamond',serif; font-size:1.2rem; color:rgba(245,240,232,.5);">
+      No analyses yet
+    </div>
+    <div style="font-size:.88rem; margin-top:.4rem;">Upload your first video to begin monitoring.</div>
+    <a href="{% url 'upload' %}" class="btn btn-primary" style="margin-top:1.25rem;">
+      📹 Analyze a Video
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- ── SDG strip ──────────────────────────────────────────────────────────── -->
+<div style="margin-top:2rem; display:flex; gap:1rem; flex-wrap:wrap;" class="fade-up fade-up-4">
+  <div style="padding:.5rem 1rem; border-radius:8px; background:rgba(229,36,59,.12); border:1px solid rgba(229,36,59,.25); font-size:.8rem; color:#ff9aaa; font-weight:600;">
+    SDG 10 · Reduced Inequalities
+  </div>
+  <div style="padding:.5rem 1rem; border-radius:8px; background:rgba(76,159,56,.12); border:1px solid rgba(76,159,56,.25); font-size:.8rem; color:#8fffaa; font-weight:600;">
+    SDG 3 · Good Health & Well-Being
+  </div>
+  <div style="padding:.5rem 1rem; border-radius:8px; background:rgba(253,105,37,.12); border:1px solid rgba(253,105,37,.25); font-size:.8rem; color:#ffc48a; font-weight:600;">
+    SDG 9 · Industry & Innovation
+  </div>
+  <div style="padding:.5rem 1rem; border-radius:8px; background:rgba(25,72,106,.3); border:1px solid rgba(25,72,106,.5); font-size:.8rem; color:#7abfff; font-weight:600;">
+    SDG 17 · Partnerships for Goals
+  </div>
+</div>
+
+{% endblock %}
