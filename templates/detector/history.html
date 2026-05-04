@@ -1,18 +1,18 @@
 {% extends "detector/base.html" %}
-{% block title %}Analysis History — Echo Heaven{% endblock %}
+{% block title %}Analysis History — ShelterCare AI{% endblock %}
 
 {% block content %}
 
 <div class="hero-strip fade-up">
   <h1>Analysis <em>History</em></h1>
-  <p>Complete record of all shelter footage analyzed by Echo Heaven.</p>
+  <p>Complete record of all shelter footage analyzed by ShelterCare AI.</p>
 </div>
 
 <div class="card fade-up fade-up-1">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
     <div class="card-title" style="margin-bottom:0;">
       📋 All Analyses
-      <span style="font-size:.85rem; font-weight:400; color:rgba(245,240,232,.4); margin-left:.5rem;">
+      <span style="font-size:.85rem; font-weight:400; color:var(--text-soft); margin-left:.5rem;">
         ({{ records|length }} records)
       </span>
     </div>
@@ -25,13 +25,13 @@
     <button class="btn btn-ghost filter-btn active" data-filter="all"
             style="padding:.35rem .85rem; font-size:.8rem;" onclick="filterTable('all')">All</button>
     <button class="btn filter-btn" data-filter="violent"
-            style="padding:.35rem .85rem; font-size:.8rem; background:rgba(193,68,14,.1); color:#ff9a7a; border:1px solid rgba(193,68,14,.25);"
+            style="padding:.35rem .85rem; font-size:.8rem; background:rgba(193,68,14,.1); color:#c1440e; border:1px solid rgba(193,68,14,.25);"
             onclick="filterTable('violent')">⚠ Violent</button>
     <button class="btn filter-btn" data-filter="safe"
-            style="padding:.35rem .85rem; font-size:.8rem; background:rgba(42,122,75,.1); color:#5ada8a; border:1px solid rgba(42,122,75,.25);"
+            style="padding:.35rem .85rem; font-size:.8rem; background:rgba(120,150,60,.1); color:#6d8a2a; border:1px solid rgba(120,150,60,.25);"
             onclick="filterTable('safe')">✓ Safe</button>
     <button class="btn filter-btn" data-filter="high"
-            style="padding:.35rem .85rem; font-size:.8rem; background:rgba(193,68,14,.1); color:#ff7a5a; border:1px solid rgba(193,68,14,.3);"
+            style="padding:.35rem .85rem; font-size:.8rem; background:rgba(193,68,14,.1); color:#c1440e; border:1px solid rgba(193,68,14,.3);"
             onclick="filterTable('high')">🚨 HIGH</button>
   </div>
 
@@ -51,17 +51,17 @@
     <tbody>
       {% for rec in records %}
       <tr data-label="{{ rec.label|lower }}" data-risk="{{ rec.risk_level|lower }}">
-        <td class="mono" style="font-size:.8rem; color:rgba(245,240,232,.4);">#{{ rec.pk }}</td>
+        <td class="mono" style="font-size:.8rem; color:var(--text-muted);">#{{ rec.pk }}</td>
         <td>
-          <span style="font-size:.85rem; color:var(--cream);">
+          <span style="font-size:.85rem; color:var(--text);">
             {{ rec.original_filename|truncatechars:35 }}
           </span>
         </td>
         <td>
           {% if rec.alert %}
-            <span style="color:#ff7a5a; font-weight:600; font-size:.88rem;">⚠ Violent</span>
+            <span style="color:#c1440e; font-weight:600; font-size:.88rem;">⚠ Violent</span>
           {% else %}
-            <span style="color:#5ada8a; font-weight:600; font-size:.88rem;">✓ Safe</span>
+            <span style="color:#6d8a2a; font-weight:600; font-size:.88rem;">✓ Safe</span>
           {% endif %}
         </td>
         <td>
@@ -81,7 +81,7 @@
           </div>
         </td>
         <td class="mono" style="font-size:.8rem;">{{ rec.confidence }}%</td>
-        <td style="color:rgba(245,240,232,.4); font-size:.82rem; white-space:nowrap;">
+        <td style="color:var(--text-soft); font-size:.82rem; white-space:nowrap;">
           {{ rec.created_at|date:"M d, Y" }}<br>
           <span style="font-size:.78rem;">{{ rec.created_at|date:"H:i" }}</span>
         </td>
@@ -96,12 +96,12 @@
     </tbody>
   </table>
   {% else %}
-  <div style="text-align:center; padding:4rem 0; color:rgba(245,240,232,.35);">
+  <div style="text-align:center; padding:4rem 0; color:var(--text-soft);">
     <div style="font-size:3rem; margin-bottom:1rem;">🕊️</div>
-    <div style="font-family:'Cormorant Garamond',serif; font-size:1.4rem; color:rgba(245,240,232,.5);">
+    <div style="font-family:'Cormorant Garamond',serif; font-size:1.4rem; color:var(--text-soft);">
       No analyses on record
     </div>
-    <div style="font-size:.9rem; margin-top:.5rem;">Start by uploading shelter footage for analysis.</div>
+    <div style="font-size:.9rem; margin-top:.5rem; color:var(--text-muted);">Start by uploading shelter footage for analysis.</div>
     <a href="{% url 'upload' %}" class="btn btn-primary" style="margin-top:1.5rem;">📹 Analyze Now</a>
   </div>
   {% endif %}

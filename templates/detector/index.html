@@ -1,5 +1,5 @@
 {% extends "detector/base.html" %}
-{% block title %}Dashboard — Echo Heaven{% endblock %}
+{% block title %}Dashboard — ShelterCare AI{% endblock %}
 
 {% block content %}
 
@@ -16,15 +16,15 @@
     <div class="stat-num">{{ stats.total }}</div>
     <div class="stat-label">Total Analyses</div>
   </div>
-  <div class="stat-block fade-up fade-up-2" style="--accent: var(--ember);">
+  <div class="stat-block fade-up fade-up-2" style="--accent: #c1440e;">
     <div class="stat-num">{{ stats.violent }}</div>
     <div class="stat-label">Violent Incidents</div>
   </div>
-  <div class="stat-block fade-up fade-up-3" style="--accent: var(--safe);">
+  <div class="stat-block fade-up fade-up-3" style="--accent: #6d8a2a;">
     <div class="stat-num">{{ stats.safe }}</div>
     <div class="stat-label">Safe Videos</div>
   </div>
-  <div class="stat-block fade-up fade-up-4" style="--accent: #c1440e;">
+  <div class="stat-block fade-up fade-up-4" style="--accent: #8C5E1E;">
     <div class="stat-num">{{ stats.high }}</div>
     <div class="stat-label">High-Risk Alerts</div>
   </div>
@@ -35,46 +35,46 @@
 
   <div class="card fade-up fade-up-1" style="display:flex; flex-direction:column; align-items:flex-start; gap:1rem;">
     <div class="card-title">🎬 Analyze New Video</div>
-    <p style="font-size:.88rem; color:rgba(245,240,232,.55); line-height:1.6;">
+    <p style="font-size:.88rem; color:var(--text-soft); line-height:1.6;">
       Upload CCTV or shelter footage. Our EfficientNet-B4 + Bi-LSTM model 
       classifies violent behaviors in seconds.
     </p>
     <a href="{% url 'upload' %}" class="btn btn-primary" style="margin-top:auto;">
-      � Upload Video
+      📹 Upload Video
     </a>
   </div>
 
   <!-- How it works -->
   <div class="card fade-up fade-up-2">
-    <div class="card-title">⚡ How Echo Heaven Works</div>
+    <div class="card-title">⚡ How ShelterCare Works</div>
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:.5rem;">
       {% for step in "1234" %}{% endfor %}
       <div style="display:flex; gap:.75rem; align-items:flex-start;">
-        <div style="width:32px; height:32px; border-radius:8px; background:rgba(200,150,42,.15); border:1px solid rgba(200,150,42,.25); display:flex; align-items:center; justify-content:center; font-size:.9rem; flex-shrink:0;">📹</div>
+        <div style="width:32px; height:32px; border-radius:8px; background:rgba(196,150,60,.12); border:1px solid rgba(196,150,60,.2); display:flex; align-items:center; justify-content:center; font-size:.9rem; flex-shrink:0;">📹</div>
         <div>
-          <div style="font-size:.85rem; font-weight:600; color:var(--cream);">Upload Video</div>
-          <div style="font-size:.78rem; color:rgba(245,240,232,.45); margin-top:.2rem;">MP4, AVI, MOV, MKV supported</div>
+          <div style="font-size:.85rem; font-weight:600; color:var(--brown-deep);">Upload Video</div>
+          <div style="font-size:.78rem; color:var(--text-soft); margin-top:.2rem;">MP4, AVI, MOV, MKV supported</div>
         </div>
       </div>
       <div style="display:flex; gap:.75rem; align-items:flex-start;">
-        <div style="width:32px; height:32px; border-radius:8px; background:rgba(200,150,42,.15); border:1px solid rgba(200,150,42,.25); display:flex; align-items:center; justify-content:center; font-size:.9rem; flex-shrink:0;">🧠</div>
+        <div style="width:32px; height:32px; border-radius:8px; background:rgba(196,150,60,.12); border:1px solid rgba(196,150,60,.2); display:flex; align-items:center; justify-content:center; font-size:.9rem; flex-shrink:0;">🧠</div>
         <div>
-          <div style="font-size:.85rem; font-weight:600; color:var(--cream);">AI Frame Analysis</div>
-          <div style="font-size:.78rem; color:rgba(245,240,232,.45); margin-top:.2rem;">16 frames extracted & processed</div>
+          <div style="font-size:.85rem; font-weight:600; color:var(--brown-deep);">AI Frame Analysis</div>
+          <div style="font-size:.78rem; color:var(--text-soft); margin-top:.2rem;">16 frames extracted & processed</div>
         </div>
       </div>
       <div style="display:flex; gap:.75rem; align-items:flex-start;">
-        <div style="width:32px; height:32px; border-radius:8px; background:rgba(200,150,42,.15); border:1px solid rgba(200,150,42,.25); display:flex; align-items:center; justify-content:center; font-size:.9rem; flex-shrink:0;">📊</div>
+        <div style="width:32px; height:32px; border-radius:8px; background:rgba(196,150,60,.12); border:1px solid rgba(196,150,60,.2); display:flex; align-items:center; justify-content:center; font-size:.9rem; flex-shrink:0;">📊</div>
         <div>
-          <div style="font-size:.85rem; font-weight:600; color:var(--cream);">Risk Scoring</div>
-          <div style="font-size:.78rem; color:rgba(245,240,232,.45); margin-top:.2rem;">Violent probability 0–100%</div>
+          <div style="font-size:.85rem; font-weight:600; color:var(--brown-deep);">Risk Scoring</div>
+          <div style="font-size:.78rem; color:var(--text-soft); margin-top:.2rem;">Violent probability 0–100%</div>
         </div>
       </div>
       <div style="display:flex; gap:.75rem; align-items:flex-start;">
-        <div style="width:32px; height:32px; border-radius:8px; background:rgba(200,150,42,.15); border:1px solid rgba(200,150,42,.25); display:flex; align-items:center; justify-content:center; font-size:.9rem; flex-shrink:0;">🚨</div>
+        <div style="width:32px; height:32px; border-radius:8px; background:rgba(196,150,60,.12); border:1px solid rgba(196,150,60,.2); display:flex; align-items:center; justify-content:center; font-size:.9rem; flex-shrink:0;">🚨</div>
         <div>
-          <div style="font-size:.85rem; font-weight:600; color:var(--cream);">Alert Generation</div>
-          <div style="font-size:.78rem; color:rgba(245,240,232,.45); margin-top:.2rem;">Instant HIGH/MEDIUM/LOW alert</div>
+          <div style="font-size:.85rem; font-weight:600; color:var(--brown-deep);">Alert Generation</div>
+          <div style="font-size:.78rem; color:var(--text-soft); margin-top:.2rem;">Instant HIGH/MEDIUM/LOW alert</div>
         </div>
       </div>
     </div>
@@ -111,9 +111,9 @@
         </td>
         <td>
           {% if rec.alert %}
-            <span style="color:#ff7a5a; font-weight:600;">⚠ Violent</span>
+            <span style="color:#c1440e; font-weight:600;">⚠ Violent</span>
           {% else %}
-            <span style="color:#5ada8a; font-weight:600;">✓ Safe</span>
+            <span style="color:#6d8a2a; font-weight:600;">✓ Safe</span>
           {% endif %}
         </td>
         <td>
@@ -130,7 +130,7 @@
             <span class="mono" style="font-size:.82rem; width:42px; text-align:right;">{{ rec.prob_violent }}%</span>
           </div>
         </td>
-        <td style="color:rgba(245,240,232,.45); font-size:.82rem;">
+        <td style="color:var(--text-soft); font-size:.82rem;">
           {{ rec.created_at|date:"M d, H:i" }}
         </td>
         <td>
@@ -143,12 +143,12 @@
     </tbody>
   </table>
   {% else %}
-  <div style="text-align:center; padding:3rem 0; color:rgba(245,240,232,.35);">
+  <div style="text-align:center; padding:3rem 0; color:var(--text-soft);">
     <div style="font-size:2.5rem; margin-bottom:.75rem;">🕊️</div>
-    <div style="font-family:'Cormorant Garamond',serif; font-size:1.2rem; color:rgba(245,240,232,.5);">
+    <div style="font-family:'Cormorant Garamond',serif; font-size:1.2rem; color:var(--text-soft);">
       No analyses yet
     </div>
-    <div style="font-size:.88rem; margin-top:.4rem;">Upload your first video to begin monitoring.</div>
+    <div style="font-size:.88rem; margin-top:.4rem; color:var(--text-muted);">Upload your first video to begin monitoring.</div>
     <a href="{% url 'upload' %}" class="btn btn-primary" style="margin-top:1.25rem;">
       📹 Analyze a Video
     </a>

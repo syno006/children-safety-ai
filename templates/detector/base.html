@@ -4,37 +4,68 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}Echo Heaven — Child Safety Monitor{% endblock %}</title>
+  <title>{% block title %}ShelterCare AI — Violence Detection Monitor{% endblock %}</title>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
   <style>
     /* ═══════════════════════════════════════════════════════════════
-       ECHO HEAVEN — Design System
-       Palette: deep navy / warm cream / ember red / guardian gold
+       SHELTERCARE AI — Design System (Warm Earth Palette)
+       Palette: ivory / cream / sand / gold / brown
     ═══════════════════════════════════════════════════════════════ */
     :root {
-      --navy:      #0d1b2a;
-      --navy-mid:  #162032;
-      --navy-soft: #1e2f46;
-      --cream:     #f5f0e8;
-      --cream-dim: #e8e0d0;
-      --ember:     #c1440e;
-      --ember-lt:  #e05a28;
-      --gold:      #c8962a;
-      --gold-lt:   #e8b84b;
-      --safe:      #2a7a4b;
-      --safe-lt:   #3daa68;
-      --medium:    #b86a10;
-      --text:      #1a1a2e;
-      --text-mid:  #4a4a6a;
-      --text-soft: #7a7a9a;
-      --radius:    12px;
-      --radius-lg: 20px;
-      --shadow:    0 4px 24px rgba(13,27,42,.18);
-      --shadow-lg: 0 12px 48px rgba(13,27,42,.28);
+      /* Warm earth palette */
+      --ivory:        #FAF6EF;
+      --cream:        #F5EDD8;
+      --sand-light:   #EDD9B4;
+      --sand:         #D9BB8A;
+      --gold:         #C4963C;
+      --gold-deep:    #A87B2A;
+      --amber:        #8C5E1E;
+      --brown-light:  #7A5230;
+      --brown:        #5E3D22;
+      --brown-deep:   #432B16;
+      --brown-dark:   #2D1D0F;
+
+      /* Semantic */
+      --bg:           var(--ivory);
+      --surface:      #FFFCF5;
+      --surface-2:    #FDF7EA;
+      --border:       rgba(196,150,60,0.18);
+      --border-soft:  rgba(196,150,60,0.10);
+      --text:         var(--brown-deep);
+      --text-soft:    var(--brown-light);
+      --text-muted:   var(--amber);
+      --accent:       var(--gold);
+      --accent-deep:  var(--gold-deep);
+
+      /* Shadows */
+      --shadow-xs:  0 1px 3px rgba(67,43,22,.06);
+      --shadow-sm:  0 2px 8px rgba(67,43,22,.08);
+      --shadow-md:  0 6px 20px rgba(67,43,22,.11);
+      --shadow-lg:  0 16px 48px rgba(67,43,22,.14);
+      --shadow-xl:  0 32px 80px rgba(67,43,22,.16);
+
+      /* Radii */
+      --r-sm:   10px;
+      --r-md:   16px;
+      --r-lg:   24px;
+      --r-xl:   36px;
+      --r-full: 9999px;
+
+      /* Gradients */
+      --grad-gold:   linear-gradient(135deg, #D4A84B 0%, #A87B2A 100%);
+      --grad-brown:  linear-gradient(135deg, #7A5230 0%, #432B16 100%);
+      --grad-warm:   linear-gradient(160deg, #FAF6EF 0%, #F0E3C4 100%);
+      --grad-card:   linear-gradient(160deg, #FFFCF5 0%, #FDF5E5 100%);
+      --grad-hero:   linear-gradient(140deg, #432B16 0%, #2D1D0F 60%, #5E3D22 100%);
+
+      /* Transitions */
+      --ease: cubic-bezier(.22,.68,0,1.2);
       --transition: .28s cubic-bezier(.4,0,.2,1);
     }
 
@@ -44,22 +75,18 @@
 
     body {
       font-family: 'DM Sans', sans-serif;
-      background: var(--navy);
-      color: var(--cream);
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
       overflow-x: hidden;
     }
 
-    /* ── Animated background grain ── */
+    /* ── Texture overlay ── */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
-      background-image:
-        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(200,150,42,.07) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 80% at 80% 80%, rgba(193,68,14,.06) 0%, transparent 60%),
-        url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-      background-size: cover, cover, 200px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E");
       pointer-events: none;
       z-index: 0;
     }
@@ -74,9 +101,9 @@
       justify-content: space-between;
       padding: 0 2.5rem;
       height: 68px;
-      background: rgba(13,27,42,.88);
+      background: rgba(250,246,239,.88);
       backdrop-filter: blur(16px);
-      border-bottom: 1px solid rgba(200,150,42,.15);
+      border-bottom: 1px solid var(--border-soft);
     }
 
     .nav-brand {
@@ -87,25 +114,27 @@
     }
 
     .nav-brand-icon {
-      width: 36px;
-      height: 36px;
-      background: linear-gradient(135deg, var(--gold) 0%, var(--ember) 100%);
-      border-radius: 10px;
+      width: 46px;
+      height: 46px;
+      background: var(--grad-gold);
+      border-radius: var(--r-md);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
+      color: white;
+      box-shadow: 0 4px 16px rgba(196,150,60,.35);
     }
 
     .nav-brand-text {
       font-family: 'Cormorant Garamond', serif;
       font-size: 1.35rem;
       font-weight: 700;
-      color: var(--cream);
+      color: var(--brown-deep);
       letter-spacing: .03em;
     }
 
-    .nav-brand-text span { color: var(--gold-lt); }
+    .nav-brand-text span { color: var(--gold); }
 
     .nav-links {
       display: flex;
@@ -118,10 +147,10 @@
       align-items: center;
       gap: .4rem;
       padding: .45rem .9rem;
-      border-radius: 8px;
+      border-radius: var(--r-md);
       font-size: .88rem;
       font-weight: 500;
-      color: rgba(245,240,232,.65);
+      color: var(--text-soft);
       text-decoration: none;
       transition: var(--transition);
       letter-spacing: .02em;
@@ -129,21 +158,22 @@
 
     .nav-links a:hover,
     .nav-links a.active {
-      background: rgba(200,150,42,.12);
-      color: var(--gold-lt);
+      background: rgba(196,150,60,.12);
+      color: var(--gold);
     }
 
     .nav-badge {
       display: inline-flex;
       align-items: center;
       padding: .2rem .6rem;
-      background: linear-gradient(135deg, var(--ember) 0%, var(--ember-lt) 100%);
-      border-radius: 20px;
+      background: var(--grad-gold);
+      border-radius: var(--r-full);
       font-size: .7rem;
       font-weight: 700;
       color: #fff;
       letter-spacing: .06em;
       text-transform: uppercase;
+      box-shadow: 0 4px 12px rgba(196,150,60,.3);
     }
 
     /* ── Layout ────────────────────────────────────────────────── */
@@ -165,47 +195,50 @@
       font-size: clamp(2rem, 5vw, 3.2rem);
       font-weight: 700;
       line-height: 1.15;
-      color: var(--cream);
+      color: var(--brown-deep);
     }
 
     .hero-strip h1 em {
       font-style: italic;
-      color: var(--gold-lt);
+      color: var(--gold);
     }
 
     .hero-strip p {
       margin-top: .6rem;
       font-size: .97rem;
-      color: rgba(245,240,232,.6);
+      color: var(--text-soft);
       max-width: 560px;
       line-height: 1.65;
     }
 
     /* ── Cards ──────────────────────────────────────────────────── */
     .card {
-      background: rgba(22,32,50,.8);
-      border: 1px solid rgba(200,150,42,.12);
-      border-radius: var(--radius-lg);
+      background: var(--grad-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-xl);
       padding: 2rem;
-      backdrop-filter: blur(8px);
       transition: var(--transition);
     }
 
     .card:hover {
-      border-color: rgba(200,150,42,.25);
+      border-color: rgba(196,150,60,.25);
       transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
+      box-shadow: var(--shadow-md);
     }
 
     .card-title {
       font-family: 'Cormorant Garamond', serif;
       font-size: 1.3rem;
       font-weight: 700;
-      color: var(--cream);
+      color: var(--brown-deep);
       margin-bottom: .8rem;
       display: flex;
       align-items: center;
       gap: .5rem;
+    }
+
+    .card p {
+      color: var(--text-soft);
     }
 
     /* ── Stat blocks ─────────────────────────────────────────────── */
@@ -217,9 +250,9 @@
     }
 
     .stat-block {
-      background: rgba(22,32,50,.9);
-      border: 1px solid rgba(200,150,42,.1);
-      border-radius: var(--radius);
+      background: var(--surface);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--r-lg);
       padding: 1.25rem 1.5rem;
       position: relative;
       overflow: hidden;
@@ -237,14 +270,14 @@
       font-family: 'DM Mono', monospace;
       font-size: 2rem;
       font-weight: 500;
-      color: var(--gold-lt);
+      color: var(--gold);
       line-height: 1;
     }
 
     .stat-label {
       margin-top: .4rem;
       font-size: .8rem;
-      color: rgba(245,240,232,.5);
+      color: var(--text-soft);
       letter-spacing: .05em;
       text-transform: uppercase;
     }
@@ -255,7 +288,7 @@
       align-items: center;
       gap: .5rem;
       padding: .65rem 1.4rem;
-      border-radius: 10px;
+      border-radius: var(--r-full);
       font-size: .9rem;
       font-weight: 500;
       cursor: pointer;
@@ -263,32 +296,41 @@
       text-decoration: none;
       transition: var(--transition);
       letter-spacing: .02em;
+      font-family: 'DM Sans', sans-serif;
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, var(--gold) 0%, var(--ember) 100%);
+      background: var(--grad-gold);
       color: #fff;
-      box-shadow: 0 4px 16px rgba(193,68,14,.3);
+      box-shadow: 0 4px 16px rgba(196,150,60,.3);
     }
 
     .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(193,68,14,.4);
+      box-shadow: 0 8px 24px rgba(196,150,60,.4);
     }
 
     .btn-ghost {
-      background: rgba(200,150,42,.1);
-      color: var(--gold-lt);
-      border: 1px solid rgba(200,150,42,.2);
+      background: transparent;
+      color: var(--text-soft);
+      border: 1.5px solid var(--border);
     }
 
     .btn-ghost:hover {
-      background: rgba(200,150,42,.2);
+      background: rgba(196,150,60,.08);
+      color: var(--gold);
+      border-color: var(--gold);
     }
 
     .btn-danger {
-      background: linear-gradient(135deg, #9b1a1a 0%, var(--ember) 100%);
+      background: linear-gradient(135deg, #c1440e 0%, #e05a28 100%);
       color: #fff;
+      box-shadow: 0 4px 16px rgba(193,68,14,.3);
+    }
+
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(193,68,14,.4);
     }
 
     /* ── Risk badges ─────────────────────────────────────────────── */
@@ -297,23 +339,23 @@
       align-items: center;
       gap: .35rem;
       padding: .25rem .75rem;
-      border-radius: 20px;
+      border-radius: var(--r-full);
       font-size: .78rem;
       font-weight: 600;
       letter-spacing: .05em;
       text-transform: uppercase;
     }
 
-    .badge-high   { background: rgba(193,68,14,.2);  color: #ff7a5a; border: 1px solid rgba(193,68,14,.35); }
-    .badge-medium { background: rgba(200,130,0,.2);  color: #ffc05a; border: 1px solid rgba(200,130,0,.35); }
-    .badge-low    { background: rgba(42,122,75,.2);  color: #5ada8a; border: 1px solid rgba(42,122,75,.35);  }
-    .badge-safe   { background: rgba(42,122,75,.15); color: #4dba74; border: 1px solid rgba(42,122,75,.25);  }
+    .badge-high   { background: rgba(193,68,14,.15);  color: #c1440e; border: 1px solid rgba(193,68,14,.35); }
+    .badge-medium { background: rgba(196,150,60,.15); color: var(--gold-deep); border: 1px solid rgba(196,150,60,.35); }
+    .badge-low    { background: rgba(120,150,60,.15); color: #6d8a2a; border: 1px solid rgba(120,150,60,.35);  }
+    .badge-safe   { background: rgba(120,150,60,.1);  color: #6d8a2a; border: 1px solid rgba(120,150,60,.25);  }
 
     /* ── Progress bar ────────────────────────────────────────────── */
     .prob-bar {
       height: 8px;
       border-radius: 4px;
-      background: rgba(255,255,255,.08);
+      background: rgba(196,150,60,.1);
       overflow: hidden;
       margin-top: .4rem;
     }
@@ -321,11 +363,11 @@
     .prob-fill {
       height: 100%;
       border-radius: 4px;
-      transition: width .8s cubic-bezier(.4,0,.2,1);
+      transition: width .8s var(--ease);
     }
 
-    .prob-fill-violent { background: linear-gradient(90deg, var(--ember) 0%, #ff6b6b 100%); }
-    .prob-fill-safe    { background: linear-gradient(90deg, var(--safe)  0%, var(--safe-lt) 100%); }
+    .prob-fill-violent { background: linear-gradient(90deg, #c1440e 0%, #e05a28 100%); }
+    .prob-fill-safe    { background: linear-gradient(90deg, #6d8a2a 0%, #8aa83a 100%); }
 
     /* ── Table ───────────────────────────────────────────────────── */
     .data-table {
@@ -337,23 +379,23 @@
     .data-table th {
       text-align: left;
       padding: .75rem 1rem;
-      color: rgba(245,240,232,.45);
+      color: var(--text-soft);
       font-size: .75rem;
       letter-spacing: .07em;
       text-transform: uppercase;
-      border-bottom: 1px solid rgba(200,150,42,.1);
+      border-bottom: 1px solid var(--border-soft);
       font-weight: 500;
     }
 
     .data-table td {
       padding: .9rem 1rem;
-      border-bottom: 1px solid rgba(255,255,255,.04);
-      color: rgba(245,240,232,.85);
+      border-bottom: 1px solid rgba(196,150,60,.08);
+      color: var(--text);
       vertical-align: middle;
     }
 
     .data-table tr:last-child td { border-bottom: none; }
-    .data-table tr:hover td { background: rgba(200,150,42,.04); }
+    .data-table tr:hover td { background: rgba(196,150,60,.05); }
 
     .mono { font-family: 'DM Mono', monospace; font-size: .85em; }
 
@@ -372,13 +414,13 @@
     .alert-danger {
       background: rgba(193,68,14,.15);
       border: 1px solid rgba(193,68,14,.35);
-      color: #ffbba0;
+      color: #c1440e;
     }
 
     .alert-success {
-      background: rgba(42,122,75,.15);
-      border: 1px solid rgba(42,122,75,.35);
-      color: #a0ffbf;
+      background: rgba(120,150,60,.15);
+      border: 1px solid rgba(120,150,60,.35);
+      color: #6d8a2a;
     }
 
     /* ── Animations ──────────────────────────────────────────────── */
@@ -388,8 +430,8 @@
     }
 
     @keyframes pulse-glow {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(193,68,14,.4); }
-      50%       { box-shadow: 0 0 0 16px rgba(193,68,14,0); }
+      0%, 100% { box-shadow: 0 0 0 0 rgba(196,150,60,.4); }
+      50%       { box-shadow: 0 0 0 16px rgba(196,150,60,0); }
     }
 
     .pulse { animation: pulse-glow 2s infinite; }
@@ -407,13 +449,13 @@
 
     /* ── Scrollbar ───────────────────────────────────────────────── */
     ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: var(--navy); }
-    ::-webkit-scrollbar-thumb { background: rgba(200,150,42,.3); border-radius: 3px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: rgba(196,150,60,.3); border-radius: 3px; }
 
     /* ── Divider ─────────────────────────────────────────────────── */
     .divider {
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(200,150,42,.2), transparent);
+      background: linear-gradient(90deg, transparent, rgba(196,150,60,.2), transparent);
       margin: 2rem 0;
     }
 
@@ -421,19 +463,19 @@
     .footer {
       margin-top: 4rem;
       padding: 1.5rem 2.5rem;
-      border-top: 1px solid rgba(200,150,42,.1);
+      border-top: 1px solid var(--border-soft);
       display: flex;
       align-items: center;
       justify-content: space-between;
       font-size: .8rem;
-      color: rgba(245,240,232,.3);
+      color: var(--text-muted);
     }
 
     .footer-mission {
       font-family: 'Cormorant Garamond', serif;
       font-style: italic;
       font-size: .95rem;
-      color: rgba(200,150,42,.5);
+      color: var(--text-soft);
     }
   </style>
 
@@ -444,18 +486,23 @@
   <!-- ── Navbar ──────────────────────────────────────────────────────────── -->
   <nav class="navbar">
     <a href="{% url 'index' %}" class="nav-brand">
-      <div class="nav-brand-icon">🕊️</div>
-      <span class="nav-brand-text">Echo <span>Heaven</span></span>
+      <div class="nav-brand-icon">🛡️</div>
+      <span class="nav-brand-text">Shelter<span>Care</span></span>
     </a>
 
     <ul class="nav-links">
       <li><a href="{% url 'index' %}"     class="{% if request.resolver_match.url_name == 'index'     %}active{% endif %}">📊 Dashboard</a></li>
       <li><a href="{% url 'upload' %}"    class="{% if request.resolver_match.url_name == 'upload'    %}active{% endif %}">📹 Analyze</a></li>
       <li><a href="{% url 'history' %}"   class="{% if request.resolver_match.url_name == 'history'   %}active{% endif %}">📋 History</a></li>
-      <li><a href="{% url 'detection' %}" class="{% if request.resolver_match.url_name == 'detection' %}active{% endif %}">🤖 Détection</a></li>
+      <li><a href="{% url 'detection' %}" class="{% if request.resolver_match.url_name == 'detection' %}active{% endif %}">🤖 Detection</a></li>
+      <li>
+        <a href="/" style="border: 1.5px solid rgba(196,150,60,.35); background: rgba(196,150,60,.06);">
+          🏠 Main App
+        </a>
+      </li>
     </ul>
 
-    <div class="nav-badge">AI Monitoring</div>
+    <div class="nav-badge">AI Monitor</div>
   </nav>
 
   <!-- ── Page Content ────────────────────────────────────────────────────── -->
@@ -465,7 +512,7 @@
 
   <!-- ── Footer ──────────────────────────────────────────────────────────── -->
   <footer class="footer">
-    <span>© 2025 Echo Heaven — IEEE Sight Tunisia</span>
+    <span>© 2025 ShelterCare AI — Protection des enfants</span>
     <span class="footer-mission">"Every child deserves a safe shelter."</span>
     <span>Powered by EfficientNet-B4 + Bi-LSTM</span>
   </footer>

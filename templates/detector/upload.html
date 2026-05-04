@@ -1,23 +1,23 @@
 {% extends "detector/base.html" %}
-{% block title %}Analyze Video — Echo Heaven{% endblock %}
+{% block title %}Analyze Video — ShelterCare AI{% endblock %}
 
 {% block extra_head %}
 <style>
   .upload-zone {
-    border: 2px dashed rgba(200,150,42,.3);
-    border-radius: var(--radius-lg);
+    border: 2px dashed var(--border);
+    border-radius: var(--r-lg);
     padding: 3.5rem 2rem;
     text-align: center;
     cursor: pointer;
     transition: var(--transition);
-    background: rgba(22,32,50,.5);
+    background: rgba(196,150,60,.04);
     position: relative;
   }
 
   .upload-zone:hover,
   .upload-zone.drag-over {
     border-color: var(--gold);
-    background: rgba(200,150,42,.07);
+    background: rgba(196,150,60,.08);
     transform: scale(1.01);
   }
 
@@ -34,7 +34,7 @@
     font-size: 3.5rem;
     margin-bottom: 1rem;
     display: block;
-    filter: drop-shadow(0 4px 12px rgba(200,150,42,.3));
+    filter: drop-shadow(0 4px 12px rgba(196,150,60,.2));
     animation: float 3s ease-in-out infinite;
   }
 
@@ -49,30 +49,30 @@
     gap: 1rem;
     margin-top: 1.25rem;
     padding: 1rem 1.25rem;
-    background: rgba(200,150,42,.08);
-    border: 1px solid rgba(200,150,42,.2);
-    border-radius: var(--radius);
+    background: rgba(196,150,60,.08);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
   }
 
   .file-preview.visible { display: flex; }
 
   .file-icon {
     width: 44px; height: 44px;
-    background: linear-gradient(135deg, var(--gold), var(--ember));
-    border-radius: 10px;
+    background: var(--grad-gold);
+    border-radius: var(--r-sm);
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.3rem; flex-shrink: 0;
+    font-size: 1.3rem; flex-shrink: 0; color: white;
   }
 
   .file-info { flex: 1; text-align: left; }
-  .file-name { font-weight: 600; font-size: .9rem; color: var(--cream); }
-  .file-size { font-size: .78rem; color: rgba(245,240,232,.45); margin-top: .2rem; }
+  .file-name { font-weight: 600; font-size: .9rem; color: var(--brown-deep); }
+  .file-size { font-size: .78rem; color: var(--text-soft); margin-top: .2rem; }
 
   .progress-bar {
     display: none;
     height: 6px;
     border-radius: 3px;
-    background: rgba(255,255,255,.08);
+    background: rgba(196,150,60,.15);
     overflow: hidden;
     margin-top: 1.25rem;
   }
@@ -82,7 +82,7 @@
   .progress-fill {
     height: 100%;
     border-radius: 3px;
-    background: linear-gradient(90deg, var(--gold), var(--ember));
+    background: var(--grad-gold);
     width: 0%;
     transition: width .3s ease;
     animation: shimmer 1.5s infinite;
@@ -98,7 +98,7 @@
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(13,27,42,.85);
+    background: rgba(45,29,15,.85);
     backdrop-filter: blur(8px);
     z-index: 200;
     flex-direction: column;
@@ -111,7 +111,7 @@
 
   .spinner {
     width: 64px; height: 64px;
-    border: 3px solid rgba(200,150,42,.2);
+    border: 3px solid rgba(196,150,60,.2);
     border-top-color: var(--gold);
     border-radius: 50%;
     animation: spin 1s linear infinite;
@@ -127,7 +127,7 @@
 
   .analyzing-sub {
     font-size: .88rem;
-    color: rgba(245,240,232,.5);
+    color: var(--text-soft);
   }
 </style>
 {% endblock %}
@@ -161,18 +161,18 @@
       <div class="upload-zone" id="dropZone">
         <input type="file" name="video" id="videoInput" accept=".mp4,.avi,.mov,.mkv,.webm" required />
         <span class="upload-icon">🎬</span>
-        <div style="font-family:'Cormorant Garamond',serif; font-size:1.4rem; color:var(--cream); margin-bottom:.5rem;">
+        <div style="font-family:'Cormorant Garamond',serif; font-size:1.4rem; color:var(--brown-deep); margin-bottom:.5rem;">
           Drop your video here
         </div>
-        <div style="font-size:.88rem; color:rgba(245,240,232,.45);">
+        <div style="font-size:.88rem; color:var(--text-soft);">
           or click to browse files
         </div>
         <div style="margin-top:1rem; display:flex; gap:.5rem; justify-content:center; flex-wrap:wrap;">
-          <span style="padding:.2rem .6rem; border-radius:6px; background:rgba(255,255,255,.06); font-size:.75rem; font-family:'DM Mono',monospace; color:rgba(245,240,232,.4);">MP4</span>
-          <span style="padding:.2rem .6rem; border-radius:6px; background:rgba(255,255,255,.06); font-size:.75rem; font-family:'DM Mono',monospace; color:rgba(245,240,232,.4);">AVI</span>
-          <span style="padding:.2rem .6rem; border-radius:6px; background:rgba(255,255,255,.06); font-size:.75rem; font-family:'DM Mono',monospace; color:rgba(245,240,232,.4);">MOV</span>
-          <span style="padding:.2rem .6rem; border-radius:6px; background:rgba(255,255,255,.06); font-size:.75rem; font-family:'DM Mono',monospace; color:rgba(245,240,232,.4);">MKV</span>
-          <span style="padding:.2rem .6rem; border-radius:6px; background:rgba(255,255,255,.06); font-size:.75rem; font-family:'DM Mono',monospace; color:rgba(245,240,232,.4);">WEBM</span>
+          <span style="padding:.2rem .6rem; border-radius:6px; background:rgba(196,150,60,.08); font-size:.75rem; font-family:'DM Mono',monospace; color:var(--text-muted);">MP4</span>
+          <span style="padding:.2rem .6rem; border-radius:6px; background:rgba(196,150,60,.08); font-size:.75rem; font-family:'DM Mono',monospace; color:var(--text-muted);">AVI</span>
+          <span style="padding:.2rem .6rem; border-radius:6px; background:rgba(196,150,60,.08); font-size:.75rem; font-family:'DM Mono',monospace; color:var(--text-muted);">MOV</span>
+          <span style="padding:.2rem .6rem; border-radius:6px; background:rgba(196,150,60,.08); font-size:.75rem; font-family:'DM Mono',monospace; color:var(--text-muted);">MKV</span>
+          <span style="padding:.2rem .6rem; border-radius:6px; background:rgba(196,150,60,.08); font-size:.75rem; font-family:'DM Mono',monospace; color:var(--text-muted);">WEBM</span>
         </div>
       </div>
 
@@ -183,7 +183,7 @@
           <div class="file-name" id="fileName">—</div>
           <div class="file-size" id="fileSize">—</div>
         </div>
-        <button type="button" id="clearFile" style="background:none;border:none;color:rgba(245,240,232,.4);cursor:pointer;font-size:1.2rem;">✕</button>
+        <button type="button" id="clearFile" style="background:none;border:none;color:var(--text-soft);cursor:pointer;font-size:1.2rem;">✕</button>
       </div>
 
       <div class="progress-bar" id="progressBar">
