@@ -3,124 +3,190 @@
 {% block title %}Analyse des Blessures — ShelterCare AI{% endblock %}
 
 {% block page_title %}Analyse des Blessures{% endblock %}
-{% block page_subtitle %}Classification · Détection · Segmentation par IA{% endblock %}
+{% block page_subtitle %}Classification · Détection · Segmentation · Vidéo par IA{% endblock %}
 
 {% block extra_css %}
-/* ── Hero banner ──────────────────────────────────────────── */
+
+/* ══════════════════════════════════════════════════════════
+   HERO BANNER
+══════════════════════════════════════════════════════════ */
 .blessures-hero {
     background: var(--grad-hero);
     border-radius: var(--r-xl);
-    padding: 2.5rem 2rem 2.25rem;
-    margin-bottom: 1.5rem;
+    padding: 2.75rem 2.5rem 2.5rem;
+    margin-bottom: 1.75rem;
     position: relative;
     overflow: hidden;
 }
+
+/* Decorative rings */
 .blessures-hero::before {
     content: '';
-    position: absolute; top: -70px; right: -70px;
-    width: 240px; height: 240px;
+    position: absolute; top: -80px; right: -80px;
+    width: 280px; height: 280px;
     border-radius: 50%;
-    border: 55px solid rgba(196,150,60,.12);
+    border: 60px solid rgba(196,150,60,.10);
     pointer-events: none;
 }
 .blessures-hero::after {
     content: '';
-    position: absolute; bottom: -50px; left: 22%;
-    width: 160px; height: 160px;
+    position: absolute; bottom: -55px; left: 25%;
+    width: 180px; height: 180px;
     border-radius: 50%;
-    border: 36px solid rgba(196,150,60,.08);
+    border: 40px solid rgba(196,150,60,.07);
     pointer-events: none;
 }
 
-/* Live indicator pill */
+/* Live badge */
 .hero-badge {
     display: inline-flex;
     align-items: center;
     gap: .5rem;
-    background: rgba(196,150,60,.2);
-    border: 1px solid rgba(196,150,60,.35);
+    background: rgba(196,150,60,.18);
+    border: 1px solid rgba(196,150,60,.32);
     color: var(--sand);
-    padding: .28rem .85rem;
+    padding: .3rem .9rem;
     border-radius: var(--r-full);
-    font-size: .65rem;
-    font-weight: 600;
-    letter-spacing: .1em;
+    font-size: .64rem;
+    font-weight: 700;
+    letter-spacing: .12em;
     text-transform: uppercase;
-    margin-bottom: 1rem;
+    margin-bottom: 1.1rem;
 }
 .hero-badge .pulse-dot {
-    width: 6px; height: 6px;
+    width: 7px; height: 7px;
     background: var(--sand);
     border-radius: 50%;
     animation: badge-pulse 2s ease-in-out infinite;
 }
 @keyframes badge-pulse {
     0%, 100% { opacity: 1; transform: scale(1); }
-    50%       { opacity: .35; transform: scale(.65); }
+    50%       { opacity: .3; transform: scale(.6); }
 }
 
 .blessures-hero h2 {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 2.2rem;
+    font-size: 2.4rem;
     font-weight: 700;
     color: var(--ivory);
     line-height: 1.1;
-    margin-bottom: .55rem;
+    margin-bottom: .6rem;
 }
 .blessures-hero h2 em {
     font-style: italic;
     color: var(--sand);
 }
-.blessures-hero p {
-    color: rgba(213,187,138,.65);
+.blessures-hero .hero-sub {
+    color: rgba(213,187,138,.6);
     font-size: .875rem;
-    line-height: 1.65;
-    max-width: 500px;
-    margin-bottom: 1.75rem;
+    line-height: 1.7;
+    max-width: 520px;
+    margin-bottom: 2rem;
 }
 
 /* Pipeline flow strip */
 .pipeline-strip {
     display: flex;
     align-items: center;
-    gap: .45rem;
+    gap: .4rem;
     flex-wrap: wrap;
 }
 .pipe-step {
     display: flex;
     align-items: center;
-    gap: .45rem;
+    gap: .4rem;
     background: rgba(196,150,60,.12);
-    border: 1px solid rgba(196,150,60,.22);
+    border: 1px solid rgba(196,150,60,.2);
     border-radius: var(--r-full);
     padding: .32rem .85rem;
-    font-size: .69rem;
+    font-size: .67rem;
     font-weight: 600;
     color: var(--sand);
+    transition: background .2s;
+}
+.pipe-step:hover {
+    background: rgba(196,150,60,.2);
+}
+.pipe-step.pipe-video {
+    background: rgba(52,152,219,.14);
+    border-color: rgba(52,152,219,.28);
+    color: #7ec8e3;
+}
+.pipe-step.pipe-video:hover {
+    background: rgba(52,152,219,.22);
 }
 .pipe-num {
-    width: 17px; height: 17px;
+    width: 18px; height: 18px;
     background: var(--grad-gold);
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-size: .58rem; font-weight: 700;
     color: white;
+    flex-shrink: 0;
+}
+.pipe-num.num-video {
+    background: linear-gradient(135deg, #3498db, #1a6fa8);
 }
 .pipe-arrow {
-    color: rgba(196,150,60,.38);
-    font-size: .9rem;
+    color: rgba(196,150,60,.35);
+    font-size: .85rem;
 }
 
-/* ── Model cards grid ─────────────────────────────────────── */
-.models-grid {
+/* ══════════════════════════════════════════════════════════
+   SECTION LABEL
+══════════════════════════════════════════════════════════ */
+.section-label {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin-bottom: 1.1rem;
+}
+.section-label::before {
+    content: '';
+    width: 28px; height: 2px;
+    background: var(--grad-gold);
+    border-radius: 2px;
+}
+.section-label span {
+    font-size: .67rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--amber);
+}
+.section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-soft);
+}
+
+/* ══════════════════════════════════════════════════════════
+   MODEL CARDS GRID  (3 classiques + 1 vidéo highlight)
+══════════════════════════════════════════════════════════ */
+.models-layout {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: auto auto;
     gap: 1.25rem;
     margin-bottom: 1.25rem;
 }
-@media (max-width: 1000px) { .models-grid { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 640px)  { .models-grid { grid-template-columns: 1fr; } }
 
+/* Carte vidéo en pleine largeur sur la 2ème ligne */
+.model-card-video-row {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 1000px) {
+    .models-layout { grid-template-columns: 1fr 1fr; }
+    .model-card-video-row { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+    .models-layout { grid-template-columns: 1fr; }
+    .model-card-video-row { grid-column: 1; }
+}
+
+/* ── Base card ───────────────────────────────────────────── */
 .model-card {
     background: var(--grad-card);
     border: 1px solid var(--border);
@@ -130,65 +196,67 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    gap: .0rem;
     text-decoration: none;
     color: inherit;
-    transition: transform .25s var(--ease), box-shadow .25s;
+    transition: transform .28s var(--ease), box-shadow .28s, border-color .28s;
 }
 .model-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-6px);
     box-shadow: var(--shadow-lg);
     border-color: rgba(196,150,60,.3);
+    text-decoration: none;
+    color: inherit;
 }
 
-/* Decorative corner glow per card */
+/* Corner glows */
 .model-card::before {
     content: '';
-    position: absolute; top: -35px; right: -35px;
-    width: 110px; height: 110px;
+    position: absolute; top: -40px; right: -40px;
+    width: 120px; height: 120px;
     border-radius: 50%;
     pointer-events: none;
 }
-.card-classif::before { background: radial-gradient(circle, rgba(196,150,60,.18) 0%, transparent 70%); }
-.card-detect::before  { background: radial-gradient(circle, rgba(140,94,30,.15) 0%, transparent 70%); }
-.card-seg::before     { background: radial-gradient(circle, rgba(94,61,34,.12) 0%, transparent 70%); }
+.card-classif::before { background: radial-gradient(circle, rgba(196,150,60,.18) 0%, transparent 68%); }
+.card-detect::before  { background: radial-gradient(circle, rgba(140,94,30,.16) 0%, transparent 68%); }
+.card-seg::before     { background: radial-gradient(circle, rgba(94,61,34,.14) 0%, transparent 68%); }
 
-/* Icon wrapper */
+/* Icon */
 .card-icon {
-    width: 50px; height: 50px;
+    width: 52px; height: 52px;
     border-radius: var(--r-md);
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.35rem;
+    font-size: 1.3rem;
     margin-bottom: 1rem;
+    flex-shrink: 0;
 }
-.card-classif .card-icon { background: rgba(196,150,60,.15); }
-.card-detect  .card-icon { background: rgba(140,94,30,.12); }
-.card-seg     .card-icon { background: rgba(94,61,34,.1); }
+.card-classif .card-icon { background: rgba(196,150,60,.15); color: var(--sand); }
+.card-detect  .card-icon { background: rgba(140,94,30,.13); color: var(--amber); }
+.card-seg     .card-icon { background: rgba(94,61,34,.12); color: var(--gold-deep); }
 
-/* Tag pill */
+/* Tag */
 .card-tag {
     display: inline-flex;
     align-items: center;
-    background: rgba(196,150,60,.12);
+    background: rgba(196,150,60,.11);
     color: var(--gold-deep);
     border: 1px solid rgba(196,150,60,.2);
     border-radius: var(--r-full);
-    font-size: .62rem;
-    font-weight: 600;
-    letter-spacing: .06em;
-    padding: .18rem .65rem;
-    margin-bottom: .7rem;
+    font-size: .61rem;
+    font-weight: 700;
+    letter-spacing: .07em;
+    padding: .17rem .65rem;
+    margin-bottom: .65rem;
     text-transform: uppercase;
 }
 
-/* Model badge (monospace) */
+/* Model badge monospace */
 .card-model-name {
     font-family: 'DM Mono', monospace;
-    font-size: .68rem;
+    font-size: .67rem;
     font-weight: 500;
     color: var(--amber);
     background: rgba(140,94,30,.1);
-    padding: .18rem .55rem;
+    padding: .17rem .55rem;
     border-radius: 6px;
     display: inline-block;
     margin-bottom: .6rem;
@@ -196,22 +264,22 @@
 
 .card-title {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 1.25rem;
+    font-size: 1.22rem;
     font-weight: 700;
     color: var(--brown-deep);
     line-height: 1.2;
-    margin-bottom: .45rem;
+    margin-bottom: .42rem;
 }
 
 .card-desc {
-    font-size: .8rem;
+    font-size: .79rem;
     color: var(--brown-light);
-    line-height: 1.65;
+    line-height: 1.68;
     flex: 1;
     margin-bottom: 1.1rem;
 }
 
-/* Mini stats row */
+/* Mini stats */
 .card-stats {
     display: flex;
     gap: 1.1rem;
@@ -222,25 +290,298 @@
 }
 .stat-val {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 1.25rem;
+    font-size: 1.22rem;
     font-weight: 700;
     color: var(--brown-deep);
     line-height: 1;
     margin-bottom: .18rem;
 }
 .stat-lbl {
-    font-size: .6rem;
+    font-size: .59rem;
     font-weight: 600;
     color: var(--text-soft);
     text-transform: uppercase;
     letter-spacing: .06em;
 }
 
-/* ── Full pipeline card ───────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════
+   CARTE VIDÉO — PLEINE LARGEUR HORIZONTALE
+══════════════════════════════════════════════════════════ */
+.model-card-video {
+    background: linear-gradient(135deg,
+        rgba(18, 32, 52, 0.97) 0%,
+        rgba(14, 26, 44, 0.97) 40%,
+        rgba(20, 35, 55, 0.95) 100%
+    );
+    border: 1px solid rgba(52,152,219,.22);
+    border-radius: var(--r-xl);
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    text-decoration: none;
+    color: inherit;
+    transition: transform .28s var(--ease), box-shadow .28s, border-color .28s;
+    min-height: 175px;
+}
+.model-card-video:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 60px rgba(52,152,219,.18), var(--shadow-lg);
+    border-color: rgba(52,152,219,.45);
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Animated scanline overlay */
+.model-card-video::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(52,152,219,.015) 3px,
+        rgba(52,152,219,.015) 4px
+    );
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Blue glow top-right */
+.model-card-video::after {
+    content: '';
+    position: absolute; top: -60px; right: -60px;
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(52,152,219,.2) 0%, transparent 65%);
+    pointer-events: none;
+}
+
+/* Left visual panel */
+.video-card-visual {
+    flex-shrink: 0;
+    width: 220px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(52,152,219,.07);
+    border-right: 1px solid rgba(52,152,219,.15);
+    overflow: hidden;
+}
+
+/* Animated rings in visual panel */
+.video-rings {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+}
+.video-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(52,152,219,.18);
+    animation: ring-pulse 3s ease-in-out infinite;
+}
+.video-ring:nth-child(1) { width: 80px;  height: 80px;  animation-delay: 0s; }
+.video-ring:nth-child(2) { width: 120px; height: 120px; animation-delay: .5s; }
+.video-ring:nth-child(3) { width: 165px; height: 165px; animation-delay: 1s; }
+@keyframes ring-pulse {
+    0%, 100% { opacity: .6; transform: scale(1); }
+    50%       { opacity: .15; transform: scale(1.05); }
+}
+
+/* Play icon */
+.video-play-icon {
+    position: relative;
+    z-index: 2;
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: rgba(52,152,219,.2);
+    border: 2px solid rgba(52,152,219,.45);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+    color: #7ec8e3;
+    transition: all .25s;
+}
+.model-card-video:hover .video-play-icon {
+    background: rgba(52,152,219,.35);
+    transform: scale(1.1);
+    box-shadow: 0 0 25px rgba(52,152,219,.4);
+}
+
+/* Frame counter decorative */
+.video-frame-deco {
+    position: absolute;
+    bottom: 12px; left: 0; right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 3px;
+}
+.frame-tick {
+    width: 3px; height: 12px;
+    background: rgba(52,152,219,.25);
+    border-radius: 2px;
+}
+.frame-tick:nth-child(3n) {
+    height: 18px;
+    background: rgba(52,152,219,.4);
+}
+
+/* Right content */
+.video-card-content {
+    flex: 1;
+    padding: 1.75rem 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+}
+
+.video-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.1rem;
+    flex-wrap: wrap;
+}
+
+.video-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    background: rgba(52,152,219,.14);
+    border: 1px solid rgba(52,152,219,.3);
+    color: #7ec8e3;
+    padding: .25rem .8rem;
+    border-radius: var(--r-full);
+    font-size: .62rem;
+    font-weight: 700;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+}
+.video-tag .live-dot {
+    width: 6px; height: 6px;
+    background: #7ec8e3;
+    border-radius: 50%;
+    animation: badge-pulse 2s ease-in-out infinite;
+}
+
+.video-model-chips {
+    display: flex;
+    gap: .45rem;
+    flex-wrap: wrap;
+}
+.video-chip {
+    font-family: 'DM Mono', monospace;
+    font-size: .62rem;
+    font-weight: 500;
+    color: rgba(126,200,227,.7);
+    background: rgba(52,152,219,.08);
+    border: 1px solid rgba(52,152,219,.15);
+    padding: .14rem .5rem;
+    border-radius: 5px;
+}
+
+.video-card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: #dff0fa;
+    line-height: 1.15;
+    margin-bottom: .5rem;
+}
+.video-card-title em {
+    font-style: italic;
+    color: #7ec8e3;
+}
+
+.video-card-desc {
+    font-size: .8rem;
+    color: rgba(126,200,227,.55);
+    line-height: 1.7;
+    margin-bottom: 1.4rem;
+    max-width: 560px;
+}
+
+/* Stats row */
+.video-stats {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+.video-stat {
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+}
+.video-stat-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #7ec8e3;
+    line-height: 1;
+}
+.video-stat-lbl {
+    font-size: .59rem;
+    font-weight: 600;
+    color: rgba(126,200,227,.45);
+    text-transform: uppercase;
+    letter-spacing: .07em;
+}
+.video-stats-divider {
+    width: 1px;
+    height: 32px;
+    background: rgba(52,152,219,.18);
+    align-self: center;
+}
+
+/* CTA button inside video card */
+.btn-video {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    background: rgba(52,152,219,.18);
+    border: 1px solid rgba(52,152,219,.35);
+    color: #7ec8e3;
+    padding: .55rem 1.3rem;
+    border-radius: var(--r-full);
+    font-size: .75rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    transition: all .22s;
+    cursor: pointer;
+    text-decoration: none;
+    margin-left: auto;
+    align-self: center;
+    flex-shrink: 0;
+    margin-right: 1.75rem;
+}
+.btn-video:hover {
+    background: rgba(52,152,219,.32);
+    border-color: rgba(52,152,219,.6);
+    color: #b8e4f5;
+    transform: translateX(3px);
+    text-decoration: none;
+}
+
+@media (max-width: 900px) {
+    .video-card-visual { display: none; }
+    .btn-video { margin: 0 0 .5rem 0; align-self: flex-start; }
+}
+@media (max-width: 600px) {
+    .video-card-content { padding: 1.25rem; }
+    .video-card-title { font-size: 1.25rem; }
+    .video-stats { gap: 1rem; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   PIPELINE COMPLET CARD
+══════════════════════════════════════════════════════════ */
 .pipeline-card {
     background: var(--grad-hero);
     border-radius: var(--r-xl);
-    padding: 1.75rem 2rem;
+    padding: 1.85rem 2rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -251,25 +592,25 @@
 }
 .pipeline-card::after {
     content: '';
-    position: absolute; top: -40px; right: -40px;
-    width: 150px; height: 150px;
+    position: absolute; top: -45px; right: -45px;
+    width: 160px; height: 160px;
     border-radius: 50%;
-    border: 32px solid rgba(196,150,60,.1);
+    border: 36px solid rgba(196,150,60,.09);
     pointer-events: none;
 }
 .pipeline-left h3 {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 1.55rem;
+    font-size: 1.6rem;
     font-weight: 700;
     color: var(--ivory);
-    margin-bottom: .35rem;
+    margin-bottom: .38rem;
 }
 .pipeline-left h3 em { font-style: italic; color: var(--sand); }
 .pipeline-left p {
-    color: rgba(213,187,138,.6);
+    color: rgba(213,187,138,.58);
     font-size: .8rem;
-    line-height: 1.6;
-    max-width: 380px;
+    line-height: 1.65;
+    max-width: 400px;
 }
 .pipeline-nodes {
     display: flex;
@@ -282,45 +623,45 @@
     display: flex;
     align-items: center;
     gap: .35rem;
-    background: rgba(196,150,60,.14);
-    border: 1px solid rgba(196,150,60,.22);
+    background: rgba(196,150,60,.13);
+    border: 1px solid rgba(196,150,60,.2);
     border-radius: var(--r-sm);
     padding: .35rem .7rem;
-    font-size: .67rem;
+    font-size: .66rem;
     font-weight: 600;
     color: var(--sand);
 }
-.pipe-plus {
-    color: rgba(196,150,60,.35);
-    font-size: .9rem;
-    font-weight: 500;
+.pipe-node.node-video {
+    background: rgba(52,152,219,.12);
+    border-color: rgba(52,152,219,.22);
+    color: #7ec8e3;
 }
-.pipe-eq {
-    color: rgba(196,150,60,.5);
-    font-size: .9rem;
-}
+.pipe-plus  { color: rgba(196,150,60,.32); font-size: .9rem; }
+.pipe-eq    { color: rgba(196,150,60,.48); font-size: .9rem; }
 @media (max-width: 700px) {
     .pipeline-card { flex-direction: column; align-items: flex-start; }
 }
+
 {% endblock %}
 
 {% block content %}
 
-<!-- ── Hero ─────────────────────────────────────────────── -->
+<!-- ══════════════════════════════════════════════════════
+     HERO
+══════════════════════════════════════════════════════ -->
 <div class="blessures-hero reveal">
     <div class="hero-badge">
         <span class="pulse-dot"></span>
         Modèles IA actifs
     </div>
     <h2>Analyse des <em>Blessures</em><br>par Intelligence Artificielle</h2>
-    <p>
-        Trois modèles spécialisés travaillent en synergie pour détecter,
-        classifier et segmenter les blessures avec précision clinique.
+    <p class="hero-sub">
+        Quatre outils spécialisés travaillent en synergie — images et vidéos —
+        pour détecter, classifier et segmenter les blessures avec précision clinique.
     </p>
 
-    <!-- Pipeline flow -->
     <div class="pipeline-strip">
-        <div class="pipe-step"><span class="pipe-num">1</span> Image</div>
+        <div class="pipe-step"><span class="pipe-num">1</span> Image / Vidéo</div>
         <span class="pipe-arrow">→</span>
         <div class="pipe-step"><span class="pipe-num">2</span> Classification</div>
         <span class="pipe-arrow">→</span>
@@ -328,23 +669,34 @@
         <span class="pipe-arrow">→</span>
         <div class="pipe-step"><span class="pipe-num">4</span> Segmentation</div>
         <span class="pipe-arrow">→</span>
-        <div class="pipe-step"><span class="pipe-num">5</span> Rapport</div>
+        <div class="pipe-step pipe-video"><span class="pipe-num num-video">5</span> <i class="fas fa-video fa-xs"></i> Vidéo</div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step"><span class="pipe-num">6</span> Rapport</div>
     </div>
 </div>
 
-<!-- ── Model cards ───────────────────────────────────────── -->
-<div class="models-grid">
+<!-- ══════════════════════════════════════════════════════
+     SECTION LABEL
+══════════════════════════════════════════════════════ -->
+<div class="section-label reveal">
+    <span>Outils d'analyse disponibles</span>
+</div>
 
-    <!-- Classification -->
+<!-- ══════════════════════════════════════════════════════
+     GRILLE MODÈLES (3 cartes + carte vidéo pleine largeur)
+══════════════════════════════════════════════════════ -->
+<div class="models-layout">
+
+    <!-- ── Classification ──────────────────────────────── -->
     <a href="{% url 'blessures:classification' %}" class="model-card card-classif reveal reveal-delay-1">
         <div class="card-icon"><i class="fas fa-tag"></i></div>
         <div class="card-tag">Classification</div>
         <div class="card-model-name">EfficientNet-B3</div>
         <div class="card-title">Identifier la nature de la blessure</div>
         <p class="card-desc">
-            Classe la blessure parmi des catégories médicales (brûlure,
-            lacération, contusion…) avec un score de confiance pour chaque
-            diagnostic possible.
+            Classe la blessure parmi des catégories médicales — brûlure,
+            lacération, contusion — avec un score de confiance pour chaque
+            diagnostic possible. Seuil Urgent abaissé à 35 %.
         </p>
         <div class="card-stats">
             <div>
@@ -352,8 +704,8 @@
                 <div class="stat-lbl">Précision Top-1</div>
             </div>
             <div>
-                <div class="stat-val">8</div>
-                <div class="stat-lbl">Catégories</div>
+                <div class="stat-val">3</div>
+                <div class="stat-lbl">Classes</div>
             </div>
             <div>
                 <div class="stat-val">~0.3s</div>
@@ -365,7 +717,7 @@
         </span>
     </a>
 
-    <!-- Détection -->
+    <!-- ── Détection ────────────────────────────────────── -->
     <a href="{% url 'blessures:detection' %}" class="model-card card-detect reveal reveal-delay-2">
         <div class="card-icon"><i class="fas fa-crosshairs"></i></div>
         <div class="card-tag">Détection</div>
@@ -374,7 +726,7 @@
         <p class="card-desc">
             Détecte et encadre chaque blessure par une boîte englobante
             avec un score de confiance en temps réel, même sur des images
-            multi-lésions.
+            multi-lésions. Conf. seuil 0.10 avec fallback centre.
         </p>
         <div class="card-stats">
             <div>
@@ -395,16 +747,16 @@
         </span>
     </a>
 
-    <!-- Segmentation -->
+    <!-- ── Segmentation ─────────────────────────────────── -->
     <a href="{% url 'blessures:segmentation' %}" class="model-card card-seg reveal reveal-delay-3">
         <div class="card-icon"><i class="fas fa-scissors"></i></div>
         <div class="card-tag">Segmentation</div>
-        <div class="card-model-name">U-Net</div>
+        <div class="card-model-name">U-Net · ResNet-34</div>
         <div class="card-title">Délimiter pixel par pixel</div>
         <p class="card-desc">
             Génère un masque de segmentation précis au pixel pour évaluer
-            la surface exacte et la profondeur de la lésion cutanée en
-            vue d'une prise en charge adaptée.
+            la surface exacte de la lésion. Seuil adaptatif dynamique
+            et nettoyage morphologique anti-bruit.
         </p>
         <div class="card-stats">
             <div>
@@ -412,7 +764,7 @@
                 <div class="stat-lbl">Dice IoU</div>
             </div>
             <div>
-                <div class="stat-val">512px</div>
+                <div class="stat-val">256px</div>
                 <div class="stat-lbl">Résolution</div>
             </div>
             <div>
@@ -425,16 +777,97 @@
         </span>
     </a>
 
+    <!-- ══ CARTE VIDÉO — PLEINE LARGEUR ════════════════════ -->
+    <div class="model-card-video-row reveal reveal-delay-4">
+        <a href="{% url 'blessures:video_analysis' %}" class="model-card-video">
+
+            <!-- Panneau visuel gauche -->
+            <div class="video-card-visual">
+                <div class="video-rings">
+                    <div class="video-ring"></div>
+                    <div class="video-ring"></div>
+                    <div class="video-ring"></div>
+                </div>
+                <div class="video-play-icon">
+                    <i class="fas fa-play"></i>
+                </div>
+                <div class="video-frame-deco">
+                    {% for i in "12345678901234567890" %}
+                    <div class="frame-tick"></div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Contenu -->
+            <div class="video-card-content">
+                <div class="video-card-header">
+                    <div class="video-tag">
+                        <span class="live-dot"></span>
+                        Nouveau · Analyse Vidéo
+                    </div>
+                    <div class="video-model-chips">
+                        <span class="video-chip">EfficientNet-B3</span>
+                        <span class="video-chip">YOLOv8s</span>
+                        <span class="video-chip">U-Net</span>
+                    </div>
+                </div>
+
+                <div class="video-card-title">
+                    3 modèles sur chaque <em>frame</em>
+                </div>
+                <p class="video-card-desc">
+                    Chargez une vidéo mp4 — les trois modèles s'exécutent en séquence
+                    sur chaque frame : classification de l'urgence, détection des zones
+                    par bounding box et masque de segmentation pixel par pixel.
+                    La vidéo annotée est téléchargeable en sortie.
+                </p>
+
+                <div class="video-stats">
+                    <div class="video-stat">
+                        <div class="video-stat-val">×3</div>
+                        <div class="video-stat-lbl">Modèles actifs</div>
+                    </div>
+                    <div class="video-stats-divider"></div>
+                    <div class="video-stat">
+                        <div class="video-stat-val">mp4</div>
+                        <div class="video-stat-lbl">Format sortie</div>
+                    </div>
+                    <div class="video-stats-divider"></div>
+                    <div class="video-stat">
+                        <div class="video-stat-val">1/3</div>
+                        <div class="video-stat-lbl">Frame sampling</div>
+                    </div>
+                    <div class="video-stats-divider"></div>
+                    <div class="video-stat">
+                        <div class="video-stat-val">300</div>
+                        <div class="video-stat-lbl">Frames max</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CTA -->
+            <a href="{% url 'blessures:video_analysis' %}" class="btn-video">
+                <i class="fas fa-play-circle"></i>
+                Analyser une vidéo
+                <i class="fas fa-arrow-right fa-xs"></i>
+            </a>
+
+        </a>
+    </div>
+    <!-- ════════════════════════════════════════════════════ -->
+
 </div>
 
-<!-- ── Pipeline complet ──────────────────────────────────── -->
+<!-- ══════════════════════════════════════════════════════
+     PIPELINE COMPLET
+══════════════════════════════════════════════════════ -->
 <div class="pipeline-card reveal">
     <div class="pipeline-left">
         <h3>Pipeline <em>Complet</em></h3>
         <p>
-            Exécutez les trois modèles en séquence pour obtenir un rapport
-            d'analyse exhaustif — classification, localisation et délimitation
-            précise — en une seule passe.
+            Exécutez les trois modèles en séquence sur une image pour obtenir
+            un rapport d'analyse exhaustif — classification, localisation et
+            délimitation précise — en une seule passe.
         </p>
         <div class="pipeline-nodes">
             <div class="pipe-node"><i class="fas fa-tag"></i> Classification</div>
@@ -444,6 +877,8 @@
             <div class="pipe-node"><i class="fas fa-scissors"></i> Segmentation</div>
             <span class="pipe-eq">=</span>
             <div class="pipe-node"><i class="fas fa-file-medical"></i> Rapport complet</div>
+            <span class="pipe-plus" style="opacity:.4">·</span>
+            <div class="pipe-node node-video"><i class="fas fa-video"></i> Vidéo dispo</div>
         </div>
     </div>
     <a href="{% url 'blessures:full_pipeline' %}" class="btn btn-gold">

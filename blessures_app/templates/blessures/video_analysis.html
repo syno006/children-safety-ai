@@ -1,0 +1,690 @@
+{% extends 'core/base.html' %}
+
+{% block page_title %}Analyse Vidéo{% endblock %}
+{% block page_subtitle %}Classification d'urgence · Détection YOLO des blessures{% endblock %}
+
+{% block extra_css %}
+
+/* ── PAGE LAYOUT ── */
+.va-hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  align-items: start;
+}
+
+/* ── INTRO CARD ── */
+.va-intro {
+  background: var(--grad-hero);
+  border-radius: var(--r-xl);
+  padding: 2rem 2rem 1.75rem;
+  position: relative;
+  overflow: hidden;
+}
+.va-intro::before {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(196,150,60,.3) 0%, transparent 70%);
+  pointer-events: none;
+}
+.va-intro::after {
+  content: '';
+  position: absolute;
+  bottom: -40px; left: 20px;
+  width: 140px; height: 140px;
+  background: radial-gradient(circle, rgba(196,150,60,.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.va-intro-eyebrow {
+  font-size: .65rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--sand);
+  opacity: .7;
+  margin-bottom: .6rem;
+}
+.va-intro-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--cream);
+  line-height: 1.15;
+  margin-bottom: .75rem;
+}
+.va-intro-title em {
+  font-style: italic;
+  color: var(--sand);
+}
+.va-intro-desc {
+  font-size: .8rem;
+  color: rgba(213,187,138,.65);
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+}
+.va-legend {
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+}
+.va-legend-item {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  font-size: .75rem;
+  color: rgba(213,187,138,.75);
+}
+.va-legend-dot {
+  width: 10px; height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* ── UPLOAD CARD ── */
+.va-upload-card {
+  background: var(--grad-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.va-upload-label {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--brown-deep);
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  margin-bottom: -.25rem;
+}
+.va-upload-label i { color: var(--gold); font-size: 1rem; }
+
+/* Drop zone */
+.va-dropzone {
+  border: 2px dashed rgba(196,150,60,.3);
+  border-radius: var(--r-lg);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all .25s;
+  background: rgba(196,150,60,.03);
+  position: relative;
+}
+.va-dropzone:hover,
+.va-dropzone.drag-over {
+  border-color: var(--gold);
+  background: rgba(196,150,60,.07);
+}
+.va-dropzone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+.va-dropzone-icon {
+  width: 50px; height: 50px;
+  background: var(--grad-gold);
+  border-radius: var(--r-md);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto .85rem;
+  font-size: 1.3rem;
+  color: white;
+  box-shadow: 0 6px 20px rgba(196,150,60,.3);
+}
+.va-dropzone-title {
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--brown-deep);
+  margin-bottom: .3rem;
+}
+.va-dropzone-sub {
+  font-size: .72rem;
+  color: var(--text-soft);
+}
+.va-filename {
+  font-size: .75rem;
+  font-family: 'DM Mono', monospace;
+  color: var(--gold-deep);
+  background: rgba(196,150,60,.1);
+  border-radius: var(--r-sm);
+  padding: .3rem .75rem;
+  margin-top: .75rem;
+  display: none;
+}
+.va-submit-btn {
+  background: var(--grad-gold);
+  color: white;
+  border: none;
+  border-radius: var(--r-full);
+  padding: .8rem 1.75rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: .88rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .6rem;
+  width: 100%;
+  letter-spacing: .01em;
+  box-shadow: 0 4px 18px rgba(196,150,60,.35);
+  transition: all .25s var(--ease);
+}
+.va-submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(196,150,60,.45);
+}
+.va-submit-btn i { font-size: 1rem; }
+
+/* ── RESULTS SECTION ── */
+.va-results {
+  margin-top: .5rem;
+}
+.va-results-header {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-soft);
+}
+.va-results-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--brown-deep);
+  flex: 1;
+}
+.va-results-pill {
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: .3rem .9rem;
+  border-radius: var(--r-full);
+  background: rgba(196,150,60,.12);
+  color: var(--gold-deep);
+}
+
+/* ── ERROR CARD ── */
+.va-error {
+  background: rgba(200,80,60,.07);
+  border: 1px solid rgba(200,80,60,.2);
+  border-left: 4px solid #c0392b;
+  border-radius: var(--r-lg);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+.va-error-icon {
+  width: 40px; height: 40px;
+  background: rgba(200,80,60,.12);
+  border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center;
+  color: #c0392b;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.va-error-title {
+  font-weight: 700;
+  color: #b03020;
+  margin-bottom: .2rem;
+}
+.va-error-text { font-size: .82rem; color: #904020; }
+
+/* ── RESULTS GRID ── */
+.va-result-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* ── STATS PANEL ── */
+.va-stats-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Dominant class badge */
+.va-dominant {
+  border-radius: var(--r-lg);
+  padding: 1.1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+}
+.va-dominant-icon {
+  width: 42px; height: 42px;
+  border-radius: var(--r-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+.va-dominant-label {
+  font-size: .62rem;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-weight: 700;
+  margin-bottom: .15rem;
+}
+.va-dominant-value {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Stat rows */
+.va-stat-card {
+  background: var(--grad-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 1.1rem 1.25rem;
+}
+.va-stat-card-title {
+  font-size: .62rem;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--text-soft);
+  font-weight: 700;
+  margin-bottom: .85rem;
+}
+.va-stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .45rem 0;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: .8rem;
+}
+.va-stat-row:last-child { border-bottom: none; }
+.va-stat-row-label { color: var(--text-soft); }
+.va-stat-row-value {
+  font-weight: 700;
+  color: var(--brown-deep);
+  font-family: 'DM Mono', monospace;
+  font-size: .78rem;
+}
+.va-stat-row-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .15rem .55rem;
+  border-radius: var(--r-full);
+  font-size: .68rem;
+  font-weight: 700;
+  font-family: 'DM Mono', monospace;
+}
+
+/* Conf bars */
+.va-conf-bar-wrap { margin-top: .5rem; }
+.va-conf-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: .73rem;
+  color: var(--text-soft);
+  margin-bottom: .3rem;
+}
+.va-conf-val { font-weight: 700; color: var(--brown-deep); font-family: 'DM Mono', monospace; }
+
+/* Download btn */
+.va-download-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .6rem;
+  width: 100%;
+  padding: .75rem;
+  background: transparent;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-lg);
+  color: var(--text-soft);
+  font-size: .82rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all .2s var(--ease);
+}
+.va-download-btn:hover {
+  border-color: var(--gold);
+  color: var(--gold-deep);
+  background: rgba(196,150,60,.06);
+  transform: translateY(-1px);
+}
+.va-download-btn i { font-size: .95rem; }
+
+/* ── VIDEO PANEL ── */
+.va-video-panel {
+  background: var(--grad-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  overflow: hidden;
+}
+.va-video-header {
+  padding: 1.1rem 1.5rem;
+  border-bottom: 1px solid var(--border-soft);
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+}
+.va-video-header-icon {
+  width: 32px; height: 32px;
+  background: rgba(196,150,60,.12);
+  border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gold);
+  font-size: .85rem;
+}
+.va-video-header-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--brown-deep);
+}
+.va-video-body {
+  padding: 1.25rem;
+}
+video.va-player {
+  width: 100%;
+  max-height: 420px;
+  border-radius: var(--r-md);
+  display: block;
+  background: var(--brown-dark);
+}
+.va-video-hint {
+  font-size: .7rem;
+  color: var(--text-soft);
+  text-align: center;
+  margin-top: .75rem;
+}
+
+/* No video */
+.va-no-video {
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+}
+.va-no-video-icon {
+  width: 54px; height: 54px;
+  background: rgba(196,150,60,.1);
+  border-radius: var(--r-lg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+  color: var(--sand);
+  margin: 0 auto .9rem;
+}
+.va-no-video-title {
+  font-weight: 700;
+  color: var(--brown-light);
+  margin-bottom: .3rem;
+  font-size: .9rem;
+}
+.va-no-video-sub { font-size: .75rem; color: var(--text-soft); }
+
+@media (max-width: 1000px) {
+  .va-hero { grid-template-columns: 1fr; }
+  .va-result-grid { grid-template-columns: 1fr; }
+}
+
+{% endblock %}
+
+{% block content %}
+
+<!-- ═══════════════ HERO ROW ═══════════════ -->
+<div class="va-hero reveal">
+
+  <!-- Intro (left) -->
+  <div class="va-intro">
+    <div class="va-intro-eyebrow">Module IA · Analyse vidéo</div>
+    <div class="va-intro-title">Détection &amp; <em>Classification</em><br>en temps réel</div>
+    <div class="va-intro-desc">
+      Importez une vidéo pour obtenir une classification d'urgence frame par frame
+      et une détection YOLO des blessures avec bounding boxes annotées.
+    </div>
+    <div class="va-legend">
+      <div class="va-legend-item">
+        <div class="va-legend-dot" style="background:#c0392b;"></div>
+        Frames urgentes — intervention immédiate requise
+      </div>
+      <div class="va-legend-item">
+        <div class="va-legend-dot" style="background:#27ae60;"></div>
+        Frames non-urgentes — situation stable
+      </div>
+      <div class="va-legend-item">
+        <div class="va-legend-dot" style="background:var(--gold);"></div>
+        Bounding boxes YOLO — zones de détection
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload form (right) -->
+  <div class="va-upload-card">
+    <div class="va-upload-label">
+      <i class="fas fa-cloud-arrow-up"></i>
+      Importer une vidéo
+    </div>
+
+    <form method="post" enctype="multipart/form-data" id="va-form">
+      {% csrf_token %}
+
+      <div class="va-dropzone" id="va-dropzone">
+        <input type="file" name="video" accept="video/*" required id="va-file-input">
+        <div class="va-dropzone-icon">
+          <i class="fas fa-film"></i>
+        </div>
+        <div class="va-dropzone-title">Glissez votre vidéo ici</div>
+        <div class="va-dropzone-sub">ou cliquez pour parcourir · mp4, avi, mov</div>
+        <div class="va-filename" id="va-filename"></div>
+      </div>
+
+      <div style="font-size:.7rem;color:var(--text-soft);display:flex;align-items:center;gap:.4rem;">
+        <i class="fas fa-circle-info" style="color:var(--gold);"></i>
+        Max ~10 secondes recommandé pour de meilleures performances
+      </div>
+
+      <button type="submit" class="va-submit-btn" onclick="window.showLoading()">
+        <i class="fas fa-play"></i>
+        Lancer l'analyse
+      </button>
+    </form>
+  </div>
+</div>
+
+
+<!-- ═══════════════ RESULTS ═══════════════ -->
+{% if result %}
+<div class="va-results reveal reveal-delay-1">
+
+  <div class="va-results-header">
+    <div class="va-results-title">Résultats de l'analyse</div>
+    <div class="va-results-pill">
+      <i class="fas fa-check-circle" style="margin-right:.35rem;color:var(--gold);"></i>
+      Traitement terminé
+    </div>
+  </div>
+
+  {% if result.error %}
+  <!-- ERROR -->
+  <div class="va-error">
+    <div class="va-error-icon"><i class="fas fa-triangle-exclamation"></i></div>
+    <div>
+      <div class="va-error-title">Erreur lors du traitement</div>
+      <div class="va-error-text">{{ result.error }}</div>
+    </div>
+  </div>
+
+  {% else %}
+  <!-- SUCCESS -->
+  <div class="va-result-grid">
+
+    <!-- ── STATS PANEL ── -->
+    <div class="va-stats-panel">
+
+      <!-- Dominant class -->
+      <div class="va-dominant"
+           style="
+             background: {% if result.dominant_class == 'Urgent' %}rgba(192,57,43,.1){% elif result.dominant_class == 'Non-Urgent' %}rgba(39,174,96,.1){% else %}rgba(196,150,60,.1){% endif %};
+             border: 1px solid {% if result.dominant_class == 'Urgent' %}rgba(192,57,43,.25){% elif result.dominant_class == 'Non-Urgent' %}rgba(39,174,96,.25){% else %}rgba(196,150,60,.25){% endif %};
+           ">
+        <div class="va-dominant-icon"
+             style="background: {% if result.dominant_class == 'Urgent' %}rgba(192,57,43,.15){% elif result.dominant_class == 'Non-Urgent' %}rgba(39,174,96,.15){% else %}rgba(196,150,60,.15){% endif %};">
+          {% if result.dominant_class == 'Urgent' %}
+            <i class="fas fa-circle-exclamation" style="color:#c0392b;"></i>
+          {% elif result.dominant_class == 'Non-Urgent' %}
+            <i class="fas fa-circle-check" style="color:#27ae60;"></i>
+          {% else %}
+            <i class="fas fa-circle-half-stroke" style="color:var(--gold);"></i>
+          {% endif %}
+        </div>
+        <div>
+          <div class="va-dominant-label" style="color: {% if result.dominant_class == 'Urgent' %}#c0392b{% elif result.dominant_class == 'Non-Urgent' %}#27ae60{% else %}var(--gold-deep){% endif %};">
+            Classe dominante
+          </div>
+          <div class="va-dominant-value" style="color: {% if result.dominant_class == 'Urgent' %}#c0392b{% elif result.dominant_class == 'Non-Urgent' %}#27ae60{% else %}var(--gold-deep){% endif %};">
+            {{ result.dominant_class }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Frame stats -->
+      <div class="va-stat-card">
+        <div class="va-stat-card-title">Analyse des frames</div>
+
+        <div class="va-stat-row">
+          <span class="va-stat-row-label">Frames analysées</span>
+          <span class="va-stat-row-value">{{ result.frames_processed }}</span>
+        </div>
+        <div class="va-stat-row">
+          <span class="va-stat-row-label">Frames totales</span>
+          <span class="va-stat-row-value">{{ result.total_frames }}</span>
+        </div>
+        <div class="va-stat-row">
+          <span class="va-stat-row-label">Urgent</span>
+          <span class="va-stat-row-badge" style="background:rgba(192,57,43,.1);color:#c0392b;">
+            {{ result.urgent_frames }}
+          </span>
+        </div>
+        <div class="va-stat-row">
+          <span class="va-stat-row-label">Non-Urgent</span>
+          <span class="va-stat-row-badge" style="background:rgba(39,174,96,.1);color:#27ae60;">
+            {{ result.non_urgent_frames }}
+          </span>
+        </div>
+        <div class="va-stat-row">
+          <span class="va-stat-row-label">Incertain</span>
+          <span class="va-stat-row-badge" style="background:rgba(196,150,60,.12);color:var(--gold-deep);">
+            {{ result.incertain_frames }}
+          </span>
+        </div>
+        <div class="va-stat-row">
+          <span class="va-stat-row-label">Détections YOLO</span>
+          <span class="va-stat-row-value">{{ result.total_detections }}</span>
+        </div>
+      </div>
+
+      <!-- Confidence -->
+      <div class="va-stat-card">
+        <div class="va-stat-card-title">Confiance du modèle</div>
+        <div class="va-conf-bar-wrap">
+          <div class="va-conf-label">
+            <span>Moyenne</span>
+            <span class="va-conf-val">{{ result.avg_confidence|floatformat:1 }}%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" style="width: {{ result.avg_confidence }}%;"></div>
+          </div>
+        </div>
+        <div class="va-conf-bar-wrap" style="margin-top:.9rem;">
+          <div class="va-conf-label">
+            <span>Maximum</span>
+            <span class="va-conf-val">{{ result.max_confidence|floatformat:1 }}%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" style="width: {{ result.max_confidence }}%; background: var(--grad-brown);"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Download -->
+      {% if result.output_filename %}
+      <a href="{% url 'blessures:download_video' result.output_filename %}" class="va-download-btn">
+        <i class="fas fa-download"></i>
+        Télécharger la vidéo annotée
+      </a>
+      {% endif %}
+
+    </div>
+
+    <!-- ── VIDEO PANEL ── -->
+    <div class="va-video-panel">
+      <div class="va-video-header">
+        <div class="va-video-header-icon"><i class="fas fa-clapperboard"></i></div>
+        <div class="va-video-header-title">Vidéo annotée</div>
+      </div>
+
+      <div class="va-video-body">
+        {% if output_video_url %}
+        <video controls class="va-player" preload="metadata">
+          <source src="{{ output_video_url }}" type="video/mp4">
+          Votre navigateur ne supporte pas la lecture vidéo.
+        </video>
+        <div class="va-video-hint">
+          <i class="fas fa-info-circle" style="color:var(--gold);margin-right:.3rem;"></i>
+          Si la lecture échoue, téléchargez la vidéo via le bouton ci-contre
+        </div>
+
+        {% else %}
+        <div class="va-no-video">
+          <div class="va-no-video-icon"><i class="fas fa-video-slash"></i></div>
+          <div class="va-no-video-title">Vidéo non disponible</div>
+          <div class="va-no-video-sub">Problème de codec ou de format — utilisez le téléchargement</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  /* Drop zone feedback */
+  const dz  = document.getElementById('va-dropzone');
+  const inp = document.getElementById('va-file-input');
+  const fn  = document.getElementById('va-filename');
+
+  inp.addEventListener('change', () => {
+    if (inp.files.length) {
+      fn.textContent = inp.files[0].name;
+      fn.style.display = 'inline-block';
+    }
+  });
+
+  ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => {
+    e.preventDefault(); dz.classList.add('drag-over');
+  }));
+  ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, () => {
+    dz.classList.remove('drag-over');
+  }));
+  dz.addEventListener('drop', e => {
+    e.preventDefault();
+    if (e.dataTransfer.files.length) {
+      inp.files = e.dataTransfer.files;
+      fn.textContent = e.dataTransfer.files[0].name;
+      fn.style.display = 'inline-block';
+    }
+  });
+</script>
+{% endblock %}

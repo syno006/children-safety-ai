@@ -1,4 +1,4 @@
-# blessures/model_loader.py (version complète avec toutes les méthodes)
+# blessures/model_loader.py (version complète avec segmentation améliorée)
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -102,6 +102,7 @@ class ModelLoader:
         self._load_models()
     
     def _load_models(self):
+        """Charge les modèles"""
         models_path = Path(__file__).parent / 'models'
         
         classifier_path = models_path / 'best_model_finetune.pth'
@@ -112,11 +113,15 @@ class ModelLoader:
             ))
             self.classifier.eval()
             print(f"✅ Classificateur chargé")
+        else:
+            print(f"⚠️ Classificateur non trouvé: {classifier_path}")
         
         yolo_path = models_path / 'yolo_best_model_v2.pt'
         if yolo_path.exists():
             self.yolo_model = YOLO(str(yolo_path))
             print(f"✅ YOLO chargé")
+        else:
+            print(f"⚠️ YOLO non trouvé: {yolo_path}")
         
         seg_path = models_path / 'best_seg.pth'
         if seg_path.exists():
@@ -131,8 +136,11 @@ class ModelLoader:
             ))
             self.seg_model.eval()
             print(f"✅ U-Net chargé")
+        else:
+            print(f"⚠️ U-Net non trouvé: {seg_path}")
     
     def preprocess_image(self, img_array, target_size=IMG_SIZE):
+        """Prétraitement pour la classification"""
         aug = A.Compose([
             A.Resize(target_size, target_size),
             A.Normalize(mean=IMG_MEAN, std=IMG_STD),
@@ -142,6 +150,7 @@ class ModelLoader:
         return transformed['image'].unsqueeze(0).to(self.device)
     
     def preprocess_segmentation(self, img_array):
+        """Prétraitement pour la segmentation"""
         aug = A.Compose([
             A.Resize(SEG_IMG_SIZE, SEG_IMG_SIZE),
             A.Normalize(mean=IMG_MEAN, std=IMG_STD),
@@ -151,6 +160,7 @@ class ModelLoader:
         return transformed['image'].unsqueeze(0).to(self.device)
     
     def predict_classification(self, img_array):
+        """Classification simple"""
         if self.classifier is None:
             return self._simulate_classification(img_array)
         
@@ -230,31 +240,77 @@ class ModelLoader:
         
         return result
     
+    def predict_with_xai(self, img_array):
+        """Grad-CAM dédié pour la page XAI"""
+        if self.classifier is None:
+            result = self._simulate_classification(img_array)
+            result['heatmap'] = {'b64': None, 'overlay_b64': None}
+            return result
+        
+        tensor = self.preprocess_image(img_array)
+        h, w = img_array.shape[:2]
+        
+        with torch.no_grad():
+            logits = self.classifier(tensor)
+            probs = F.softmax(logits, dim=1)[0].cpu().numpy()
+        
+        pred_idx = 0 if probs[0] > URGENT_THRESHOLD else int(np.argmax(probs))
+        
+        result = {
+            'prediction': URGENCY_CLASSES[pred_idx],
+            'emoji': URGENCY_EMOJI[pred_idx],
+            'color': URGENCY_COLORS[pred_idx],
+            'probabilities': {URGENCY_CLASSES[i]: float(probs[i] * 100) for i in range(3)},
+            'confidence_score': float(probs[pred_idx] * 100),
+            'heatmap': {'b64': None, 'overlay_b64': None}
+        }
+        
+        try:
+            heatmap = self._compute_gradcam(tensor, pred_idx, h, w)
+            heatmap_colored = (cm.jet(heatmap)[:, :, :3] * 255).astype(np.uint8)
+            overlay = cv2.addWeighted(img_array, 0.45, heatmap_colored, 0.55, 0)
+            result['heatmap'] = {
+                'b64': self._array_to_base64(heatmap_colored),
+                'overlay_b64': self._array_to_base64(overlay)
+            }
+        except Exception as e:
+            print(f"Erreur XAI: {e}")
+        
+        return result
+    
     def _compute_gradcam(self, tensor, target_class, h, w):
+        """Calcule la heatmap Grad-CAM"""
         self.classifier.clear_hooks()
         tensor_grad = tensor.clone().detach().requires_grad_(True)
         logits = self.classifier(tensor_grad)
         self.classifier.zero_grad()
-        logits[0, target_class].backward()
+        target_score = logits[0, target_class]
+        target_score.backward(retain_graph=False)
         
         gradients = self.classifier.get_activations_gradient()
         activations = self.classifier.get_activations()
         
         if gradients is None or activations is None:
-            return np.zeros((h, w))
+            return np.zeros((h, w), dtype=np.float32)
         
         pooled_gradients = torch.mean(gradients, dim=[0, 2, 3])
+        cam = torch.zeros(activations.shape[2:], dtype=torch.float32, device=activations.device)
         for i in range(activations.shape[1]):
-            activations[:, i, :, :] *= pooled_gradients[i]
+            cam += pooled_gradients[i] * activations[0, i, :, :]
         
-        heatmap = torch.mean(activations, dim=1).squeeze().cpu().detach().numpy()
-        heatmap = np.maximum(heatmap, 0)
+        heatmap = torch.relu(cam).cpu().detach().numpy()
         if heatmap.max() > 0:
             heatmap = heatmap / heatmap.max()
         heatmap = cv2.resize(heatmap, (w, h))
+        heatmap = cv2.GaussianBlur(heatmap, (7, 7), 2)
+        threshold = np.percentile(heatmap, 60)
+        heatmap = np.where(heatmap > threshold, heatmap, heatmap * 0.2)
+        if heatmap.max() > 0:
+            heatmap = heatmap / heatmap.max()
         return heatmap
     
     def _create_detection_heatmap(self, detection_result, h, w):
+        """Crée une heatmap à partir des détections YOLO"""
         heatmap = np.zeros((h, w))
         for box in detection_result.get('boxes', []):
             x1, y1, x2, y2 = box['x1'], box['y1'], box['x2'], box['y2']
@@ -270,6 +326,7 @@ class ModelLoader:
         return heatmap
     
     def _create_segmentation_heatmap(self, seg_result, h, w):
+        """Crée une heatmap à partir de la segmentation"""
         if 'mask' not in seg_result:
             return None
         mask = seg_result['mask']
@@ -280,6 +337,7 @@ class ModelLoader:
         return heatmap
     
     def predict_with_gradcam(self, img_array):
+        """Grad-CAM standard (simplifié)"""
         if self.classifier is None:
             result = self._simulate_classification(img_array)
             result['heatmap'] = {'b64': None, 'overlay_b64': None}
@@ -317,6 +375,7 @@ class ModelLoader:
         return result
     
     def _array_to_base64(self, img_array):
+        """Convertit une image en base64"""
         try:
             _, buffer = cv2.imencode('.jpg', cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR))
             return base64.b64encode(buffer).decode('utf-8')
@@ -324,10 +383,9 @@ class ModelLoader:
             return None
     
     def predict_detection(self, img_array):
+        """Détection YOLO"""
         if self.yolo_model is None:
-            simulated = self._simulate_detection(img_array)
-            simulated['method'] = 'fallback'
-            return simulated
+            return self._simulate_detection(img_array)
         
         h, w = img_array.shape[:2]
         results = self.yolo_model(img_array, conf=YOLO_CONF_THRESHOLD, iou=0.5, verbose=False)
@@ -351,13 +409,13 @@ class ModelLoader:
             'boxes': boxes,
             'count': len(boxes),
             'has_detections': len(boxes) > 0,
-            'method': 'yolo',
             'total_area': sum(b['area_percentage'] for b in boxes) if boxes else 0,
             'max_confidence': max([b['confidence'] for b in boxes]) if boxes else 0,
             'avg_confidence': np.mean([b['confidence'] for b in boxes]) if boxes else 0
         }
     
     def predict_detection_with_fallback(self, img_array):
+        """Détection avec fallback"""
         result = self.predict_detection(img_array)
         
         if not result['has_detections']:
@@ -369,15 +427,20 @@ class ModelLoader:
                           'width': box_w, 'height': box_h, 'confidence': 70.0,
                           'area_percentage': (box_w * box_h / (h * w)) * 100}],
                 'count': 1, 'has_detections': True,
-                'method': 'fallback',
                 'total_area': (box_w * box_h / (h * w)) * 100,
-                'max_confidence': 70.0, 'avg_confidence': 70.0
+                'max_confidence': 70.0, 'avg_confidence': 70.0,
+                'method': 'default'
             }
+        else:
+            result['method'] = 'yolo'
         
         return result
     
     @torch.no_grad()
     def predict_segmentation(self, img_array):
+        """
+        Segmentation améliorée - ne couvre que la blessure avec seuillage robuste
+        """
         if self.seg_model is None:
             return self._simulate_segmentation(img_array)
         
@@ -387,28 +450,109 @@ class ModelLoader:
         mask = torch.sigmoid(logits[0, 0]).cpu().numpy()
         mask = cv2.resize(mask, (w, h))
         
-        mask_binary = (mask > 0.5).astype(np.uint8) * 255
-        kernel = np.ones((5, 5), np.uint8)
-        mask_binary = cv2.morphologyEx(mask_binary, cv2.MORPH_OPEN, kernel)
-        mask_binary = cv2.morphologyEx(mask_binary, cv2.MORPH_CLOSE, kernel)
+        # 1. Analyse des valeurs du masque
+        mask_min, mask_max, mask_mean = mask.min(), mask.max(), mask.mean()
+        print(f"🔍 Masque - min: {mask_min:.3f}, max: {mask_max:.3f}, mean: {mask_mean:.3f}")
         
-        area_percentage = (np.sum(mask_binary > 0) / (h * w)) * 100
+        # 2. Seuillage adaptatif plus strict
+        if mask_mean > 0.8:
+            # Masque très uniforme et élevé - probablement du bruit
+            threshold = min(0.95, mask_max * 0.9)
+        elif mask_mean > 0.6:
+            threshold = min(0.85, mask_max * 0.8)
+        elif mask_mean > 0.4:
+            threshold = 0.75
+        elif mask_mean > 0.2:
+            threshold = 0.65
+        else:
+            threshold = 0.55
         
+        print(f"   Seuil utilisé: {threshold}")
+        
+        # 3. Binarisation
+        mask_binary = (mask > threshold).astype(np.uint8) * 255
+        
+        # 4. Nettoyage morphologique très agressif
+        kernel_small = np.ones((3, 3), np.uint8)
+        kernel_medium = np.ones((5, 5), np.uint8)
+        kernel_large = np.ones((7, 7), np.uint8)
+        
+        # Plusieurs passes de nettoyage
+        for _ in range(2):
+            mask_binary = cv2.morphologyEx(mask_binary, cv2.MORPH_OPEN, kernel_small)
+            mask_binary = cv2.morphologyEx(mask_binary, cv2.MORPH_CLOSE, kernel_medium)
+        
+        # 5. Filtrage par taille des composants
+        num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(mask_binary, connectivity=8)
+        
+        # Garder uniquement les composants > 1% de l'image et < 50%
+        min_area = h * w * 0.01  # 1% minimum
+        max_area = h * w * 0.5   # 50% maximum
+        
+        mask_filtered = np.zeros_like(mask_binary)
+        valid_components = 0
+        
+        for i in range(1, num_labels):  # Skip background (label 0)
+            area = stats[i, cv2.CC_STAT_AREA]
+            if min_area <= area <= max_area:
+                mask_filtered[labels == i] = 255
+                valid_components += 1
+        
+        if valid_components == 0:
+            # Si aucun composant valide, essayer avec un seuil encore plus élevé
+            print("⚠️ Aucun composant valide trouvé, seuil augmenté drastiquement")
+            threshold = min(0.98, mask_max * 0.95)
+            mask_binary = (mask > threshold).astype(np.uint8) * 255
+            mask_binary = cv2.morphologyEx(mask_binary, cv2.MORPH_OPEN, kernel_large)
+            mask_filtered = mask_binary
+        
+        mask_binary = mask_filtered
+        
+        # 6. Éliminer les très petites régions restantes
+        contours, _ = cv2.findContours(mask_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        min_area_final = h * w * 0.005  # 0.5% de l'image minimum
+        for contour in contours:
+            if cv2.contourArea(contour) < min_area_final:
+                cv2.drawContours(mask_binary, [contour], -1, 0, -1)
+        
+        # 7. Calcul de la surface
+        area_pixels = np.sum(mask_binary > 0)
+        area_percentage = (area_pixels / (h * w)) * 100
+        
+        print(f"📊 Surface segmentée: {area_percentage:.1f}% de l'image")
+        
+        # 8. Validation finale - si toujours trop grand, considérer comme échec
+        if area_percentage > 70:
+            print("🚫 Segmentation invalide - surface trop grande, retour à None")
+            return {
+                'mask': np.zeros((h, w), dtype=np.uint8),
+                'blended': img_array.copy(),
+                'area_percentage': 0.0,
+                'area_pixels': 0,
+                'has_segmentation': False
+            }
+        
+        # 9. Création des visualisations
         overlay = img_array.copy()
         overlay[mask_binary > 0] = [255, 80, 80]
+        
         contours, _ = cv2.findContours(mask_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         cv2.drawContours(overlay, contours, -1, (0, 255, 0), 2)
+        
         blended = cv2.addWeighted(img_array, 0.55, overlay, 0.45, 0)
         
         return {
             'mask': mask_binary,
             'blended': blended,
             'area_percentage': area_percentage,
-            'has_segmentation': area_percentage > 1
+            'area_pixels': int(area_pixels),
+            'has_segmentation': area_percentage > 0.5 and area_percentage < 60
         }
     
     def predict_segmentation_on_roi(self, img_array, detection_boxes=None):
-        """Segmentation UNIQUEMENT sur la région d'intérêt (ROI)"""
+        """
+        Segmentation UNIQUEMENT sur la région d'intérêt (ROI) - Version améliorée
+        """
         h, w = img_array.shape[:2]
         
         if detection_boxes is None:
@@ -431,14 +575,19 @@ class ModelLoader:
             if roi.size == 0:
                 continue
             
-            roi_seg = self._segment_roi(roi)
+            # Segmenter UNIQUEMENT la ROI
+            roi_seg = self._segment_roi_improved(roi)
             
-            if roi_seg is not None:
+            if roi_seg is not None and np.sum(roi_seg > 0) > 100:
                 if roi_seg.shape[:2] != (y2-y1, x2-x1):
                     roi_seg = cv2.resize(roi_seg, (x2-x1, y2-y1))
                 
                 full_mask = np.zeros((h, w), dtype=np.uint8)
                 full_mask[y1:y2, x1:x2] = roi_seg
+                
+                kernel = np.ones((3, 3), np.uint8)
+                full_mask = cv2.morphologyEx(full_mask, cv2.MORPH_OPEN, kernel)
+                full_mask = cv2.morphologyEx(full_mask, cv2.MORPH_CLOSE, kernel)
                 
                 overlay = img_array.copy()
                 overlay[full_mask > 0] = [255, 80, 80]
@@ -461,11 +610,14 @@ class ModelLoader:
                     'area_percentage': area_percentage,
                     'roi_area_percentage': roi_area_percentage
                 })
+                print(f"✅ ROI {i}: segmentation trouvée - {roi_area_percentage:.1f}% de la ROI")
         
         return all_segmentations if all_segmentations else None
     
-    def _segment_roi(self, roi_img):
-        """Segmente une région d'intérêt"""
+    def _segment_roi_improved(self, roi_img):
+        """
+        Segmentation d'une région d'intérêt - Version améliorée
+        """
         if self.seg_model is None:
             return self._simulate_roi_segmentation(roi_img)
         
@@ -481,20 +633,39 @@ class ModelLoader:
             mask_resized = cv2.resize(mask, (w_roi, h_roi))
             
             mask_mean = mask_resized.mean()
-            if mask_mean > 0.7:
+            print(f"   ROI segmentation - mask mean: {mask_mean:.3f}")
+            
+            if mask_mean > 0.5:
                 threshold = 0.75
-            elif mask_mean > 0.5:
-                threshold = 0.65
             elif mask_mean > 0.3:
-                threshold = 0.5
+                threshold = 0.65
             else:
-                threshold = 0.35
+                threshold = 0.55
             
             mask_binary = (mask_resized > threshold).astype(np.uint8) * 255
             
             kernel = np.ones((3, 3), np.uint8)
             mask_binary = cv2.morphologyEx(mask_binary, cv2.MORPH_OPEN, kernel)
             mask_binary = cv2.morphologyEx(mask_binary, cv2.MORPH_CLOSE, kernel)
+            
+            # Garder uniquement le plus grand contour
+            contours, _ = cv2.findContours(mask_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            if contours:
+                largest = max(contours, key=cv2.contourArea)
+                area_ratio = cv2.contourArea(largest) / (h_roi * w_roi)
+                
+                if area_ratio > 0.6 and mask_mean > 0.4:
+                    print(f"   ROI - contour trop grand ({area_ratio*100:.1f}%), seuil augmenté")
+                    mask_binary = (mask_resized > 0.85).astype(np.uint8) * 255
+                    mask_binary = cv2.morphologyEx(mask_binary, cv2.MORPH_OPEN, kernel)
+                    mask_binary = cv2.morphologyEx(mask_binary, cv2.MORPH_CLOSE, kernel)
+                    contours, _ = cv2.findContours(mask_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                    if contours:
+                        largest = max(contours, key=cv2.contourArea)
+                
+                mask_clean = np.zeros((h_roi, w_roi), dtype=np.uint8)
+                cv2.drawContours(mask_clean, [largest], -1, 255, -1)
+                mask_binary = mask_clean
             
             return mask_binary
             
@@ -514,6 +685,7 @@ class ModelLoader:
         return mask
     
     def _simulate_classification(self, img_array):
+        """Simulation classification"""
         return {
             'prediction': 'Non-Urgent',
             'emoji': '🟢 Non-Urgent',
@@ -523,6 +695,7 @@ class ModelLoader:
         }
     
     def _simulate_detection(self, img_array):
+        """Simulation détection"""
         h, w = img_array.shape[:2]
         box_w, box_h = int(w * 0.6), int(h * 0.6)
         x1, y1 = (w - box_w) // 2, (h - box_h) // 2
@@ -536,6 +709,7 @@ class ModelLoader:
         }
     
     def _simulate_segmentation(self, img_array):
+        """Simulation segmentation"""
         h, w = img_array.shape[:2]
         center_x, center_y = w // 2, h // 2
         radius = min(h, w) // 4
@@ -545,7 +719,14 @@ class ModelLoader:
         overlay = img_array.copy()
         overlay[mask > 0] = [255, 80, 80]
         blended = cv2.addWeighted(img_array, 0.55, overlay, 0.45, 0)
-        return {'mask': mask, 'blended': blended, 'area_percentage': area_percentage, 'has_segmentation': True}
+        return {
+            'mask': mask,
+            'blended': blended,
+            'area_percentage': area_percentage,
+            'area_pixels': int(np.sum(mask > 0)),
+            'has_segmentation': area_percentage > 1
+        }
 
 
+# Instance globale
 model_loader = ModelLoader()
