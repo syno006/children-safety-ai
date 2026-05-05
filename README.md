@@ -23,7 +23,7 @@ backend, providing real-time risk detection and alerting for shelter staff.
 
 - **Sanitation risk detection** — Identifies cockroaches, trash, and wet 
   surfaces using YOLO11s (mAP50: 0.819)
-- **Structural damage assessment** — Detects cracks, mold, and water damage
+- **Structural damage assessment** — Detects spalling and efflorescence
 - **Overcrowding prediction** — Estimates occupancy and generates density heatmaps
 - **Accident hazard detection** — Identifies dangerous objects and missing 
   safety equipment

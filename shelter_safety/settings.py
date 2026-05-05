@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core',
     'blessures_app',
+    'sanitation_app',
+    'structural_app',
     'violence_app',
     'fall_detection',
 ]
