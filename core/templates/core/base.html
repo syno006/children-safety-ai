@@ -594,13 +594,14 @@
                 <i class="fas fa-chart-pie"></i>
                 <span>Tableau de bord</span>
             </a>
-            <a href="{% url 'detection' %}" class="nav-link {% if request.resolver_match.url_name == 'detection' %}active{% endif %}">
-                <i class="fas fa-robot"></i>
-                <span>Détection IA</span>
-            </a>
+
             <a href="{% url 'blessures:home' %}" class="nav-link {% if 'blessures' in request.resolver_match.app_name %}active{% endif %}">
                 <i class="fas fa-heart-pulse"></i>
                 <span>Santé & Soins</span>
+            </a>
+            <a href="{% url 'fall_detection:home' %}" class="nav-link {% if 'fall_detection' in request.resolver_match.app_name %}active{% endif %}">
+                <i class="fas fa-person-falling"></i>
+                <span>Détection Chutes</span>
             </a>
             <a href="{% url 'core:about' %}" class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}">
                 <i class="fas fa-building-shield"></i>

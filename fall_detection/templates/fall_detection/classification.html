@@ -1,0 +1,203 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}CNN - Classification de Chutes | ShelterCare{% endblock %}
+
+{% block extra_css %}
+<style>
+    .result-card {
+        animation: fadeInUp 0.5s ease-out;
+    }
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    .stat-card {
+        background-color: #f8fafc;
+        border-radius: 0.75rem;
+        padding: 1rem;
+        text-align: center;
+        transition: transform 0.2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-2px);
+    }
+    .progress-custom {
+        height: 8px;
+        border-radius: 4px;
+        background-color: #e2e8f0;
+        overflow: hidden;
+    }
+    .progress-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.6s ease;
+    }
+    .progress-fill.danger {
+        background: linear-gradient(90deg, #dc2626, #ef4444);
+    }
+    .progress-fill.success {
+        background: linear-gradient(90deg, #16a34a, #22c55e);
+    }
+    .badge-urgent {
+        background-color: #dc2626;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 2rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+    .badge-safe {
+        background-color: #16a34a;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 2rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- En-tête -->
+    <div class="text-center mb-4">
+        <h1 class="display-5 fw-bold text-success">Classification CNN</h1>
+        <p class="text-muted">Classification rapide des chutes par reseau de neurones convolutif</p>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-5 mx-auto">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-success text-white rounded-top-4">
+                    <h5 class="mb-0"><i class="fas fa-tag me-2"></i> Importer une image</h5>
+                </div>
+                <div class="card-body p-4">
+                    {% if error %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i> {{ error }}
+                    </div>
+                    {% endif %}
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Choisir une image</label>
+                            <input type="file" name="image" class="form-control" accept="image/*" required>
+                            <small class="text-muted">Formats supportes: JPG, PNG — Maximum 10MB</small>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 py-2 fw-semibold">
+                            <i class="fas fa-microchip me-2"></i> Classifier avec CNN
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Resultats -->
+    {% if result %}
+    <div class="row mt-5 result-card">
+        <div class="col-lg-8 mx-auto">
+            <!-- Carte resultat -->
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+                <div class="card-header text-center py-3 {% if result.prediction == 'FALL' %}bg-danger{% else %}bg-success{% endif %} text-white">
+                    <h3 class="mb-0 fw-bold">
+                        {% if result.prediction == 'FALL' %}
+                            <i class="fas fa-exclamation-triangle me-2"></i> CHUTE CLASSIFIEE
+                        {% else %}
+                            <i class="fas fa-check-circle me-2"></i> SITUATION NORMALE
+                        {% endif %}
+                    </h3>
+                </div>
+                
+                <div class="card-body p-4">
+                    <!-- Confiance -->
+                    <div class="text-center mb-4">
+                        <h6 class="text-muted text-uppercase small fw-semibold">Confiance de l'IA</h6>
+                        <div class="display-1 fw-bold {% if result.prediction == 'FALL' %}text-danger{% else %}text-success{% endif %}">
+                            {{ result.confidence|floatformat:1 }}<small class="fs-4">%</small>
+                        </div>
+                        <div class="progress-custom mt-2">
+                            <div class="progress-fill {% if result.prediction == 'FALL' %}danger{% else %}success{% endif %}" 
+                                 style="width: {{ result.confidence|floatformat:0 }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Probabilites -->
+                    <div class="row mb-4 g-3">
+                        <div class="col-md-6">
+                            <div class="stat-card">
+                                <i class="fas fa-user-shield fa-2x text-success mb-2"></i>
+                                <h6 class="mb-1">Situation normale</h6>
+                                <span class="h3 text-success fw-bold">{{ result.probabilities.normal|floatformat:1 }}%</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="stat-card">
+                                <i class="fas fa-exclamation-triangle fa-2x text-danger mb-2"></i>
+                                <h6 class="mb-1">Risque de chute</h6>
+                                <span class="h3 text-danger fw-bold">{{ result.probabilities.fall|floatformat:1 }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Badge statut -->
+                    <div class="text-center mb-3">
+                        {% if result.prediction == 'FALL' %}
+                            <span class="badge-urgent"><i class="fas fa-bell me-1"></i> Intervention requise</span>
+                        {% else %}
+                            <span class="badge-safe"><i class="fas fa-shield-alt me-1"></i> Situation securitaire</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Conclusion -->
+                    <div class="alert alert-light border rounded-3">
+                        <i class="fas fa-microchip me-2 text-secondary"></i>
+                        <strong class="small text-uppercase">Conclusion</strong>
+                        <p class="mt-2 mb-0 small">
+                            Le modele CNN a analyse l'image et conclut a une 
+                            <strong class="{% if result.prediction == 'FALL' %}text-danger{% else %}text-success{% endif %}">
+                                {% if result.prediction == 'FALL' %}chute{% else %}situation normale{% endif %}
+                            </strong>
+                            avec un niveau de confiance de <strong>{{ result.confidence|floatformat:1 }}%</strong>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Image analysee -->
+            {% if image_data %}
+            <div class="card shadow-sm border-0 rounded-4 mt-4 overflow-hidden">
+                <div class="card-header bg-dark text-white">
+                    <h6 class="mb-0"><i class="fas fa-image me-2"></i> Image analysee</h6>
+                </div>
+                <div class="card-body text-center p-3">
+                    <img src="data:image/jpeg;base64,{{ image_data }}" class="img-fluid rounded shadow-sm" style="max-height: 400px; cursor: pointer;" onclick="window.open(this.src, '_blank')">
+                    <div class="mt-2">
+                        <span class="badge bg-secondary"><i class="fas fa-chart-simple me-1"></i> Classification: {{ result.prediction }}</span>
+                        <span class="badge bg-secondary ms-2"><i class="fas fa-search-plus me-1"></i> Cliquer pour agrandir</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Bouton alerte si chute -->
+            {% if result.prediction == 'FALL' %}
+            <div class="text-center mt-4">
+                <button class="btn btn-danger btn-lg px-5 shadow" onclick="alert('Alerte envoyee au personnel du shelter. Intervention requise immediatement.')">
+                    <i class="fas fa-bell me-2"></i> Alerter le shelter
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

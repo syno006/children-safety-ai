@@ -1,0 +1,737 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Détection de Chutes — ShelterCare pour Enfants{% endblock %}
+
+{% block page_title %}Système de Détection de Chutes{% endblock %}
+{% block page_subtitle %}Protection des enfants en centres d'accueil par Intelligence Artificielle{% endblock %}
+
+{% block extra_css %}
+
+/* ══════════════════════════════════════════════════════════
+   HERO BANNER PRINCIPAL - MARRON
+══════════════════════════════════════════════════════════ */
+.fall-hero {
+    background: linear-gradient(135deg, #4a2c1a 0%, #3d2315 50%, #2e1a0f 100%);
+    border-radius: var(--r-xl);
+    padding: 3rem 2.5rem 2.8rem;
+    margin-bottom: 1.75rem;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+}
+
+/* Decorative rings */
+.fall-hero::before {
+    content: '';
+    position: absolute; top: -80px; right: -80px;
+    width: 280px; height: 280px;
+    border-radius: 50%;
+    border: 60px solid rgba(196,150,60,.10);
+    pointer-events: none;
+}
+.fall-hero::after {
+    content: '';
+    position: absolute; bottom: -55px; left: 25%;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    border: 40px solid rgba(196,150,60,.07);
+    pointer-events: none;
+}
+
+/* Live badge */
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    background: rgba(196,150,60,.18);
+    border: 1px solid rgba(196,150,60,.32);
+    color: var(--sand);
+    padding: .3rem .9rem;
+    border-radius: var(--r-full);
+    font-size: .64rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    margin-bottom: 1.1rem;
+}
+.hero-badge .pulse-dot {
+    width: 7px; height: 7px;
+    background: var(--sand);
+    border-radius: 50%;
+    animation: badge-pulse 2s ease-in-out infinite;
+}
+@keyframes badge-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: .3; transform: scale(.6); }
+}
+
+.fall-hero h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: var(--ivory);
+    line-height: 1.1;
+    margin-bottom: .6rem;
+}
+.fall-hero h2 em {
+    font-style: italic;
+    color: var(--sand);
+}
+.fall-hero .hero-sub {
+    color: rgba(213,187,138,.7);
+    font-size: .9rem;
+    line-height: 1.7;
+    max-width: 600px;
+    margin: 1rem auto 0;
+}
+
+/* ══════════════════════════════════════════════════════════
+   SECTION LABEL
+══════════════════════════════════════════════════════════ */
+.section-label {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin-bottom: 1.1rem;
+    margin-top: 1rem;
+}
+.section-label::before {
+    content: '';
+    width: 28px; height: 2px;
+    background: var(--grad-gold);
+    border-radius: 2px;
+}
+.section-label span {
+    font-size: .67rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--amber);
+}
+.section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-soft);
+}
+
+/* ══════════════════════════════════════════════════════════
+   GRILLE MODÈLES
+══════════════════════════════════════════════════════════ */
+.models-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+    .models-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Carte modèle */
+.model-card {
+    background: var(--grad-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    overflow: hidden;
+    transition: transform .28s var(--ease), box-shadow .28s, border-color .28s;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+}
+.model-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(196,150,60,.3);
+    text-decoration: none;
+    color: inherit;
+}
+
+.model-header {
+    padding: 1.25rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+.model-header.yolo {
+    background: linear-gradient(135deg, rgba(52,152,219,.15) 0%, rgba(41,128,185,.08) 100%);
+    border-bottom: 1px solid rgba(52,152,219,.15);
+}
+.model-header.cnn {
+    background: linear-gradient(135deg, rgba(196,150,60,.15) 0%, rgba(140,94,30,.08) 100%);
+    border-bottom: 1px solid rgba(196,150,60,.15);
+}
+
+.model-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--r-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    margin-bottom: .75rem;
+}
+.model-icon.yolo {
+    background: rgba(52,152,219,.15);
+    color: #7ec8e3;
+}
+.model-icon.cnn {
+    background: rgba(196,150,60,.15);
+    color: var(--sand);
+}
+
+.model-tag {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(196,150,60,.11);
+    color: var(--gold-deep);
+    border: 1px solid rgba(196,150,60,.2);
+    border-radius: var(--r-full);
+    font-size: .58rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    padding: .2rem .7rem;
+    text-transform: uppercase;
+}
+.model-tag.yolo {
+    background: rgba(52,152,219,.12);
+    color: #7ec8e3;
+    border-color: rgba(52,152,219,.25);
+}
+
+.model-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--brown-deep);
+    margin: .5rem 0 .3rem;
+}
+.model-subtitle {
+    font-size: .7rem;
+    color: var(--amber);
+    font-weight: 600;
+    letter-spacing: .05em;
+    margin-bottom: .5rem;
+}
+
+.model-body {
+    padding: 1.25rem 1.5rem;
+    flex: 1;
+}
+.model-description {
+    font-size: .8rem;
+    color: var(--brown-light);
+    line-height: 1.65;
+    margin-bottom: 1rem;
+}
+
+.model-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1rem 0;
+}
+.model-features li {
+    font-size: .72rem;
+    color: var(--text-soft);
+    padding: .25rem 0;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+.model-features li i {
+    width: 18px;
+    font-size: .7rem;
+    color: var(--sand);
+}
+
+.model-stats {
+    display: flex;
+    gap: 1rem;
+    padding: .75rem 0;
+    border-top: 1px solid var(--border-soft);
+    border-bottom: 1px solid var(--border-soft);
+    margin: .75rem 0;
+}
+.stat-item {
+    flex: 1;
+    text-align: center;
+}
+.stat-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--sand);
+}
+.stat-label {
+    font-size: .55rem;
+    font-weight: 600;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.model-footer {
+    padding: 1rem 1.5rem 1.5rem;
+    border-top: 1px solid var(--border-soft);
+}
+
+.btn-model {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    width: 100%;
+    padding: .7rem;
+    border-radius: var(--r-full);
+    font-size: .75rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all .25s;
+}
+.btn-model.yolo {
+    background: linear-gradient(135deg, #2980b9, #1a5276);
+    color: white;
+    border: none;
+}
+.btn-model.cnn {
+    background: var(--grad-gold);
+    color: white;
+    border: none;
+}
+.btn-model:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+    text-decoration: none;
+    color: white;
+}
+
+/* ══════════════════════════════════════════════════════════
+   CARTE OBJECTIFS & CONTEXTE
+══════════════════════════════════════════════════════════ */
+.context-card {
+    background: linear-gradient(135deg, rgba(196,150,60,.05) 0%, rgba(140,94,30,.02) 100%);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--r-xl);
+    padding: 1.75rem;
+    margin-bottom: 1.75rem;
+}
+.context-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--brown-deep);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+}
+.context-title i {
+    color: var(--sand);
+    font-size: 1.3rem;
+}
+.context-text {
+    color: var(--brown-light);
+    font-size: .85rem;
+    line-height: 1.7;
+    margin-bottom: 1rem;
+}
+.context-highlight {
+    background: rgba(196,150,60,.1);
+    border-left: 3px solid var(--sand);
+    padding: 1rem;
+    border-radius: var(--r-md);
+    margin: 1rem 0;
+}
+.context-highlight p {
+    margin: 0;
+    font-size: .8rem;
+    color: var(--brown-deep);
+}
+
+/* ══════════════════════════════════════════════════════════
+   STATS BANNER
+══════════════════════════════════════════════════════════ */
+.stats-banner {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    background: var(--grad-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: 1.5rem;
+    margin-bottom: 1.75rem;
+}
+@media (max-width: 600px) {
+    .stats-banner {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+.stat-banner-item {
+    text-align: center;
+}
+.stat-banner-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--sand);
+    line-height: 1;
+}
+.stat-banner-label {
+    font-size: .65rem;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-top: .25rem;
+}
+
+/* ══════════════════════════════════════════════════════════
+   BULLET POINTS
+══════════════════════════════════════════════════════════ */
+.bullet-list {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+.bullet-item {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    font-size: .8rem;
+    color: var(--brown-light);
+}
+.bullet-item i {
+    width: 20px;
+    color: var(--sand);
+    font-size: .8rem;
+}
+
+/* ══════════════════════════════════════════════════════════
+   SECTION AJOUTÉE EN BAS - MARRON
+══════════════════════════════════════════════════════════ */
+.footer-section {
+    background: linear-gradient(135deg, #4a2c1a 0%, #3d2315 50%, #2e1a0f 100%);
+    border-radius: var(--r-xl);
+    padding: 2rem 2rem;
+    margin-top: 1.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+.footer-section::before {
+    content: '';
+    position: absolute; top: -50px; left: -50px;
+    width: 150px; height: 150px;
+    border-radius: 50%;
+    background: rgba(196,150,60,.05);
+    pointer-events: none;
+}
+.footer-section::after {
+    content: '';
+    position: absolute; bottom: -30px; right: -30px;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: rgba(196,150,60,.05);
+    pointer-events: none;
+}
+.footer-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--ivory);
+    margin-bottom: 1rem;
+}
+.footer-text {
+    color: rgba(213,187,138,.7);
+    font-size: .85rem;
+    line-height: 1.7;
+    max-width: 700px;
+    margin: 0 auto;
+}
+.footer-divider {
+    width: 60px;
+    height: 2px;
+    background: var(--sand);
+    margin: 1rem auto;
+    opacity: .4;
+}
+.footer-quote {
+    font-style: italic;
+    color: var(--sand);
+    font-size: .9rem;
+    margin-top: 1rem;
+}
+
+/* Reveal animations */
+.reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 0.05s; }
+.reveal-delay-2 { transition-delay: 0.1s; }
+.reveal-delay-3 { transition-delay: 0.15s; }
+.reveal-delay-4 { transition-delay: 0.2s; }
+
+{% endblock %}
+
+{% block content %}
+
+<!-- ══════════════════════════════════════════════════════
+     HERO SECTION - PAGE DE GARDE (MARRON)
+══════════════════════════════════════════════════════ -->
+<div class="fall-hero reveal">
+    <div class="hero-badge">
+        <span class="pulse-dot"></span>
+        ShelterCare · Protection des enfants
+    </div>
+    <h2>Système de <em>Détection de Chutes</em><br>pour Centres d'Accueil</h2>
+    <p class="hero-sub">
+        Une solution innovante dédiée aux shelters pour assurer la sécurité des enfants
+        grâce à l'intelligence artificielle. Détection automatique des chutes en temps réel.
+    </p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     CONTEXTE & OBJECTIFS POUR SHELTERS
+══════════════════════════════════════════════════════ -->
+<div class="context-card reveal reveal-delay-1">
+    <div class="context-title">
+        <i class="fas fa-home"></i>
+        Pourquoi les shelters ?
+    </div>
+    <div class="context-text">
+        Dans les centres d'accueil (shelters), la surveillance des enfants est une priorité absolue.
+        Notre système de détection de chutes permet aux éducateurs et au personnel d'être alertés
+        immédiatement en cas de chute, réduisant ainsi les risques de blessures graves.
+    </div>
+    <div class="context-highlight">
+        <p><strong>🏠 Objectif ShelterCare :</strong> Offrir aux centres d'accueil un outil fiable et accessible
+        pour détecter rapidement toute situation dangereuse et protéger efficacement les enfants
+        dont ils ont la charge.</p>
+    </div>
+    <div class="bullet-list">
+        <div class="bullet-item">
+            <i class="fas fa-check-circle"></i>
+            <span>Détection automatique des chutes en temps réel</span>
+        </div>
+        <div class="bullet-item">
+            <i class="fas fa-check-circle"></i>
+            <span>Alerte immédiate du personnel éducatif</span>
+        </div>
+        <div class="bullet-item">
+            <i class="fas fa-check-circle"></i>
+            <span>Localisation précise de la zone de chute</span>
+        </div>
+        <div class="bullet-item">
+            <i class="fas fa-check-circle"></i>
+            <span>Interface adaptée aux professionnels des shelters</span>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     STATISTIQUES CLÉS
+══════════════════════════════════════════════════════ -->
+<div class="stats-banner reveal reveal-delay-2">
+    <div class="stat-banner-item">
+        <div class="stat-banner-value">94,2%</div>
+        <div class="stat-banner-label">Précision globale</div>
+    </div>
+    <div class="stat-banner-item">
+        <div class="stat-banner-value">&lt;1s</div>
+        <div class="stat-banner-label">Temps d'inférence</div>
+    </div>
+    <div class="stat-banner-item">
+        <div class="stat-banner-value">24h/7j</div>
+        <div class="stat-banner-label">Surveillance</div>
+    </div>
+    <div class="stat-banner-item">
+        <div class="stat-banner-value">1000+</div>
+        <div class="stat-banner-label">Images entraînement</div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SECTION LABEL MODÈLES
+══════════════════════════════════════════════════════ -->
+<div class="section-label reveal reveal-delay-2">
+    <span>Modèles d'intelligence artificielle</span>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     GRILLE DES MODÈLES
+══════════════════════════════════════════════════════ -->
+<div class="models-grid">
+
+    <!-- MODÈLE YOLOv8 - DÉTECTION AVEC BOUNDING BOX -->
+    <div class="model-card reveal reveal-delay-3">
+        <div class="model-header yolo">
+            <div class="model-icon yolo">
+                <i class="fas fa-crosshairs"></i>
+            </div>
+            <div class="model-tag yolo">Détection + Localisation</div>
+            <div class="model-title">YOLOv8</div>
+            <div class="model-subtitle">You Only Look Once</div>
+        </div>
+        <div class="model-body">
+            <div class="model-description">
+                Modèle de détection d'objets en temps réel qui localise précisément la chute
+                en dessinant une boîte englobante autour de l'enfant ou de la zone concernée.
+                Idéal pour identifier rapidement l'endroit où l'incident s'est produit.
+            </div>
+            <ul class="model-features">
+                <li><i class="fas fa-vector-square"></i> Localisation précise par boîte englobante</li>
+                <li><i class="fas fa-tachometer-alt"></i> Inférence en moins de 50ms</li>
+                <li><i class="fas fa-chart-line"></i> Précision de détection : 91,7%</li>
+                <li><i class="fas fa-layer-group"></i> Détection multi-enfants simultanée</li>
+            </ul>
+            <div class="model-stats">
+                <div class="stat-item">
+                    <div class="stat-value">91,7%</div>
+                    <div class="stat-label">Précision</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">15ms</div>
+                    <div class="stat-label">Temps GPU</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">Multi</div>
+                    <div class="stat-label">Enfants</div>
+                </div>
+            </div>
+        </div>
+        <div class="model-footer">
+            <a href="{% url 'fall_detection:yolo' %}" class="btn-model yolo">
+                <i class="fas fa-arrow-right"></i> Tester YOLO - Détection
+            </a>
+        </div>
+    </div>
+
+    <!-- MODÈLE CNN - CLASSIFICATION PURE -->
+    <div class="model-card reveal reveal-delay-4">
+        <div class="model-header cnn">
+            <div class="model-icon cnn">
+                <i class="fas fa-tag"></i>
+            </div>
+            <div class="model-tag">Classification pure</div>
+            <div class="model-title">CNN Classifier</div>
+            <div class="model-subtitle">ResNet-50</div>
+        </div>
+        <div class="model-body">
+            <div class="model-description">
+                Réseau de neurones convolutif spécialisé dans la classification binaire.
+                Analyse l'image entière et détermine avec un score de confiance s'il s'agit
+                d'une chute ou d'une situation normale. Plus rapide pour les vérifications.
+            </div>
+            <ul class="model-features">
+                <li><i class="fas fa-chart-pie"></i> Classification rapide (Normal / Chute)</li>
+                <li><i class="fas fa-percent"></i> Score de confiance détaillé</li>
+                <li><i class="fas fa-microchip"></i> Transfer Learning sur ResNet-50</li>
+                <li><i class="fas fa-chart-simple"></i> Précision : 94,2%</li>
+            </ul>
+            <div class="model-stats">
+                <div class="stat-item">
+                    <div class="stat-value">94,2%</div>
+                    <div class="stat-label">Précision</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">2</div>
+                    <div class="stat-label">Classes</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">0,3s</div>
+                    <div class="stat-label">Inférence</div>
+                </div>
+            </div>
+        </div>
+        <div class="model-footer">
+            <a href="{% url 'fall_detection:classification' %}" class="btn-model cnn">
+                <i class="fas fa-arrow-right"></i> Tester CNN - Classification
+            </a>
+        </div>
+    </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     COMPARAISON DES APPROCHES POUR SHELTERS
+══════════════════════════════════════════════════════ -->
+<div class="context-card reveal reveal-delay-4" style="margin-top: 0;">
+    <div class="context-title">
+        <i class="fas fa-code-branch"></i>
+        Comparaison des approches pour les shelters
+    </div>
+    <div class="row" style="margin-top: 1rem;">
+        <div class="col-md-6">
+            <div class="context-highlight" style="background: rgba(52,152,219,.08);">
+                <p><strong><i class="fas fa-crosshairs"></i> YOLOv8 - Détection avec localisation</strong></p>
+                <ul style="margin-top: .5rem; margin-bottom: 0; padding-left: 1.2rem;">
+                    <li>Localise précisément l'endroit de la chute</li>
+                    <li>Affiche une boîte englobante sur l'image</li>
+                    <li>Idéal pour les grands espaces (cours, dortoirs)</li>
+                    <li>Permet une intervention ciblée du personnel</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="context-highlight" style="background: rgba(196,150,60,.08);">
+                <p><strong><i class="fas fa-tag"></i> CNN - Classification rapide</strong></p>
+                <ul style="margin-top: .5rem; margin-bottom: 0; padding-left: 1.2rem;">
+                    <li>Analyse globale de la situation</li>
+                    <li>Plus rapide pour les vérifications fréquentes</li>
+                    <li>Idéal pour la surveillance en salle d'activités</li>
+                    <li>Score de confiance très fiable</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SECTION CONCLUSION - MARRON
+══════════════════════════════════════════════════════ -->
+<div class="footer-section reveal reveal-delay-4">
+    <div class="footer-title">
+        ShelterCare : La sécurité des enfants au cœur de notre mission
+    </div>
+    <div class="footer-text">
+        Ce projet a été spécialement développé pour les centres d'accueil (shelters) afin de
+        fournir au personnel éducatif un outil fiable et performant pour détecter rapidement
+        les chutes et assurer la sécurité des enfants 24 heures sur 24.
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-quote">
+        "Protéger chaque enfant, prévenir chaque chute, agir à chaque instant"
+    </div>
+    <div class="footer-divider" style="width: 40px; opacity: 0.3;"></div>
+    <div class="footer-text" style="font-size: 0.75rem; margin-top: 0.5rem;">
+        ShelterCare · Intelligence Artificielle au service de la protection infantile
+    </div>
+</div>
+
+<script>
+// Reveal animation on scroll
+const revealElements = document.querySelectorAll('.reveal');
+function checkReveal() {
+    const windowHeight = window.innerHeight;
+    revealElements.forEach(el => {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < windowHeight - 100) {
+            el.classList.add('visible');
+        }
+    });
+}
+window.addEventListener('scroll', checkReveal);
+window.addEventListener('load', checkReveal);
+</script>
+
+{% endblock %}

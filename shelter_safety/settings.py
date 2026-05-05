@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'core',
     'blessures_app',
     'violence_app',
+    'fall_detection',
 ]
 
 MIDDLEWARE = [

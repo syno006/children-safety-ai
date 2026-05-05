@@ -24,6 +24,7 @@ urlpatterns = [
     path('', include('core.urls')),
     path('blessures/', include('blessures_app.urls')),
     path('violence/', include('violence_app.urls')),
+    path('fall/', include('fall_detection.urls')),
 ]
 
 if settings.DEBUG:

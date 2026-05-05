@@ -1,0 +1,14 @@
+{
+    "model_name": "FastFallDetector",
+    "version": "1.0",
+    "num_classes": 2,
+    "class_names": [
+        "fall",
+        "normal"
+    ],
+    "input_size": 224,
+    "device": "cpu",
+    "threshold": 0.5,
+    "model_file": "best_model.pt",
+    "description": "Modele de detection de chutes entraine sur dataset personnalise"
+}

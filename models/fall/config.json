@@ -1,0 +1,8 @@
+{
+    "model_name": "YOLO_FallDetection",
+    "num_classes": 2,
+    "class_names": [
+        "fall",
+        "normal"
+    ]
+}
