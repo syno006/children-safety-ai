@@ -572,49 +572,49 @@
 ══════════════════════════════════════════════════════ -->
 <div class="models-grid">
 
-    <!-- MODÈLE YOLOv8 - DÉTECTION AVEC BOUNDING BOX -->
-    <div class="model-card reveal reveal-delay-3">
-        <div class="model-header yolo">
-            <div class="model-icon yolo">
-                <i class="fas fa-crosshairs"></i>
-            </div>
-            <div class="model-tag yolo">Détection + Localisation</div>
-            <div class="model-title">YOLOv8</div>
-            <div class="model-subtitle">You Only Look Once</div>
+   <!-- MODÈLE YOLOv8 - DÉTECTION AVEC BOUNDING BOX -->
+<div class="model-card reveal reveal-delay-3">
+    <div class="model-header yolo">
+        <div class="model-icon yolo">
+            <i class="fas fa-crosshairs"></i>
         </div>
-        <div class="model-body">
-            <div class="model-description">
-                Modèle de détection d'objets en temps réel qui localise précisément la chute
-                en dessinant une boîte englobante autour de l'enfant ou de la zone concernée.
-                Idéal pour identifier rapidement l'endroit où l'incident s'est produit.
-            </div>
-            <ul class="model-features">
-                <li><i class="fas fa-vector-square"></i> Localisation précise par boîte englobante</li>
-                <li><i class="fas fa-tachometer-alt"></i> Inférence en moins de 50ms</li>
-                <li><i class="fas fa-chart-line"></i> Précision de détection : 91,7%</li>
-                <li><i class="fas fa-layer-group"></i> Détection multi-enfants simultanée</li>
-            </ul>
-            <div class="model-stats">
-                <div class="stat-item">
-                    <div class="stat-value">91,7%</div>
-                    <div class="stat-label">Précision</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">15ms</div>
-                    <div class="stat-label">Temps GPU</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">Multi</div>
-                    <div class="stat-label">Enfants</div>
-                </div>
-            </div>
+        <div class="model-tag yolo">Classification</div>
+        <div class="model-title">CNN</div>
+        <div class="model-subtitle">Convolutional Neural Network</div>
+    </div>
+    <div class="model-body">
+        <div class="model-description">
+            Modèle de classification basé sur les réseaux de neurones convolutifs (CNN)
+            permettant de détecter si une chute a eu lieu ou non à partir d’une image.
+            Il analyse les caractéristiques visuelles globales sans localisation précise.
         </div>
-        <div class="model-footer">
-            <a href="{% url 'fall_detection:yolo' %}" class="btn-model yolo">
-                <i class="fas fa-arrow-right"></i> Tester YOLO - Détection
-            </a>
+        <ul class="model-features">
+            <li><i class="fas fa-image"></i> Analyse globale de l’image</li>
+            <li><i class="fas fa-brain"></i> Apprentissage automatique des features</li>
+            <li><i class="fas fa-chart-line"></i> Précision de classification : 93,2%</li>
+            <li><i class="fas fa-bolt"></i> Inférence rapide en temps réel</li>
+        </ul>
+        <div class="model-stats">
+            <div class="stat-item">
+                <div class="stat-value">93,2%</div>
+                <div class="stat-label">Précision</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">10ms</div>
+                <div class="stat-label">Temps GPU</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">2 classes</div>
+                <div class="stat-label">Chute / Normal</div>
+            </div>
         </div>
     </div>
+    <div class="model-footer">
+        <a href="{% url 'fall_detection:yolo' %}" class="btn-model yolo">
+            <i class="fas fa-arrow-right"></i> Tester CNN - Classification
+        </a>
+    </div>
+</div>
 
     <!-- MODÈLE CNN - CLASSIFICATION PURE -->
     <div class="model-card reveal reveal-delay-4">
