@@ -1,0 +1,279 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Dommages Structurels — ShelterCare AI{% endblock %}
+{% block page_title %}Dommages Structurels{% endblock %}
+{% block page_subtitle %}YOLO11s · Efflorescence · Spalling · Score d'intégrité{% endblock %}
+
+{% block extra_css %}
+/* ── Hero ─────────────────────────────────────────────────── */
+.str-hero {
+    background: var(--grad-hero);
+    border-radius: var(--r-xl);
+    padding: 2.5rem 2rem 2.25rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+.str-hero::before {
+    content: '';
+    position: absolute; top: -70px; right: -70px;
+    width: 240px; height: 240px;
+    border-radius: 50%;
+    border: 55px solid rgba(196,150,60,.12);
+    pointer-events: none;
+}
+.str-hero::after {
+    content: '';
+    position: absolute; bottom: -50px; left: 22%;
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    border: 36px solid rgba(196,150,60,.08);
+    pointer-events: none;
+}
+.hero-badge {
+    display: inline-flex; align-items: center; gap: .5rem;
+    background: rgba(196,150,60,.2);
+    border: 1px solid rgba(196,150,60,.35);
+    color: var(--sand);
+    padding: .28rem .85rem;
+    border-radius: var(--r-full);
+    font-size: .65rem; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase;
+    margin-bottom: 1rem;
+}
+.hero-badge .pulse-dot {
+    width: 6px; height: 6px; background: var(--sand);
+    border-radius: 50%;
+    animation: badge-pulse 2s ease-in-out infinite;
+}
+@keyframes badge-pulse {
+    0%,100%{opacity:1;transform:scale(1);}
+    50%{opacity:.35;transform:scale(.65);}
+}
+.str-hero h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.2rem; font-weight: 700;
+    color: var(--ivory); line-height: 1.1; margin-bottom: .55rem;
+}
+.str-hero h2 em { font-style: italic; color: var(--sand); }
+.str-hero p {
+    color: rgba(213,187,138,.65); font-size: .875rem;
+    line-height: 1.65; max-width: 500px; margin-bottom: 1.75rem;
+}
+.pipeline-strip {
+    display: flex; align-items: center; gap: .45rem; flex-wrap: wrap;
+}
+.pipe-step {
+    display: flex; align-items: center; gap: .45rem;
+    background: rgba(196,150,60,.12);
+    border: 1px solid rgba(196,150,60,.22);
+    border-radius: var(--r-full);
+    padding: .32rem .85rem;
+    font-size: .69rem; font-weight: 600; color: var(--sand);
+}
+.pipe-num {
+    width: 17px; height: 17px;
+    background: var(--grad-gold); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .58rem; font-weight: 700; color: white;
+}
+.pipe-arrow { color: rgba(196,150,60,.38); font-size: .9rem; }
+
+/* ── Model card ───────────────────────────────────────────── */
+.model-solo {
+    background: var(--grad-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: 1.75rem;
+    display: flex; gap: 2rem;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    text-decoration: none; color: inherit;
+    transition: transform .25s var(--ease), box-shadow .25s;
+}
+.model-solo:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: rgba(196,150,60,.3); }
+.model-solo::before {
+    content: '';
+    position: absolute; top: -35px; right: -35px;
+    width: 110px; height: 110px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(196,150,60,.18) 0%, transparent 70%);
+    pointer-events: none;
+}
+.model-icon {
+    width: 64px; height: 64px; flex-shrink: 0;
+    border-radius: var(--r-md);
+    background: rgba(196,150,60,.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.75rem; color: var(--gold);
+}
+.model-body { flex: 1; }
+.card-tag {
+    display: inline-flex; align-items: center;
+    background: rgba(196,150,60,.12); color: var(--gold-deep);
+    border: 1px solid rgba(196,150,60,.2);
+    border-radius: var(--r-full);
+    font-size: .62rem; font-weight: 600;
+    letter-spacing: .06em; padding: .18rem .65rem;
+    margin-bottom: .7rem; text-transform: uppercase;
+}
+.card-model-name {
+    font-family: 'DM Mono', monospace; font-size: .68rem;
+    font-weight: 500; color: var(--amber);
+    background: rgba(140,94,30,.1);
+    padding: .18rem .55rem; border-radius: 6px;
+    display: inline-block; margin-bottom: .6rem;
+}
+.model-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.35rem; font-weight: 700;
+    color: var(--brown-deep); line-height: 1.2; margin-bottom: .45rem;
+}
+.model-desc {
+    font-size: .8rem; color: var(--brown-light);
+    line-height: 1.65; margin-bottom: 1.1rem;
+}
+.card-stats {
+    display: flex; gap: 1.75rem;
+    padding: .85rem 0;
+    border-top: 1px solid var(--border-soft);
+    border-bottom: 1px solid var(--border-soft);
+    margin-bottom: 1.1rem;
+}
+.stat-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.35rem; font-weight: 700;
+    color: var(--brown-deep); line-height: 1; margin-bottom: .18rem;
+}
+.stat-lbl {
+    font-size: .6rem; font-weight: 600;
+    color: var(--text-soft); text-transform: uppercase; letter-spacing: .06em;
+}
+
+/* ── Classes grid ─────────────────────────────────────────── */
+.classes-grid {
+    display: grid; grid-template-columns: repeat(2,1fr);
+    gap: 1.1rem; margin-bottom: 1.5rem;
+}
+@media(max-width:700px){ .classes-grid{ grid-template-columns:1fr; } }
+
+.class-card {
+    background: var(--grad-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl); padding: 1.25rem;
+    position: relative; overflow: hidden;
+    transition: transform .2s var(--ease), box-shadow .2s;
+}
+.class-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.class-icon {
+    width: 40px; height: 40px; border-radius: var(--r-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; margin-bottom: .85rem;
+}
+.cc-effl  .class-icon { background: rgba(50,130,200,.12);  color: #2878c8; }
+.cc-spall .class-icon { background: rgba(200,70,50,.12);   color: #c84632; }
+
+.class-name {
+    font-size: .82rem; font-weight: 700;
+    color: var(--brown-deep); margin-bottom: .3rem;
+}
+.class-desc { font-size: .72rem; color: var(--brown-light); line-height: 1.55; margin-bottom: .85rem; }
+.class-map {
+    font-family: 'DM Mono', monospace; font-size: .75rem;
+    font-weight: 600; color: var(--brown-deep);
+}
+.class-map-lbl { font-size: .6rem; color: var(--text-soft); margin-top: .1rem; }
+.map-bar-track {
+    height: 4px; background: rgba(196,150,60,.12);
+    border-radius: var(--r-full); overflow: hidden; margin-top: .35rem;
+}
+.map-bar-fill { height: 100%; border-radius: var(--r-full); }
+.cc-effl  .map-bar-fill { background: #2878c8;          width: 66.8%; }
+.cc-spall .map-bar-fill { background: var(--grad-gold); width: 90.2%; }
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="str-hero reveal">
+    <div class="hero-badge">
+        <span class="pulse-dot"></span> Modèle actif · YOLO11s
+    </div>
+    <h2>Détection des <em>Dommages</em><br>Structurels par IA</h2>
+    <p>
+        Un modèle YOLO11s entraîné sur 380 images annotées détecte en temps réel
+        l'efflorescence et le spalling sur les murs et surfaces des refuges,
+        et génère un score d'intégrité structurelle par image.
+    </p>
+    <div class="pipeline-strip">
+        <div class="pipe-step"><span class="pipe-num">1</span> Image</div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step"><span class="pipe-num">2</span> Détection YOLO11s</div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step"><span class="pipe-num">3</span> Score structurel</div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step"><span class="pipe-num">4</span> Rapport</div>
+    </div>
+</div>
+
+<!-- Model card (clickable → detection page) -->
+<a href="{% url 'structural_app:detection' %}" class="model-solo reveal reveal-delay-1">
+    <div class="model-icon"><i class="fas fa-building-shield"></i></div>
+    <div class="model-body">
+        <div class="card-tag">Détection structurelle</div>
+        <div class="card-model-name">YOLO11s · 9.4M params · 21.3 GFLOPs</div>
+        <div class="model-title">Identifier et localiser les dégradations structurelles</div>
+        <p class="model-desc">
+            Détecte l'efflorescence (dépôts salins) et le spalling (éclatement du béton)
+            par bounding boxes avec score de confiance, puis calcule un indice de risque
+            structurel global pour prioriser les interventions de maintenance.
+        </p>
+        <div class="card-stats">
+            <div><div class="stat-val">78.5%</div><div class="stat-lbl">mAP@50</div></div>
+            <div><div class="stat-val">80.2%</div><div class="stat-lbl">Précision</div></div>
+            <div><div class="stat-val">71.7%</div><div class="stat-lbl">Rappel</div></div>
+            <div><div class="stat-val">2</div><div class="stat-lbl">Classes</div></div>
+        </div>
+        <span class="btn btn-gold btn-sm">
+            <i class="fas fa-arrow-right"></i> Lancer la détection
+        </span>
+    </div>
+</a>
+
+<!-- Per-class cards -->
+<div class="section-head reveal reveal-delay-2">
+    <div class="section-title">
+        <div class="section-title-icon"><i class="fas fa-tags"></i></div>
+        Classes détectées
+    </div>
+</div>
+
+<div class="classes-grid reveal reveal-delay-2">
+
+    <div class="class-card cc-effl">
+        <div class="class-icon"><i class="fas fa-water"></i></div>
+        <div class="class-name">Efflorescence</div>
+        <p class="class-desc">
+            Dépôts blancs de sels minéraux sur les surfaces — indicateur d'infiltration
+            d'humidité et de dégradation progressive du béton ou de la maçonnerie.
+        </p>
+        <div class="class-map">0.668</div>
+        <div class="class-map-lbl">mAP@50</div>
+        <div class="map-bar-track"><div class="map-bar-fill"></div></div>
+    </div>
+
+    <div class="class-card cc-spall">
+        <div class="class-icon"><i class="fas fa-burst"></i></div>
+        <div class="class-name">Spalling</div>
+        <p class="class-desc">
+            Éclatement ou détachement du béton en surface — risque structurel direct,
+            souvent causé par la corrosion des armatures ou des cycles gel/dégel répétés.
+        </p>
+        <div class="class-map">0.902</div>
+        <div class="class-map-lbl">mAP@50</div>
+        <div class="map-bar-track"><div class="map-bar-fill"></div></div>
+    </div>
+
+</div>
+
+{% endblock %}

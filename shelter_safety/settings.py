@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'core',
     'blessures_app',
     'sanitation_app',
+    'structural_app',
     'violence_app',
 ]
 
