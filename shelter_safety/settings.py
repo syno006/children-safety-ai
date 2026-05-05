@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'violence_app',
     'allergen_app',
     'fall_detection',
+    'DangerousObjectDetection',
 ]
 
 MIDDLEWARE = [

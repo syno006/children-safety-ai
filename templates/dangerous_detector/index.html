@@ -1,0 +1,1121 @@
+{% extends "dangerous_detector/base.html" %}
+{% block title %}Workspace — GuardianGrid{% endblock %}
+
+{% block extra_head %}
+<style>
+  .workspace-grid {
+    position: relative;
+    min-height: 680px;
+    border: 1px dashed rgba(196,150,60,.25);
+    border-radius: var(--r-xl);
+    padding: 1.5rem;
+    background: rgba(255,252,245,.6);
+    resize: vertical;
+    overflow: auto;
+  }
+
+  .source-window {
+    position: absolute;
+    background: var(--grad-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 260px;
+    min-height: 220px;
+  }
+
+  .window-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .75rem 1rem;
+    background: rgba(196,150,60,.08);
+    border-bottom: 1px solid var(--border-soft);
+    cursor: move;
+  }
+
+  .window-title {
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+
+  .window-body {
+    padding: .9rem 1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+    flex: 1;
+    overflow: auto;
+  }
+
+  .window-actions {
+    display: flex;
+    gap: .5rem;
+    flex-wrap: wrap;
+  }
+
+  .media-preview {
+    background: rgba(196,150,60,.05);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--r-md);
+    padding: .5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 140px;
+    max-height: 240px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .artifact-overlay {
+    position: absolute;
+    inset: .5rem;
+    border-radius: var(--r-sm);
+    object-fit: contain;
+    width: calc(100% - 1rem);
+    height: calc(100% - 1rem);
+    pointer-events: none;
+  }
+
+  .media-preview img,
+  .media-preview video {
+    max-width: 100%;
+    max-height: 220px;
+    border-radius: var(--r-sm);
+  }
+
+  .result-list {
+    display: grid;
+    gap: .5rem;
+    max-height: 200px;
+    overflow: auto;
+    padding-right: .25rem;
+  }
+
+  .result-chip {
+    padding: .5rem .75rem;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border-soft);
+    background: rgba(255,255,255,.6);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: .78rem;
+  }
+
+  .result-chip.high { border-color: rgba(193,68,14,.35); background: rgba(193,68,14,.08); color: #c1440e; }
+  .result-chip.medium { border-color: rgba(244,162,97,.35); background: rgba(244,162,97,.12); color: #b86b2f; }
+  .result-chip.low { border-color: rgba(109,138,42,.35); background: rgba(109,138,42,.08); color: #6d8a2a; }
+
+  .resize-handle {
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    width: 14px;
+    height: 14px;
+    background: rgba(196,150,60,.5);
+    border-radius: 4px;
+    cursor: se-resize;
+  }
+
+  .model-drawer {
+    position: fixed;
+    right: 2rem;
+    top: 100px;
+    width: 360px;
+    max-height: 75vh;
+    overflow-y: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 1.5rem;
+    display: none;
+    z-index: 400;
+  }
+
+  .model-drawer.active { display: block; }
+
+  .model-item {
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+    padding: .6rem 0;
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  .model-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+  }
+
+  .model-row input[type="range"] { width: 100%; }
+
+  .source-empty {
+    text-align: center;
+    padding: 3rem 0;
+    color: var(--text-soft);
+  }
+
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(45,29,15,.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 500;
+  }
+
+  .modal-backdrop.active { display: flex; }
+
+  .modal-card {
+    background: var(--surface);
+    border-radius: var(--r-lg);
+    padding: 2rem;
+    width: 360px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+    margin-bottom: .8rem;
+    font-size: .88rem;
+  }
+
+  .field input, .field select {
+    padding: .5rem .6rem;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border-soft);
+    font-family: 'DM Sans', sans-serif;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero-strip">
+  <h1>Détection <em>incendie &amp; objets dangereux</em></h1>
+  <p>Analysez des images, vidéos ou flux caméra pour repérer rapidement les <strong>objets dangereux</strong> et les <strong>signes de feu/fumée</strong>. Ajustez les seuils de confiance par source et centralisez les alertes pour une intervention plus rapide.</p>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-block" style="--accent: var(--gold);">
+    <div class="stat-num">{{ stats.sources }}</div>
+    <div class="stat-label">Sources</div>
+  </div>
+  <div class="stat-block" style="--accent: #c1440e;">
+    <div class="stat-num">{{ stats.pipelines }}</div>
+    <div class="stat-label">Pipelines</div>
+  </div>
+  <div class="stat-block" style="--accent: #6d8a2a;">
+    <div class="stat-num">{{ stats.enabled }}</div>
+    <div class="stat-label">Enabled Models</div>
+  </div>
+</div>
+
+<div id="toast-zone" style="position:fixed; left:1.25rem; bottom:1.25rem; display:grid; gap:.6rem; z-index:800;"></div>
+
+<div id="notification-bell" style="position:fixed; right:1.25rem; bottom:1.25rem; z-index:760;">
+  <button class="btn btn-ghost" style="position:relative; width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center; padding:0;" onclick="toggleNotifications()" title="Notifications">
+    <span style="font-size:18px; line-height:1; display:block;">🔔</span>
+    <span id="notification-dot" style="display:none; position:absolute; top:9px; right:9px; width:10px; height:10px; border-radius:999px; background:rgba(193, 68, 14, .95);"></span>
+  </button>
+
+  <div id="notification-panel" style="display:none; position:absolute; right:0; bottom:52px; width:360px; max-height:55vh; overflow:auto; background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow: var(--shadow-lg);">
+    <div style="padding:.85rem 1rem; border-bottom:1px solid var(--border-soft); display:flex; align-items:center; justify-content:space-between; gap:.5rem;">
+      <div style="font-weight:700;">Notifications</div>
+      <div style="display:flex; gap:.5rem;">
+        <button class="btn btn-ghost" onclick="clearNotifications()">Clear</button>
+        <button class="btn btn-ghost" onclick="toggleNotifications()">Close</button>
+      </div>
+    </div>
+    <div id="notification-list" style="padding:.8rem 1rem; display:grid; gap:.6rem;"></div>
+  </div>
+</div>
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+  <div class="card-title" style="margin-bottom:0;">🧩 Source Workspace</div>
+  <div style="display:flex; gap:.6rem; align-items:center; flex-wrap:wrap;">
+    <button class="btn btn-primary" onclick="openSourceModal()">➕ Add Source</button>
+    <button class="btn btn-ghost" onclick="resetLayout()">♻ Reset Layout</button>
+  </div>
+</div>
+
+<div class="workspace-grid" id="workspace">
+  {% if sources %}
+    {% for source in sources %}
+    <div class="source-window" id="source-{{ source.id }}"
+         data-id="{{ source.id }}"
+         data-type="{{ source.source_type }}"
+      data-config='{{ source.config_json|escape }}'
+      data-layout='{{ source.layout_json|escape }}'
+      data-camera='{{ source.camera_json|escape }}'>
+      <div class="window-header">
+        <div class="window-title">
+          <span>🧠</span>
+          <span>{{ source.name }}</span>
+          <span class="badge">{{ source.source_type|upper }}</span>
+        </div>
+        <div class="window-actions">
+          <button class="btn btn-ghost js-open-models" data-source-id="{{ source.id }}">⚙ Models</button>
+          <button class="btn btn-ghost js-remove-source" data-source-id="{{ source.id }}">🗑 Remove</button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="media-preview" id="media-preview-{{ source.id }}">
+          {% if source.media_url %}
+            {% if source.source_type == 'video' %}
+              <video src="{{ source.media_url }}" controls></video>
+            {% else %}
+              <img src="{{ source.media_url }}" alt="{{ source.last_media_name }}" />
+            {% endif %}
+          {% elif source.source_type == 'camera' and source.camera_config.stream_url %}
+            <video src="{{ source.camera_config.stream_url }}" controls></video>
+          {% else %}
+            <div class="source-empty">No media yet</div>
+          {% endif %}
+        </div>
+
+        <div class="window-actions">
+          <input type="file" id="file-{{ source.id }}" class="js-file-input" data-source-id="{{ source.id }}" style="display:none;" accept="{% if source.source_type == 'video' %}.mp4,.mov,.avi,.mkv{% else %}.jpg,.jpeg,.png,.webp{% endif %}">
+          <button class="btn btn-primary js-trigger-upload" data-source-id="{{ source.id }}">📂 Upload</button>
+          <button class="btn btn-ghost js-run-models" data-source-id="{{ source.id }}">▶ Run Models</button>
+          {% if source.source_type == 'camera' %}
+          <button class="btn btn-ghost js-toggle-camera" data-source-id="{{ source.id }}">📷 Camera</button>
+          {% endif %}
+        </div>
+        {% if source.source_type == 'camera' %}
+        <div style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; font-size:.78rem; color:var(--text-soft);">
+          <label style="display:flex; align-items:center; gap:.35rem;">
+            ⏱ Refresh
+            <input type="number" min="1" max="60"
+                   value="{{ source.camera_config.refresh_interval|default:5 }}"
+                   class="js-refresh-interval"
+                   data-source-id="{{ source.id }}"
+                   style="width:60px; padding:.2rem .35rem; border-radius:8px; border:1px solid var(--border-soft);" />
+            s
+          </label>
+          <button class="btn btn-ghost js-toggle-refresh" data-source-id="{{ source.id }}">⏸ Pause</button>
+        </div>
+        {% endif %}
+
+        <div class="result-list" id="results-{{ source.id }}">
+          {% if source.last_results %}
+            {% for pid, result in source.last_results.items %}
+            <div class="result-chip {{ result.risk_level|lower }}">
+              <span>{{ pid }}</span>
+              <span class="mono">{{ result.score|floatformat:1 }}%</span>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="source-empty" style="padding:1rem 0;">No results yet</div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="resize-handle"></div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="source-empty">
+      <div style="font-size:2rem;">🧩</div>
+      <div style="font-family:'Cormorant Garamond',serif; font-size:1.3rem; margin-top:.5rem;">No sources added yet</div>
+      <p style="font-size:.9rem; margin-top:.4rem; color:var(--text-muted);">Add your first image, video, or camera source to start orchestrating models.</p>
+    </div>
+  {% endif %}
+</div>
+
+<div class="model-drawer" id="model-drawer">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <div class="card-title" style="margin-bottom:0;">⚙ Model Settings</div>
+    <button class="btn btn-ghost" onclick="closeModelDrawer()">✕</button>
+  </div>
+  <p style="font-size:.85rem; color:var(--text-soft); margin: .5rem 0 1rem;">Enable or disable pipelines per source and tune confidence thresholds.</p>
+  <div id="model-list"></div>
+  <div style="display:flex; gap:.5rem; margin-top:1rem;">
+    <button class="btn btn-primary" onclick="saveModelConfig()">💾 Save</button>
+    <button class="btn btn-ghost" onclick="closeModelDrawer()">Cancel</button>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="source-modal">
+  <div class="modal-card">
+    <div class="card-title">➕ Add Source</div>
+    <div class="field">
+      <label for="source-name">Name</label>
+      <input id="source-name" placeholder="e.g. Entrance Camera" />
+    </div>
+    <div class="field">
+      <label for="source-type">Source Type</label>
+      <select id="source-type">
+        <option value="image">Image</option>
+        <option value="video">Video</option>
+        <option value="camera">Camera</option>
+      </select>
+    </div>
+    <div class="field" id="camera-device-field" style="display:none;">
+      <label for="camera-device">Detected Cameras</label>
+      <select id="camera-device"></select>
+    </div>
+    <div class="field" id="camera-stream-field" style="display:none;">
+      <label for="camera-stream">External Stream URL (RTSP/HTTP)</label>
+      <input id="camera-stream" placeholder="rtsp://... or http://..." />
+    </div>
+    <div style="display:flex; gap:.6rem; justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeSourceModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="createSource()">Create</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ pipelines|json_script:"pipelines-data" }}
+<script>
+  const pipelineData = JSON.parse(document.getElementById('pipelines-data').textContent || '[]');
+  const workspace = document.getElementById('workspace');
+  let activeDrawerSource = null;
+
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return '';
+  }
+
+  const csrfToken = getCookie('csrftoken');
+
+  function showToast(message, level = 'info', timeoutMs = 4000) {
+    const zone = document.getElementById('toast-zone');
+    if (!zone) return;
+    const el = document.createElement('div');
+    const bg = level === 'danger' ? 'rgba(193, 68, 14, .12)' : level === 'warn' ? 'rgba(244, 162, 97, .18)' : 'rgba(196,150,60,.12)';
+    const border = level === 'danger' ? 'rgba(193, 68, 14, .35)' : level === 'warn' ? 'rgba(244, 162, 97, .35)' : 'rgba(196,150,60,.3)';
+    el.style.cssText = `min-width:260px; max-width:360px; padding:.75rem .9rem; border-radius:14px; border:1px solid ${border}; background:${bg}; box-shadow: var(--shadow-md); color: var(--text); font-size:.85rem;`;
+    el.textContent = message;
+    zone.appendChild(el);
+    setTimeout(() => { el.remove(); }, timeoutMs);
+  }
+
+  const _seenNotificationIds = new Set();
+
+  function _eventStableId(ev) {
+    const t = ev.ts || ev.time || '';
+    const s = ev.source_id ?? ev.sourceId ?? '';
+    const p = ev.pipeline || '';
+    const msg = ev.message || '';
+    return `${t}|${s}|${p}|${msg}`;
+  }
+
+  function addNotification(ev, level) {
+    const list = document.getElementById('notification-list');
+    if (!list) return;
+
+    const id = ev.id || _eventStableId(ev);
+    if (_seenNotificationIds.has(id)) return;
+    _seenNotificationIds.add(id);
+
+    const row = document.createElement('div');
+    const border = level === 'danger' ? 'rgba(193, 68, 14, .35)' : level === 'warn' ? 'rgba(244, 162, 97, .35)' : 'rgba(196,150,60,.3)';
+    const bg = level === 'danger' ? 'rgba(193, 68, 14, .08)' : level === 'warn' ? 'rgba(244, 162, 97, .10)' : 'rgba(196,150,60,.08)';
+    row.style.cssText = `border:1px solid ${border}; border-radius:14px; padding:.65rem .75rem; background:${bg};`;
+
+    const meta = document.createElement('div');
+    meta.style.cssText = 'display:flex; justify-content:space-between; gap:.5rem; font-size:.78rem; color: var(--muted);';
+    const left = document.createElement('div');
+    left.textContent = (ev.pipeline || ev.type || 'event').toString();
+    const right = document.createElement('div');
+    right.textContent = ev.ts ? new Date(ev.ts * 1000).toLocaleString() : new Date().toLocaleString();
+    meta.appendChild(left);
+    meta.appendChild(right);
+
+    const msg = document.createElement('div');
+    msg.style.cssText = 'margin-top:.25rem; font-weight:650;';
+    msg.textContent = ev.message || `Detection: ${ev.pipeline || ''}`;
+
+    row.appendChild(meta);
+    row.appendChild(msg);
+    list.prepend(row);
+
+    // show unread dot until panel is opened
+    const dot = document.getElementById('notification-dot');
+    if (dot) dot.style.display = 'block';
+  }
+
+  function toggleNotifications() {
+    const panel = document.getElementById('notification-panel');
+    if (!panel) return;
+    const visible = panel.style.display !== 'none';
+    panel.style.display = visible ? 'none' : 'block';
+    if (!visible) {
+      const dot = document.getElementById('notification-dot');
+      if (dot) dot.style.display = 'none';
+    }
+  }
+
+  function clearNotifications() {
+    const list = document.getElementById('notification-list');
+    if (list) list.innerHTML = '';
+    _seenNotificationIds.clear();
+    const dot = document.getElementById('notification-dot');
+    if (dot) dot.style.display = 'none';
+  }
+
+  function notifyFromEvents(events) {
+    (events || []).forEach(ev => {
+      if (ev.type === 'detection') {
+        const level = (ev.risk_level || 'HIGH').toLowerCase() === 'high' ? 'danger' : 'warn';
+        showToast(`Detection: ${ev.pipeline} (${(ev.score || 0).toFixed(1)}%)`, level);
+        addNotification({
+          ...ev,
+          message: `Detection: ${ev.pipeline} (${(ev.score || 0).toFixed(1)}%)`,
+        }, level);
+      } else {
+        addNotification(ev, 'info');
+      }
+    });
+  }
+
+  function openSourceModal() {
+    document.getElementById('source-modal').classList.add('active');
+    toggleCameraFields();
+    loadCameraDevices();
+  }
+
+  function closeSourceModal() {
+    document.getElementById('source-modal').classList.remove('active');
+  }
+
+  function toggleCameraFields() {
+    const type = document.getElementById('source-type').value;
+    const deviceField = document.getElementById('camera-device-field');
+    const streamField = document.getElementById('camera-stream-field');
+    if (type === 'camera') {
+      deviceField.style.display = 'flex';
+      streamField.style.display = 'flex';
+    } else {
+      deviceField.style.display = 'none';
+      streamField.style.display = 'none';
+    }
+  }
+
+  async function loadCameraDevices() {
+    const select = document.getElementById('camera-device');
+    if (!select) return;
+    select.innerHTML = '';
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Media devices unavailable');
+      }
+      await navigator.mediaDevices.getUserMedia({video: true});
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const cams = devices.filter(device => device.kind === 'videoinput');
+      cams.forEach((device, index) => {
+        const opt = document.createElement('option');
+        opt.value = device.deviceId;
+        opt.textContent = device.label || `Camera ${index + 1}`;
+        select.appendChild(opt);
+      });
+    } catch (err) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'Unable to access cameras';
+      select.appendChild(opt);
+    }
+  }
+
+  document.getElementById('source-type').addEventListener('change', toggleCameraFields);
+
+  async function createSource() {
+    const name = document.getElementById('source-name').value || '';
+    const sourceType = document.getElementById('source-type').value;
+    const cameraConfig = {
+      device_id: document.getElementById('camera-device')?.value || '',
+      stream_url: document.getElementById('camera-stream')?.value || '',
+    };
+    await fetch('{% url "dangerous:create-source" %}', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+      body: JSON.stringify({name, source_type: sourceType, camera_config: cameraConfig})
+    });
+    window.location.reload();
+  }
+
+  function openModelDrawer(sourceId) {
+    activeDrawerSource = sourceId;
+    const sourceEl = document.getElementById(`source-${sourceId}`);
+    const config = JSON.parse(sourceEl.dataset.config || '{}');
+    const sourceType = sourceEl.dataset.type;
+
+    // Prune stale model ids (pipelines removed from backend).
+    const allowedIds = new Set(pipelineData.map(p => p.id));
+    Object.keys(config).forEach(id => {
+      if (!allowedIds.has(id)) delete config[id];
+    });
+
+    const list = document.getElementById('model-list');
+    list.innerHTML = '';
+
+    pipelineData.forEach(pipeline => {
+      const cfg = config[pipeline.id] || {enabled: true, threshold: pipeline.default_threshold};
+      const supported = pipeline.source_types.includes(sourceType);
+
+      const container = document.createElement('div');
+      container.className = 'model-item';
+
+      container.innerHTML = `
+        <div class="model-row">
+          <div>
+            <div style="font-weight:600;">${pipeline.name}</div>
+            <div style="font-size:.75rem; color:var(--text-muted);">${pipeline.description}</div>
+          </div>
+          <label style="display:flex; align-items:center; gap:.4rem; font-size:.78rem;">
+            <input type="checkbox" data-model="${pipeline.id}" ${cfg.enabled ? 'checked' : ''} ${supported ? '' : 'disabled'} />
+            ${supported ? 'Enabled' : 'Unsupported'}
+          </label>
+        </div>
+        <div style="display:flex; align-items:center; gap:.5rem;">
+          <input type="range" min="0" max="100" value="${cfg.threshold}" data-threshold="${pipeline.id}" ${supported ? '' : 'disabled'} />
+          <span class="mono" data-threshold-label="${pipeline.id}">${cfg.threshold}%</span>
+        </div>
+      `;
+
+      list.appendChild(container);
+    });
+
+    list.querySelectorAll('input[type="range"]').forEach(input => {
+      input.addEventListener('input', (e) => {
+        const target = e.target;
+        const label = list.querySelector(`[data-threshold-label="${target.dataset.threshold}"]`);
+        label.textContent = `${target.value}%`;
+      });
+    });
+
+    document.getElementById('model-drawer').classList.add('active');
+  }
+
+  function closeModelDrawer() {
+    document.getElementById('model-drawer').classList.remove('active');
+  }
+
+  async function saveModelConfig() {
+    const drawer = document.getElementById('model-drawer');
+    const modelConfig = {};
+
+    drawer.querySelectorAll('input[type="checkbox"]').forEach(input => {
+      const modelId = input.dataset.model;
+      modelConfig[modelId] = modelConfig[modelId] || {};
+      modelConfig[modelId].enabled = input.checked;
+    });
+
+    drawer.querySelectorAll('input[type="range"]').forEach(input => {
+      const modelId = input.dataset.threshold;
+      modelConfig[modelId] = modelConfig[modelId] || {};
+      modelConfig[modelId].threshold = parseFloat(input.value);
+    });
+
+    await fetch(`/dangerous/sources/${activeDrawerSource}/models/`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+      body: JSON.stringify({model_config: modelConfig})
+    });
+
+    const sourceEl = document.getElementById(`source-${activeDrawerSource}`);
+    sourceEl.dataset.config = JSON.stringify(modelConfig);
+    closeModelDrawer();
+  }
+
+  function triggerUpload(sourceId) {
+    document.getElementById(`file-${sourceId}`).click();
+  }
+
+  function handleUpload(sourceId) {
+    const sourceEl = document.getElementById(`source-${sourceId}`);
+    if (sourceEl && sourceEl.dataset.type === 'video') {
+      runVideoLive(sourceId);
+    } else {
+      runModels(sourceId);
+    }
+  }
+
+  function bindSourceActions() {
+    document.querySelectorAll('.js-open-models').forEach(btn => {
+      btn.addEventListener('click', () => openModelDrawer(btn.dataset.sourceId));
+    });
+
+    document.querySelectorAll('.js-remove-source').forEach(btn => {
+      btn.addEventListener('click', () => removeSource(btn.dataset.sourceId));
+    });
+
+    document.querySelectorAll('.js-refresh-interval').forEach(input => {
+      input.addEventListener('change', () => updateRefreshInterval(input.dataset.sourceId, input.value));
+    });
+
+    document.querySelectorAll('.js-toggle-refresh').forEach(btn => {
+      btn.addEventListener('click', () => toggleRefresh(btn.dataset.sourceId, btn));
+    });
+
+    document.querySelectorAll('.js-trigger-upload').forEach(btn => {
+      btn.addEventListener('click', () => triggerUpload(btn.dataset.sourceId));
+    });
+
+    document.querySelectorAll('.js-run-models').forEach(btn => {
+      btn.addEventListener('click', () => runModels(btn.dataset.sourceId));
+    });
+
+    document.querySelectorAll('.js-toggle-camera').forEach(btn => {
+      btn.addEventListener('click', () => toggleCamera(btn.dataset.sourceId));
+    });
+
+    document.querySelectorAll('.js-file-input').forEach(input => {
+      input.addEventListener('change', () => handleUpload(input.dataset.sourceId));
+    });
+  }
+
+  async function removeSource(sourceId) {
+    if (!confirm('Remove this source?')) return;
+    await fetch(`/dangerous/sources/${sourceId}/delete/`, {
+      method: 'POST',
+      headers: {'X-CSRFToken': csrfToken}
+    });
+    window.location.reload();
+  }
+
+  async function runModels(sourceId) {
+    const sourceEl = document.getElementById(`source-${sourceId}`);
+    const sourceType = sourceEl.dataset.type;
+    const cameraConfig = JSON.parse(sourceEl.dataset.camera || '{}');
+    if (sourceType === 'camera') {
+      if (cameraConfig.stream_url) {
+        const response = await fetch(`/dangerous/sources/${sourceId}/stream/`, {
+          method: 'POST',
+          headers: {'X-CSRFToken': csrfToken}
+        });
+        const payload = await response.json();
+        if (payload.error) {
+          alert(payload.error);
+          return;
+        }
+        renderResults(sourceId, payload.results || {}, payload.combined || null);
+        notifyFromEvents(payload.events || []);
+        return;
+      }
+      const video = sourceEl.querySelector('video');
+      if (!video) {
+        alert('Start the camera first.');
+        return;
+      }
+      await captureFrame(sourceId, video);
+      return;
+    }
+    const fileInput = document.getElementById(`file-${sourceId}`);
+    const formData = new FormData();
+    if (fileInput && fileInput.files && fileInput.files[0]) {
+      formData.append('media', fileInput.files[0]);
+    }
+
+    const response = await fetch(`/dangerous/sources/${sourceId}/run/`, {
+      method: 'POST',
+      headers: {'X-CSRFToken': csrfToken},
+      body: formData,
+    });
+    const payload = await response.json();
+    if (payload.error) {
+      alert(payload.error);
+      return;
+    }
+
+    if (payload.media_url) {
+      const preview = document.getElementById(`media-preview-${sourceId}`);
+      if (sourceEl.dataset.type === 'video') {
+        preview.innerHTML = `<video src="${payload.media_url}" controls></video>`;
+      } else {
+        preview.innerHTML = `<img src="${payload.media_url}" alt="preview" />`;
+      }
+    }
+
+    renderResults(sourceId, payload.results || {}, payload.combined || null);
+    notifyFromEvents(payload.events || []);
+  }
+
+  const cameraStreams = {};
+
+  async function runVideoLive(sourceId) {
+    const fileInput = document.getElementById(`file-${sourceId}`);
+    if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+      showToast('Please select a video file first.', 'warn');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('media', fileInput.files[0]);
+
+    const startResp = await fetch(`/dangerous/sources/${sourceId}/video-live/`, {
+      method: 'POST',
+      headers: {'X-CSRFToken': csrfToken},
+      body: formData,
+    });
+    const startPayload = await startResp.json();
+    if (startPayload.error) {
+      showToast(startPayload.error, 'danger');
+      return;
+    }
+
+    const jobId = startPayload.job_id;
+    showToast('Video processing started…', 'info');
+    const preview = document.getElementById(`media-preview-${sourceId}`);
+  preview.innerHTML = '<div class="source-empty">Processing…</div>';
+
+  // Reuse a single <img> node for the live preview to avoid flicker/black frames
+  // caused by constantly replacing preview.innerHTML.
+  let liveImg = null;
+
+    const poll = async () => {
+      const pollData = new FormData();
+      pollData.append('job_id', jobId);
+      const resp = await fetch(`/dangerous/sources/${sourceId}/video-live/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrfToken},
+        body: pollData,
+      });
+      const payload = await resp.json();
+      if (payload.error) {
+        showToast(payload.error, 'danger');
+        return;
+      }
+
+      notifyFromEvents(payload.events || []);
+      if (payload.frame) {
+        if (!liveImg) {
+          preview.innerHTML = '';
+          liveImg = document.createElement('img');
+          liveImg.alt = 'live';
+          preview.appendChild(liveImg);
+        }
+        liveImg.src = `data:image/jpeg;base64,${payload.frame}`;
+      }
+      if (payload.done) {
+        if (payload.media_url) {
+          preview.innerHTML = `<video src="${payload.media_url}" controls autoplay></video>`;
+        }
+        showToast('Video processing complete.', 'info');
+        return;
+      }
+      setTimeout(poll, 700);
+    };
+
+    setTimeout(poll, 700);
+  }
+
+  async function toggleCamera(sourceId) {
+    const sourceEl = document.getElementById(`source-${sourceId}`);
+    const preview = document.getElementById(`media-preview-${sourceId}`);
+    const cameraConfig = JSON.parse(sourceEl.dataset.camera || '{}');
+
+    if (cameraConfig.stream_url) {
+      if (sourceEl.dataset.streamActive === 'true') {
+        sourceEl.dataset.streamActive = 'false';
+        clearInterval(refreshTimers[sourceId]);
+        preview.innerHTML = '<div class="source-empty">Stream stopped</div>';
+      } else {
+        sourceEl.dataset.streamActive = 'true';
+        preview.innerHTML = `<video src="${cameraConfig.stream_url}" controls autoplay></video>`;
+        startStreamTimer(sourceId);
+      }
+      return;
+    }
+
+    if (cameraStreams[sourceId]) {
+      cameraStreams[sourceId].getTracks().forEach(track => track.stop());
+      delete cameraStreams[sourceId];
+      preview.innerHTML = '<div class="source-empty">Camera stopped</div>';
+      return;
+    }
+
+    const constraints = cameraConfig.device_id
+      ? {video: {deviceId: {exact: cameraConfig.device_id}}, audio: false}
+      : {video: true, audio: false};
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    cameraStreams[sourceId] = stream;
+    const video = document.createElement('video');
+    video.autoplay = true;
+    video.playsInline = true;
+    video.srcObject = stream;
+    preview.innerHTML = '';
+    preview.appendChild(video);
+
+    setTimeout(() => captureFrame(sourceId, video), 1200);
+  }
+
+  async function captureFrame(sourceId, video) {
+    if (!cameraStreams[sourceId]) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 360;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+    const response = await fetch(`/dangerous/sources/${sourceId}/frame/`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+      body: JSON.stringify({image: dataUrl}),
+    });
+    const payload = await response.json();
+    if (payload.results) {
+      renderResults(sourceId, payload.results, payload.combined || null);
+      notifyFromEvents(payload.events || []);
+    }
+  }
+
+  function renderResults(sourceId, results, combined) {
+    const list = document.getElementById(`results-${sourceId}`);
+    const sourceEl = document.getElementById(`source-${sourceId}`);
+    const preview = document.getElementById(`media-preview-${sourceId}`);
+    const sourceType = sourceEl.dataset.type;
+
+    // Remove previous artifact panel if any.
+    const windowEl = sourceEl;
+    windowEl.querySelectorAll('.artifact-panel').forEach(el => el.remove());
+
+    list.innerHTML = '';
+    const entries = Object.entries(results);
+    if (!entries.length) {
+      list.innerHTML = '<div class="source-empty" style="padding:1rem 0;">No results</div>';
+      return;
+    }
+
+    entries.forEach(([key, result]) => {
+      const chip = document.createElement('div');
+      const level = (result.risk_level || 'LOW').toLowerCase();
+      chip.className = `result-chip ${level}`;
+      chip.innerHTML = `<span>${key}</span><span class="mono">${(result.score || 0).toFixed(1)}%</span>`;
+      list.appendChild(chip);
+    });
+
+    const overlayB64 = combined && combined.artifact ? combined.artifact : null;
+    // For camera/video: don't stack overlays (it can blacken the feed over time).
+    // Instead, replace the preview with the annotated image for that refresh tick.
+    if (overlayB64 && (sourceType === 'camera' || sourceType === 'video')) {
+      preview.querySelectorAll('.artifact-overlay').forEach(el => el.remove());
+      const existingImg = preview.querySelector('img[data-role="annotated-preview"]');
+      if (existingImg) {
+        existingImg.src = `data:image/jpeg;base64,${overlayB64}`;
+      } else {
+        preview.innerHTML = `<img data-role="annotated-preview" src="data:image/jpeg;base64,${overlayB64}" alt="annotated" />`;
+      }
+    }
+
+    // For images: show a separate annotated artifact below preview.
+    if (sourceType === 'image') {
+      let artifactB64 = overlayB64;
+      if (!artifactB64) {
+        for (const [_pid, res] of entries) {
+          if (res && res.artifact) { artifactB64 = res.artifact; break; }
+        }
+      }
+      if (artifactB64) {
+        const panel = document.createElement('div');
+        panel.className = 'artifact-panel';
+        panel.style.cssText = 'margin-top:.75rem; padding:.5rem; border:1px solid var(--border-soft); border-radius: var(--r-md); background: rgba(196,150,60,.05);';
+        panel.innerHTML = `<div style="font-size:.78rem; color:var(--text-soft); margin-bottom:.35rem;">Annotated (boxes)</div><img src="data:image/jpeg;base64,${artifactB64}" style="max-width:100%; border-radius: var(--r-sm);" alt="annotated" />`;
+        // Insert after preview
+        preview.insertAdjacentElement('afterend', panel);
+      }
+    }
+  }
+
+  const refreshTimers = {};
+
+  async function updateRefreshInterval(sourceId, value) {
+    const sourceEl = document.getElementById(`source-${sourceId}`);
+    const cameraConfig = JSON.parse(sourceEl.dataset.camera || '{}');
+    cameraConfig.refresh_interval = Math.max(1, parseInt(value || '5', 10));
+    await updateCameraConfig(sourceId, cameraConfig);
+    sourceEl.dataset.camera = JSON.stringify(cameraConfig);
+    startStreamTimer(sourceId);
+  }
+
+  async function toggleRefresh(sourceId, buttonEl) {
+    const sourceEl = document.getElementById(`source-${sourceId}`);
+    const paused = sourceEl.dataset.streamPaused === 'true';
+    sourceEl.dataset.streamPaused = paused ? 'false' : 'true';
+    buttonEl.textContent = paused ? '⏸ Pause' : '▶ Resume';
+    if (!paused) {
+      clearInterval(refreshTimers[sourceId]);
+    } else {
+      startStreamTimer(sourceId);
+    }
+  }
+
+  function startStreamTimer(sourceId) {
+    const sourceEl = document.getElementById(`source-${sourceId}`);
+    const cameraConfig = JSON.parse(sourceEl.dataset.camera || '{}');
+    if (!cameraConfig.stream_url) return;
+    if (sourceEl.dataset.streamPaused === 'true') return;
+    const seconds = Math.max(1, parseInt(cameraConfig.refresh_interval || '5', 10));
+    if (refreshTimers[sourceId]) clearInterval(refreshTimers[sourceId]);
+    refreshTimers[sourceId] = setInterval(() => {
+      if (sourceEl.dataset.streamActive === 'true') {
+        runModels(sourceId);
+      }
+    }, seconds * 1000);
+  }
+
+  async function updateCameraConfig(sourceId, cameraConfig) {
+    await fetch(`/dangerous/sources/${sourceId}/camera/`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+      body: JSON.stringify({camera_config: cameraConfig})
+    });
+  }
+
+  function resetLayout() {
+    document.querySelectorAll('.source-window').forEach(windowEl => {
+      windowEl.style.left = '';
+      windowEl.style.top = '';
+      windowEl.style.width = '';
+      windowEl.style.height = '';
+      const id = windowEl.dataset.id;
+      localStorage.removeItem(`layout-${id}`);
+    });
+  }
+
+  function initWorkspace() {
+    document.querySelectorAll('.source-window').forEach(windowEl => {
+      const id = windowEl.dataset.id;
+      const saved = localStorage.getItem(`layout-${id}`);
+      if (saved) {
+        const layout = JSON.parse(saved);
+        applyLayout(windowEl, layout);
+      } else if (windowEl.dataset.layout) {
+        try {
+          const layout = JSON.parse(windowEl.dataset.layout);
+          applyLayout(windowEl, layout);
+        } catch (err) {
+          // ignore
+        }
+      } else {
+        windowEl.style.left = `${20 + (id * 30) % 320}px`;
+        windowEl.style.top = `${20 + (id * 30) % 240}px`;
+        windowEl.style.width = '320px';
+        windowEl.style.height = '340px';
+      }
+
+      enableDrag(windowEl);
+      enableResize(windowEl);
+    });
+  }
+
+  function applyLayout(windowEl, layout) {
+    if (!layout) return;
+    windowEl.style.left = `${layout.x || 20}px`;
+    windowEl.style.top = `${layout.y || 20}px`;
+    windowEl.style.width = `${layout.w || 320}px`;
+    windowEl.style.height = `${layout.h || 340}px`;
+  }
+
+  function enableDrag(windowEl) {
+    const header = windowEl.querySelector('.window-header');
+    let offsetX = 0;
+    let offsetY = 0;
+    let dragging = false;
+
+    header.addEventListener('mousedown', (event) => {
+      dragging = true;
+      const rect = windowEl.getBoundingClientRect();
+      offsetX = event.clientX - rect.left;
+      offsetY = event.clientY - rect.top;
+    });
+
+    document.addEventListener('mousemove', (event) => {
+      if (!dragging) return;
+      const bounds = workspace.getBoundingClientRect();
+      const newLeft = Math.min(Math.max(event.clientX - offsetX - bounds.left, 0), bounds.width - 220);
+      const newTop = Math.min(Math.max(event.clientY - offsetY - bounds.top, 0), bounds.height - 180);
+      windowEl.style.left = `${newLeft}px`;
+      windowEl.style.top = `${newTop}px`;
+    });
+
+    document.addEventListener('mouseup', async () => {
+      if (!dragging) return;
+      dragging = false;
+      await saveLayout(windowEl);
+    });
+  }
+
+  function enableResize(windowEl) {
+    const handle = windowEl.querySelector('.resize-handle');
+    let resizing = false;
+    let startX = 0;
+    let startY = 0;
+    let startW = 0;
+    let startH = 0;
+
+    handle.addEventListener('mousedown', (event) => {
+      resizing = true;
+      const rect = windowEl.getBoundingClientRect();
+      startX = event.clientX;
+      startY = event.clientY;
+      startW = rect.width;
+      startH = rect.height;
+      event.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (event) => {
+      if (!resizing) return;
+      const bounds = workspace.getBoundingClientRect();
+      const maxW = bounds.width - windowEl.offsetLeft - 10;
+      const maxH = bounds.height - windowEl.offsetTop - 10;
+      const newW = Math.min(Math.max(260, startW + (event.clientX - startX)), maxW);
+      const newH = Math.min(Math.max(220, startH + (event.clientY - startY)), maxH);
+      windowEl.style.width = `${newW}px`;
+      windowEl.style.height = `${newH}px`;
+    });
+
+    document.addEventListener('mouseup', async () => {
+      if (!resizing) return;
+      resizing = false;
+      await saveLayout(windowEl);
+    });
+  }
+
+  async function saveLayout(windowEl) {
+    const id = windowEl.dataset.id;
+    const rect = windowEl.getBoundingClientRect();
+    const bounds = workspace.getBoundingClientRect();
+    const layout = {
+      x: rect.left - bounds.left,
+      y: rect.top - bounds.top,
+      w: rect.width,
+      h: rect.height,
+    };
+    localStorage.setItem(`layout-${id}`, JSON.stringify(layout));
+    await fetch(`/dangerous/sources/${id}/layout/`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+      body: JSON.stringify({layout})
+    });
+  }
+
+  initWorkspace();
+  bindSourceActions();
+  document.querySelectorAll('.source-window').forEach(windowEl => {
+    if (windowEl.dataset.type !== 'camera') return;
+    const cameraConfig = JSON.parse(windowEl.dataset.camera || '{}');
+    if (cameraConfig.stream_url) {
+      startStreamTimer(windowEl.dataset.id);
+    }
+  });
+</script>
+{% endblock %}

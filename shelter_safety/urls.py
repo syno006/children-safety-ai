@@ -28,6 +28,7 @@ urlpatterns = [
     path('violence/', include('violence_app.urls')),
     path('allergen/', include('allergen_app.urls')),
     path('fall/', include('fall_detection.urls')),
+    path('dangerous/', include('DangerousObjectDetection.urls')),
 ]
 
 if settings.DEBUG:

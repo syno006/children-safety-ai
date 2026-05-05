@@ -612,6 +612,11 @@
                 <i class="fas fa-person-falling"></i>
                 <span>Détection Chutes</span>
             </a>
+
+            <a href="{% url 'dangerous:index' %}" class="nav-link {% if request.resolver_match.app_name == 'dangerous' %}active{% endif %}">
+                <i class="fas fa-triangle-exclamation"></i>
+                <span>Objets dangereux</span>
+            </a>
             <a href="{% url 'core:about' %}" class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}">
                 <i class="fas fa-building-shield"></i>
                 <span>Environnement</span>
