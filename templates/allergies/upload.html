@@ -1,0 +1,683 @@
+{% extends "detector/base.html" %}
+{% block title %}Détection Allergènes— ShelterCare AI{% endblock %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Shelter AI Tunisie | Détection Allergènes — Projet Fin d'Études 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --sand: #e8d5a8;
+            --sand-light: #fef5e6;
+            --sand-dark: #d4b87a;
+            --gold-deep: #b8860b;
+            --gold-light: #daa520;
+            --gold-soft: #e8c97a;
+            --brown-deep: #4a3724;
+            --brown-light: #8b6946;
+            --white-soft: #ffffff;
+            --border-soft: rgba(184, 134, 11, 0.15);
+            --tunisia-red: #e70000;
+            --tunisia-red-light: #ffe0e0;
+            --med-blue: #1e88e5;
+            --med-blue-light: #e3f2fd;
+            --olive-green: #7c9e3a;
+            --orange-sunset: #ff8c42;
+            --grad-hero: linear-gradient(145deg, #c0392b 0%, #2a1f14 40%, #1a5276 100%);
+            --grad-card: linear-gradient(125deg, #ffffff 0%, #fffdf9 100%);
+            --grad-gold: linear-gradient(135deg, #daa520, #b8860b);
+            --grad-tunisia: linear-gradient(135deg, #e70000, #1e88e5, #7c9e3a);
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.03);
+            --shadow-md: 0 8px 20px rgba(0,0,0,0.06);
+            --shadow-lg: 0 20px 35px -12px rgba(0,0,0,0.12);
+            --shadow-gold: 0 0 25px rgba(218,165,32,0.25);
+            --ease: cubic-bezier(0.25,0.46,0.45,0.94);
+            --ease-bounce: cubic-bezier(0.68,-0.55,0.265,1.55);
+            --ease-smooth: cubic-bezier(0.4,0,0.2,1);
+            --r-xl: 32px;
+            --r-lg: 24px;
+            --r-full: 60px;
+            --danger: #ff4d4d;
+            --warning: #ffa500;
+            --safe: #2ecc71;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(145deg, #f0ebe2 0%, #e0d5c5 100%);
+            min-height: 100vh;
+            padding: 2rem 1.5rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(var(--sand-dark) 0.8px, transparent 0.8px);
+            background-size: 32px 32px;
+            opacity: 0.08;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bubble-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            animation: floatBubble 20s infinite ease-in-out;
+        }
+        .bubble:nth-child(odd) { background: radial-gradient(circle, rgba(231,0,0,0.08), transparent); }
+        .bubble:nth-child(3n) { background: radial-gradient(circle, rgba(30,136,229,0.06), transparent); }
+        .bubble:nth-child(5n) { background: radial-gradient(circle, rgba(124,158,58,0.06), transparent); }
+        .bubble:nth-child(7n) { background: radial-gradient(circle, rgba(255,140,66,0.06), transparent); }
+        @keyframes floatBubble {
+            0% { transform: translateY(0) scale(1); opacity: 0; }
+            20% { opacity: 0.4; }
+            80% { opacity: 0.4; }
+            100% { transform: translateY(-150px) scale(1.5); opacity: 0; }
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; position: relative; z-index: 2; }
+
+        /* === HERO SECTION === */
+        .hero-luxury {
+            background: var(--grad-hero);
+            border-radius: var(--r-xl);
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            animation: heroGlow 3s ease-in-out infinite;
+        }
+        @keyframes heroGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(231,0,0,0.1); } 50% { box-shadow: 0 0 40px 15px rgba(231,0,0,0.15); } }
+        .tunisia-flag {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            width: 50px;
+            height: 34px;
+            background: #e70000;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            animation: flagWave 2s ease-in-out infinite;
+        }
+        .tunisia-flag::before {
+            content: '☪';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 18px;
+        }
+        @keyframes flagWave { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(2deg); } }
+        .hero-badge-lux {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: rgba(231,0,0,0.2);
+            border: 1px solid rgba(231,0,0,0.4);
+            color: white !important;
+            padding: 0.4rem 1.3rem;
+            border-radius: var(--r-full);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            margin-bottom: 1.2rem;
+        }
+        .hero-badge-lux i, .hero-badge-lux span { color: white !important; }
+        .hero-luxury h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--white-soft);
+            line-height: 1.15;
+        }
+        .hero-luxury h1 em {
+            font-style: italic;
+            background: linear-gradient(135deg, #e8d5a8, #daa520, #ff8c42);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .hero-stats-row { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; }
+        .hero-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            background: rgba(255,255,255,0.08);
+            border-radius: var(--r-full);
+            padding: 0.45rem 1.2rem;
+            border: 1px solid rgba(232,213,168,0.25);
+            transition: all 0.3s;
+            color: white !important;
+        }
+        .hero-stat i, .hero-stat span { color: white !important; }
+        .hero-stat:hover { background: rgba(255,255,255,0.15); transform: translateY(-3px); }
+
+        /* === ZONE DIAGNOSTIC CIRCULAIRE === */
+        .diagnostic-circle-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .circle-card {
+            flex: 1;
+            min-width: 180px;
+            background: var(--white-soft);
+            border-radius: 1.5rem;
+            padding: 1.2rem;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.4s var(--ease-bounce);
+            border: 1px solid var(--border-soft);
+            position: relative;
+            overflow: hidden;
+        }
+        .circle-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--gold-light);
+        }
+        .circle-svg {
+            width: 110px;
+            height: 110px;
+            margin: 0 auto 0.8rem;
+            transform: rotate(-90deg);
+        }
+        .circle-bg {
+            stroke: #e9ecef;
+            stroke-width: 8;
+            fill: none;
+        }
+        .circle-progress {
+            stroke-width: 8;
+            fill: none;
+            stroke-linecap: round;
+            stroke-dasharray: 314;
+            stroke-dashoffset: 314;
+            transition: stroke-dashoffset 1.5s ease-out;
+        }
+        .circle-percent {
+            font-size: 1.4rem;
+            font-weight: 800;
+            fill: var(--brown-deep);
+            dominant-baseline: middle;
+            text-anchor: middle;
+        }
+        .circle-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--brown-deep);
+            margin-top: 0.3rem;
+        }
+        .circle-sub {
+            font-size: 0.6rem;
+            color: var(--brown-light);
+        }
+
+        /* === ICÔNES INGRÉDIENTS (Blé corrigé avec fa-wheat-awn) === */
+        .ingredients-showcase {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            background: rgba(255,255,255,0.5);
+            border-radius: 2rem;
+            padding: 1rem 1.5rem;
+            backdrop-filter: blur(4px);
+        }
+        .ingredient-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem;
+            border-radius: 1.5rem;
+            transition: all 0.3s var(--ease-bounce);
+            cursor: pointer;
+            flex: 1;
+            min-width: 70px;
+        }
+        .ingredient-icon i {
+            font-size: 2.2rem;
+            transition: all 0.3s;
+        }
+        .ingredient-icon span {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--brown-deep);
+        }
+        .ingredient-icon:hover {
+            transform: translateY(-8px) scale(1.05);
+            background: var(--white-soft);
+            box-shadow: var(--shadow-md);
+        }
+        .ingredient-icon:hover i {
+            animation: bounceIcon 0.5s ease;
+        }
+        @keyframes bounceIcon {
+            0%,100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        /* Couleurs des icônes */
+        .ingredient-icon[data-ing="arachide"] i { color: #c1440e; }
+        .ingredient-icon[data-ing="lait"] i { color: #6b8c9e; }
+        .ingredient-icon[data-ing="oeuf"] i { color: #e8b85a; }
+        .ingredient-icon[data-ing="poisson"] i { color: #3a86ff; }
+        .ingredient-icon[data-ing="ble"] i { color: #d4a373; }
+        .ingredient-icon[data-ing="soja"] i { color: #7c9e3a; }
+        .ingredient-icon[data-ing="noix"] i { color: #9c6b3e; }
+        .ingredient-icon[data-ing="sesame"] i { color: #f4a261; }
+        .ingredient-icon[data-ing="crustace"] i { color: #e76f51; }
+
+        /* Upload zone */
+        .upload-masterpiece {
+            background: var(--grad-card);
+            border-radius: var(--r-xl);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+            transition: all 0.4s var(--ease-smooth);
+        }
+        .upload-masterpiece:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+        .upload-zone-premium {
+            border: 2px dashed var(--sand-dark);
+            border-radius: 1.8rem;
+            padding: 3rem 2rem;
+            text-align: center;
+            background: var(--grad-card-light);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .upload-zone-premium:hover { border-color: var(--gold-deep); background: var(--white-soft); transform: scale(1.01); }
+        .upload-zone-premium.drag-over { border-color: var(--gold-deep); background: rgba(218,165,32,0.05); transform: scale(1.02); box-shadow: var(--shadow-gold); }
+        .upload-icon-premium { font-size: 4rem; color: var(--gold-deep); margin-bottom: 1rem; transition: all 0.4s var(--ease-bounce); }
+        .upload-zone-premium:hover .upload-icon-premium { transform: scale(1.15) translateY(-5px); }
+        .btn-detect-premium {
+            background: var(--grad-gold);
+            border: none;
+            padding: 0.9rem 2.5rem;
+            border-radius: var(--r-full);
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: all 0.3s;
+        }
+        .btn-detect-premium:hover { transform: scale(1.05); }
+
+        /* Stats cards */
+        .stats-grid-premium {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card-premium {
+            background: var(--white-soft);
+            border-radius: var(--r-lg);
+            padding: 1.3rem;
+            text-align: center;
+            transition: all 0.4s var(--ease-bounce);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card-premium::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--grad-tunisia);
+            transform: scaleX(0);
+            transition: transform 0.4s;
+        }
+        .stat-card-premium:hover::before { transform: scaleX(1); }
+        .stat-card-premium:hover { transform: translateY(-8px); box-shadow: var(--shadow-lg); }
+        .stat-icon-premium {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--sand-light), #fef5e6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.8rem;
+            font-size: 1.6rem;
+            color: var(--gold-deep);
+        }
+        .stat-card-premium:hover .stat-icon-premium { transform: scale(1.08); background: var(--grad-gold); color: white; }
+        .stat-number-premium { font-size: 2rem; font-weight: 800; color: var(--brown-deep); }
+        .stat-label-premium { font-size: 0.75rem; color: var(--brown-light); margin-top: 0.3rem; }
+
+        /* Results */
+        .results-premium { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+        .result-card-premium {
+            background: var(--white-soft);
+            border-radius: var(--r-xl);
+            padding: 1.5rem;
+            transition: all 0.4s;
+            box-shadow: var(--shadow-sm);
+        }
+        .result-card-premium:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+        .detection-item {
+            background: var(--sand-light);
+            border-radius: 1rem;
+            padding: 0.7rem 1rem;
+            margin-bottom: 0.7rem;
+            display: flex;
+            justify-content: space-between;
+            transition: all 0.3s;
+        }
+        .detection-item:hover { transform: translateX(8px); background: var(--white-soft); box-shadow: var(--shadow-sm); }
+        .confidence { background: var(--grad-gold); padding: 0.2rem 0.8rem; border-radius: 30px; font-size: 0.7rem; font-weight: 700; color: white; }
+        .alert-danger { background: rgba(231,0,0,0.08); border-left: 4px solid var(--tunisia-red); border-radius: 1rem; padding: 0.9rem; margin-bottom: 0.7rem; display: flex; align-items: center; gap: 10px; }
+        .alert-safe { background: rgba(46,204,113,0.08); border-left: 4px solid var(--safe); border-radius: 1rem; padding: 0.9rem; display: flex; align-items: center; gap: 10px; }
+        .empty-state { text-align: center; padding: 1.5rem; color: var(--brown-light); }
+
+        /* Charts */
+        .charts-premium { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+        .chart-card-premium {
+            background: var(--white-soft);
+            border-radius: var(--r-xl);
+            padding: 1.2rem;
+            transition: all 0.4s;
+        }
+        .chart-card-premium:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+        .chart-card-premium h4 { color: var(--brown-deep); margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
+
+        .loading { display: none; text-align: center; padding: 1rem; }
+        .spinner { width: 40px; height: 40px; border: 3px solid var(--border-soft); border-top: 3px solid var(--gold-deep); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 860px) {
+            .results-premium, .charts-premium { grid-template-columns: 1fr; }
+            .hero-luxury h1 { font-size: 2rem; }
+            .ingredients-showcase { gap: 0.5rem; padding: 0.8rem; }
+            .ingredient-icon i { font-size: 1.5rem; }
+            .diagnostic-circle-row { gap: 1rem; }
+        }
+        footer { text-align: center; margin-top: 2rem; padding: 1rem; color: var(--brown-light); font-size: 0.75rem; }
+    </style>
+</head>
+<body>
+<div class="bubble-bg" id="bubbles"></div>
+<div class="container">
+    <!-- Hero Section -->
+    <div class="hero-luxury">
+        <div class="tunisia-flag"></div>
+        <div class="hero-badge-lux"><i class="fas fa-shield-heart"></i> <span>SHELTER AI TUNISIE · PROJET FIN D'ÉTUDES 2026</span></div>
+        <h1>Protéger chaque enfant<br>des <em>allergènes cachés</em></h1>
+        <div class="hero-stats-row">
+            <div class="hero-stat"><i class="fas fa-allergies"></i><span>9 allergènes majeurs</span></div>
+            <div class="hero-stat"><i class="fas fa-chart-line"></i><span>FALCPA 2004 → 2026</span></div>
+            <div class="hero-stat"><i class="fas fa-microscope"></i><span>IA temps réel</span></div>
+            <div class="hero-stat"><i class="fas fa-flag-checkered"></i><span>Tunisie 2026</span></div>
+        </div>
+    </div>
+
+    <!-- ZONE DIAGNOSTIC CIRCULAIRE (Ordre: 94%, 68%, 67%, 92%) -->
+    <div class="diagnostic-circle-row">
+        <div class="circle-card">
+            <svg class="circle-svg" viewBox="0 0 120 120">
+                <defs><linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#daa520"/><stop offset="100%" stop-color="#b8860b"/></linearGradient></defs>
+                <circle class="circle-bg" cx="60" cy="60" r="50"></circle>
+                <circle class="circle-progress" cx="60" cy="60" r="50" stroke="url(#grad1)" stroke-dasharray="314" stroke-dashoffset="314" id="circle1"></circle>
+                <text x="60" y="60" class="circle-percent" id="percent1">0%</text>
+            </svg>
+            <div class="circle-label">Précision Globale</div>
+            <div class="circle-sub">Modèle IA 2026</div>
+        </div>
+        <div class="circle-card">
+            <svg class="circle-svg" viewBox="0 0 120 120">
+                <defs><linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1e88e5"/><stop offset="100%" stop-color="#0d47a1"/></linearGradient></defs>
+                <circle class="circle-bg" cx="60" cy="60" r="50"></circle>
+                <circle class="circle-progress" cx="60" cy="60" r="50" stroke="url(#grad2)" stroke-dasharray="314" stroke-dashoffset="314" id="circle2"></circle>
+                <text x="60" y="60" class="circle-percent" id="percent2">0%</text>
+            </svg>
+            <div class="circle-label">Couverture Tunisie</div>
+            <div class="circle-sub">Objectif 2026</div>
+        </div>
+        <div class="circle-card">
+            <svg class="circle-svg" viewBox="0 0 120 120">
+                <defs><linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#2ecc71"/><stop offset="100%" stop-color="#27ae60"/></linearGradient></defs>
+                <circle class="circle-bg" cx="60" cy="60" r="50"></circle>
+                <circle class="circle-progress" cx="60" cy="60" r="50" stroke="url(#grad3)" stroke-dasharray="314" stroke-dashoffset="314" id="circle3"></circle>
+                <text x="60" y="60" class="circle-percent" id="percent3">0%</text>
+            </svg>
+            <div class="circle-label">Réduction Incidents</div>
+            <div class="circle-sub">Shelters partenaires</div>
+        </div>
+        <div class="circle-card">
+            <svg class="circle-svg" viewBox="0 0 120 120">
+                <defs><linearGradient id="grad4" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff8c42"/><stop offset="100%" stop-color="#e65100"/></linearGradient></defs>
+                <circle class="circle-bg" cx="60" cy="60" r="50"></circle>
+                <circle class="circle-progress" cx="60" cy="60" r="50" stroke="url(#grad4)" stroke-dasharray="314" stroke-dashoffset="314" id="circle4"></circle>
+                <text x="60" y="60" class="circle-percent" id="percent4">0%</text>
+            </svg>
+            <div class="circle-label">Satisfaction</div>
+            <div class="circle-sub">Utilisateurs shelters</div>
+        </div>
+    </div>
+
+    <!-- ICÔNES INGRÉDIENTS (Blé avec fa-wheat-awn) -->
+    <div class="ingredients-showcase">
+        <div class="ingredient-icon" data-ing="arachide"><i class="fas fa-seedling"></i><span>Arachide</span></div>
+        <div class="ingredient-icon" data-ing="lait"><i class="fas fa-cheese"></i><span>Lait</span></div>
+        <div class="ingredient-icon" data-ing="oeuf"><i class="fas fa-egg"></i><span>Œuf</span></div>
+        <div class="ingredient-icon" data-ing="poisson"><i class="fas fa-fish"></i><span>Poisson</span></div>
+        <div class="ingredient-icon" data-ing="ble"><i class="fas fa-wheat-awn"></i><span>Blé</span></div>
+        <div class="ingredient-icon" data-ing="soja"><i class="fas fa-seedling"></i><span>Soja</span></div>
+        <div class="ingredient-icon" data-ing="noix"><i class="fas fa-tree"></i><span>Noix</span></div>
+        <div class="ingredient-icon" data-ing="sesame"><i class="fas fa-seedling"></i><span>Sésame</span></div>
+        <div class="ingredient-icon" data-ing="crustace"><i class="fas fa-shrimp"></i><span>Crustacés</span></div>
+    </div>
+
+    <!-- Upload Zone -->
+    <div class="upload-masterpiece">
+        <form method="POST" enctype="multipart/form-data" id="upload-form">
+            {% csrf_token %}
+            <div class="upload-zone-premium" id="upload-area">
+                <i class="fas fa-cloud-upload-alt upload-icon-premium"></i>
+                <h3>📸 Scannez l'étiquette ou le plat</h3>
+                <p>Glissez une image (JPG, PNG) ou cliquez — IA certifiée FALCPA · Tunisie 2026</p>
+                <input type="file" name="image" id="file-input" accept="image/*" style="display:none">
+            </div>
+            <div class="preview-premium" id="preview-container" style="display:none; text-align:center; margin-top:1rem;">
+                <img id="preview-image" style="max-width:100%; max-height:250px; border-radius:1rem; border:3px solid var(--sand);" alt="Aperçu">
+                <button type="submit" class="btn-detect-premium"><i class="fas fa-brain"></i> Analyser les allergènes</button>
+            </div>
+            <div class="loading" id="loading"><div class="spinner"></div><p style="color: var(--gold-deep); margin-top: 0.5rem;">Analyse Shelter Tunisie en cours...</p></div>
+        </form>
+    </div>
+
+    <!-- Statistiques avec compteurs -->
+    <div class="stats-grid-premium">
+        <div class="stat-card-premium"><div class="stat-icon-premium"><i class="fas fa-globe-africa"></i></div><div class="stat-number-premium"><span class="counter" data-target="30">0</span><span>%</span></div><div class="stat-label-premium">Population mondiale allergique</div></div>
+        <div class="stat-card-premium"><div class="stat-icon-premium"><i class="fas fa-child"></i></div><div class="stat-number-premium"><span class="counter" data-target="8">0</span><span>%</span></div><div class="stat-label-premium">Enfants · Allergies alimentaires</div></div>
+        <div class="stat-card-premium"><div class="stat-icon-premium"><i class="fas fa-lungs"></i></div><div class="stat-number-premium"><span class="counter" data-target="400">0</span><span>M</span></div><div class="stat-label-premium">Allergies respiratoires</div></div>
+        <div class="stat-card-premium"><div class="stat-icon-premium"><i class="fas fa-chart-line"></i></div><div class="stat-number-premium"><span class="counter" data-target="50">0</span><span>%</span></div><div class="stat-label-premium">Projection mondiale 2050</div></div>
+    </div>
+
+    <!-- Résultats -->
+    <div class="results-premium">
+        <div class="result-card-premium">
+            <div style="display:flex; gap:12px; align-items:center; border-bottom:2px solid var(--border-soft); padding-bottom:0.8rem; margin-bottom:1rem;"><i class="fas fa-microchip" style="color: var(--gold-deep);"></i><h3>🔍 Ingrédients détectés</h3></div>
+            <div id="detectionsList">
+                {% for d in detections %}<div class="detection-item"><span><i class="fas fa-utensils"></i> {{ d.class }}</span><span class="confidence">{{ d.confidence }}%</span></div>{% empty %}<div class="empty-state"><i class="fas fa-camera"></i><p>Aucun élément détecté</p><small>Chargez une image pour commencer</small></div>{% endfor %}
+            </div>
+        </div>
+        <div class="result-card-premium">
+            <div style="display:flex; gap:12px; align-items:center; border-bottom:2px solid var(--border-soft); padding-bottom:0.8rem; margin-bottom:1rem;"><i class="fas fa-bell" style="color: var(--tunisia-red);"></i><h3>⚠️ Alertes sécurité</h3></div>
+            <div id="alertsList">
+                {% for a in alertes %}<div class="alert-danger"><i class="fas fa-skull-crosswalk"></i><span><strong>DANGER</strong> — {{ a }}</span></div>{% empty %}<div class="alert-safe"><i class="fas fa-check-circle"></i><span><strong>SÉCURISÉ</strong> — Aucun allergène détecté</span></div>{% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Graphiques -->
+    <div class="charts-premium">
+        <div class="chart-card-premium"><h4><i class="fas fa-chart-simple"></i> Allergènes les plus fréquents (%)</h4><canvas id="barChart" width="400" height="180"></canvas></div>
+        <div class="chart-card-premium"><h4><i class="fas fa-chart-pie"></i> Répartition par type d'allergie</h4><canvas id="pieChart" width="400" height="180"></canvas></div>
+    </div>
+
+    <footer><i class="fas fa-robot"></i> Shelter AI Tunisie · Projet de fin d'études 2026 · Protection des enfants vulnérables</footer>
+</div>
+
+<script>
+    // Bulles
+    function createBubbles() {
+        const container = document.getElementById('bubbles');
+        for(let i=0;i<50;i++){
+            let b = document.createElement('div');
+            b.classList.add('bubble');
+            let s = Math.random() * 120 + 15;
+            b.style.width = s + 'px';
+            b.style.height = s + 'px';
+            b.style.left = Math.random() * 100 + '%';
+            b.style.bottom = '-' + (Math.random() * 100) + 'px';
+            b.style.animationDuration = 10 + Math.random() * 20 + 's';
+            b.style.animationDelay = Math.random() * 10 + 's';
+            container.appendChild(b);
+        }
+    }
+    createBubbles();
+
+    // Animation des cercles de progression (valeurs: 94%, 68%, 67%, 92%)
+    function animateCircle(circleId, percentId, targetPercent) {
+        const circle = document.getElementById(circleId);
+        const percentText = document.getElementById(percentId);
+        const radius = 50;
+        const circumference = 2 * Math.PI * radius;
+        circle.style.strokeDasharray = `${circumference}`;
+        circle.style.strokeDashoffset = circumference;
+        
+        let current = 0;
+        const step = targetPercent / 55;
+        const interval = setInterval(() => {
+            current += step;
+            if (current >= targetPercent) {
+                current = targetPercent;
+                clearInterval(interval);
+            }
+            const offset = circumference - (current / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+            percentText.textContent = Math.floor(current) + '%';
+        }, 25);
+    }
+
+    const observerCircles = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateCircle('circle1', 'percent1', 94);
+                animateCircle('circle2', 'percent2', 68);
+                animateCircle('circle3', 'percent3', 67);
+                animateCircle('circle4', 'percent4', 92);
+                observerCircles.disconnect();
+            }
+        });
+    }, { threshold: 0.3 });
+    observerCircles.observe(document.querySelector('.diagnostic-circle-row'));
+
+    // Compteurs
+    const counters = document.querySelectorAll('.counter');
+    let counted = false;
+    function startCounters(){
+        if(counted) return;
+        counted = true;
+        counters.forEach(c => {
+            let target = parseInt(c.dataset.target);
+            let current = 0;
+            let step = target / 55;
+            function update(){
+                current += step;
+                if(current < target){ c.innerText = Math.floor(current); requestAnimationFrame(update); }
+                else { c.innerText = target; }
+            }
+            update();
+        });
+    }
+    const observerStats = new IntersectionObserver((entries) => { entries.forEach(entry => { if(entry.isIntersecting) startCounters(); }); }, { threshold: 0.3 });
+    observerStats.observe(document.querySelector('.stats-grid-premium'));
+
+    // Graphiques
+    new Chart(document.getElementById('barChart'), {
+        type: 'bar',
+        data: { labels: ['Lait', 'Œuf', 'Arachide', 'Noix', 'Blé', 'Poisson'], datasets: [{ label: 'Prévalence (%)', data: [62,55,48,35,30,22], backgroundColor: '#daa520cc', borderRadius: 8 }] },
+        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { font: { size: 9 } } } } }
+    });
+    new Chart(document.getElementById('pieChart'), {
+        type: 'pie',
+        data: { labels: ['Respiratoires', 'Alimentaires', 'Cutanées', 'Médicamenteuses'], datasets: [{ data: [52,31,12,5], backgroundColor: ['#daa520', '#e70000', '#1e88e5', '#7c9e3a'] }] },
+        options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 9 } } } } }
+    });
+
+    // Upload
+    const uploadArea = document.getElementById('upload-area');
+    const fileInput = document.getElementById('file-input');
+    const previewContainer = document.getElementById('preview-container');
+    const previewImage = document.getElementById('preview-image');
+    const uploadForm = document.getElementById('upload-form');
+    const loading = document.getElementById('loading');
+
+    uploadArea.addEventListener('click', () => fileInput.click());
+    uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('drag-over'); });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if(file && file.type.startsWith('image/')) {
+            fileInput.files = e.dataTransfer.files;
+            const reader = new FileReader();
+            reader.onload = function(ev) { previewImage.src = ev.target.result; previewContainer.style.display = 'block'; uploadArea.style.display = 'none'; };
+            reader.readAsDataURL(file);
+        }
+    });
+    fileInput.addEventListener('change', () => {
+        if(fileInput.files.length) {
+            const reader = new FileReader();
+            reader.onload = function(e) { previewImage.src = e.target.result; previewContainer.style.display = 'block'; uploadArea.style.display = 'none'; };
+            reader.readAsDataURL(fileInput.files[0]);
+        }
+    });
+    uploadForm.addEventListener('submit', () => { loading.style.display = 'block'; });
+</script>
+</body>
+</html>
+{% endblock %}

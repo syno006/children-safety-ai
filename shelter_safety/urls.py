@@ -26,6 +26,7 @@ urlpatterns = [
     path('sanitation/', include('sanitation_app.urls')),
     path('structural/', include('structural_app.urls')),
     path('violence/', include('violence_app.urls')),
+    path('allergen/', include('allergen_app.urls')),
 ]
 
 if settings.DEBUG:
