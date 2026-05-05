@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'sanitation_app',
     'structural_app',
     'violence_app',
+    'allergen_app',
     'fall_detection',
 ]
 

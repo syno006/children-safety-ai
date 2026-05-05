@@ -616,6 +616,12 @@
                 <i class="fas fa-building-shield"></i>
                 <span>Environnement</span>
             </a>
+            <a href="{% url 'allergen_app:detect' %}" 
+   class="nav-link {% if request.resolver_match.app_name == 'allergen_app' %}active{% endif %}">
+    
+    <i class="fas fa-allergies"></i>
+    <span>Allergènes</span>
+</a>
             <a href="{% url 'index' %}" class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">
                 <i class="fas fa-chart-line"></i>
                 <span>Analyses</span>
