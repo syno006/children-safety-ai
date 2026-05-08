@@ -21,6 +21,121 @@ from .utils import decode_base64_image
 _TRANSCODE_CODECS = {'av1', 'hevc', 'vp9', 'vp8', 'av01'}
 
 
+def _two_model_paths() -> dict[str, str]:
+	"""Central place for the two YOLO weights used by this app."""
+	return {
+		'fire_detection': str(settings.BASE_DIR / 'models' / 'FireDetec' / 'bestF.pt'),
+		'dangerous_object_i': str(settings.BASE_DIR / 'models' / 'dangerousOb' / 'bestI.pt'),
+	}
+
+
+def _annotate_frame_with_two_models(frame_bgr, source: Source):
+	"""Detect5-style per-frame processing with TWO models.
+
+	- Input/output: BGR frame (mutated in-place like detect5.py)
+	- Respects per-source enabled + thresholds from Source.model_config
+	- Returns (frame_bgr, detections_by_pipeline, events)
+	"""
+	from .registry import annotate_frame_bgr_with_yolo
+
+	model_paths = _two_model_paths()
+	config = source.model_config or {}
+
+	detections_by_pipeline: dict[str, list[dict]] = {}
+	for pipeline_id, model_path in model_paths.items():
+		cfg = config.get(pipeline_id, {}) or {}
+		if isinstance(cfg, dict) and not cfg.get('enabled', True):
+			continue
+		threshold = float(cfg.get('threshold', 50))
+		frame_bgr, dets, _max_conf = annotate_frame_bgr_with_yolo(
+			model_path,
+			frame_bgr,
+			threshold=threshold,
+		)
+		if dets:
+			detections_by_pipeline[pipeline_id] = dets
+
+	# Convert detections → UI events at this frame.
+	events: list[dict] = []
+	for pid, dets in detections_by_pipeline.items():
+		try:
+			threshold = float((config or {}).get(pid, {}).get('threshold', 50))
+		except Exception:
+			threshold = 50.0
+		score = max([float(d.get('confidence', 0)) for d in (dets or [])] + [0.0]) * 100.0
+		if score >= threshold and score > 0:
+			events.append({
+				'type': 'detection',
+				'pipeline': pid,
+				'label': (dets[0].get('label') if dets else 'Detected'),
+				'score': score,
+				'risk_level': 'HIGH',
+			})
+
+	return frame_bgr, detections_by_pipeline, events
+
+
+def _process_video_capture_for_source(*, cap, source: Source, upload_dir: str, job_id: str, work_path: str) -> str:
+	"""Detect5-style capture loop for a video source.
+
+	Writes an annotated mp4 next to the upload, and updates the global _VIDEO_JOBS.
+	Returns the annotated output path.
+	"""
+	import cv2
+	from .utils import numpy_to_b64
+
+	frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
+	fps = float(cap.get(cv2.CAP_PROP_FPS) or 25.0)
+	if fps <= 0 or fps > 120:
+		fps = 25.0
+
+	width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH) or 0)
+	height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT) or 0)
+	if width <= 0 or height <= 0:
+		width, height = 1280, 720
+
+	annotated_name = f"annotated_{job_id}.mp4"
+	annotated_path = os.path.join(upload_dir, annotated_name)
+	fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+	writer = cv2.VideoWriter(annotated_path, fourcc, fps, (width, height))
+
+	# ~4 previews/sec.
+	preview_step = max(1, int(fps // 4))
+
+	idx = 0
+	try:
+		while True:
+			ok, frame_bgr = cap.read()
+			if not ok or frame_bgr is None:
+				break
+			idx += 1
+
+			if frame_bgr.shape[1] != width or frame_bgr.shape[0] != height:
+				frame_bgr = cv2.resize(frame_bgr, (width, height))
+
+			frame_bgr, _dets_by, events = _annotate_frame_with_two_models(frame_bgr, source)
+			writer.write(frame_bgr)
+
+			progress = int((idx / max(1, frame_count)) * 100)
+			_VIDEO_JOBS[job_id]['progress'] = progress
+			if events:
+				_VIDEO_JOBS[job_id]['events'].extend(events)
+
+			if idx % preview_step == 0:
+				preview_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
+				preview_b64 = numpy_to_b64(preview_rgb)
+				if preview_b64:
+					_VIDEO_JOBS[job_id]['frame'] = preview_b64
+	finally:
+		cap.release()
+		try:
+			writer.release()
+		except Exception:
+			pass
+
+	return annotated_path
+
+
 def _detect_video_codec(video_path: str) -> str:
 	"""Return the lowercase codec name via ffprobe, or empty string on failure."""
 	import subprocess, shutil
@@ -302,9 +417,6 @@ def run_source(request, source_id: int):
 		_VIDEO_JOBS[job_id] = {'done': False, 'progress': 0, 'frame': None, 'events': [], 'media_url': ''}
 
 		def _worker():
-			from .utils import numpy_to_b64
-			from .registry import annotate_frame_bgr_with_yolo
-
 			work_path = _transcode_to_h264(media_path)
 			cap = cv2.VideoCapture(work_path)
 			if not cap.isOpened():
@@ -312,91 +424,13 @@ def run_source(request, source_id: int):
 				_VIDEO_JOBS[job_id]['events'].append({'type': 'error', 'message': 'Unable to open video.'})
 				return
 
-			frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
-			fps = float(cap.get(cv2.CAP_PROP_FPS) or 25.0)
-			if fps <= 0 or fps > 120:
-				fps = 25.0
-
-			width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH) or 0)
-			height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT) or 0)
-			if width <= 0 or height <= 0:
-				width, height = 1280, 720
-
-			annotated_name = f"annotated_{job_id}.mp4"
-			annotated_path = os.path.join(upload_dir, annotated_name)
-			fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-			writer = cv2.VideoWriter(annotated_path, fourcc, fps, (width, height))
-
-			preview_step = max(1, int(fps // 4))
-			idx = 0
-			try:
-				while True:
-					ok, frame_bgr = cap.read()
-					if not ok or frame_bgr is None:
-						break
-					idx += 1
-					if frame_bgr.shape[1] != width or frame_bgr.shape[0] != height:
-						frame_bgr = cv2.resize(frame_bgr, (width, height))
-
-					# Annotate like detect_final.py (in-place BGR drawing) with BOTH models.
-					frame_for_models = frame_bgr
-					detections_by_pipeline: dict[str, list[dict]] = {}
-					max_score = 0.0
-					for pipeline_id, cfg in (source.model_config or {}).items():
-						# Respect enabled/threshold per source.
-						if cfg is not None and isinstance(cfg, dict) and not cfg.get('enabled', True):
-							continue
-						threshold = float((cfg or {}).get('threshold', 50))
-						# Only our two pipelines are exposed, so we can map ids → model paths.
-						if pipeline_id == 'fire_detection':
-							model_path = str(settings.BASE_DIR / 'models' / 'FireDetec' / 'bestF.pt')
-						elif pipeline_id == 'dangerous_object_i':
-							model_path = str(settings.BASE_DIR / 'models' / 'dangerousOb' / 'bestI.pt')
-						else:
-							continue
-						frame_for_models, dets, max_conf = annotate_frame_bgr_with_yolo(
-							model_path,
-							frame_for_models,
-							threshold=threshold,
-						)
-						if dets:
-							detections_by_pipeline[pipeline_id] = dets
-						max_score = max(max_score, float(max_conf * 100.0))
-
-					# Write every frame to output at full FPS.
-					writer.write(frame_for_models)
-
-					# Build events in the same shape as before for the UI.
-					events = []
-					for pid, dets in detections_by_pipeline.items():
-						try:
-							threshold = float((source.model_config or {}).get(pid, {}).get('threshold', 50))
-						except Exception:
-							threshold = 50.0
-						score = max([float(d.get('confidence', 0)) for d in dets] + [0.0]) * 100.0
-						if score >= threshold and score > 0:
-							events.append({
-								'type': 'detection',
-								'pipeline': pid,
-								'label': (dets[0].get('label') if dets else 'Detected'),
-								'score': score,
-								'risk_level': 'HIGH',
-							})
-
-					_VIDEO_JOBS[job_id]['progress'] = int((idx / max(1, frame_count)) * 100)
-					_VIDEO_JOBS[job_id]['events'].extend(events)
-					if idx % preview_step == 0:
-						# Preview uses base64 JPEG/PNG, but the output mp4 is written from BGR frames.
-						preview_rgb = cv2.cvtColor(frame_for_models, cv2.COLOR_BGR2RGB)
-						preview_b64 = numpy_to_b64(preview_rgb)
-						if preview_b64:
-							_VIDEO_JOBS[job_id]['frame'] = preview_b64
-			finally:
-				cap.release()
-				try:
-					writer.release()
-				except Exception:
-					pass
+			annotated_path = _process_video_capture_for_source(
+				cap=cap,
+				source=source,
+				upload_dir=upload_dir,
+				job_id=job_id,
+				work_path=work_path,
+			)
 
 			_VIDEO_JOBS[job_id]['done'] = True
 			_VIDEO_JOBS[job_id]['media_url'] = _media_url_from_path(annotated_path)
@@ -540,9 +574,6 @@ def run_video_live(request, source_id: int):
 	_VIDEO_JOBS[job_id] = {'done': False, 'progress': 0, 'frame': None, 'events': [], 'media_url': ''}
 
 	def _worker():
-		from .utils import numpy_to_b64
-		from .registry import annotate_frame_bgr_with_yolo
-
 		work_path = _transcode_to_h264(video_path)
 		cap = cv2.VideoCapture(work_path)
 		if not cap.isOpened():
@@ -550,96 +581,13 @@ def run_video_live(request, source_id: int):
 			_VIDEO_JOBS[job_id]['events'].append({'type': 'error', 'message': 'Unable to open video.'})
 			return
 
-		frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
-		fps = float(cap.get(cv2.CAP_PROP_FPS) or 25.0)
-		if fps <= 0 or fps > 120:
-			fps = 25.0
-
-		width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH) or 0)
-		height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT) or 0)
-		if width <= 0 or height <= 0:
-			width, height = 1280, 720
-
-		# Output video is written at the same fps as input so playback speed
-		# matches the original. Every frame is annotated and written.
-		annotated_name = f"annotated_{job_id}.mp4"
-		annotated_path = os.path.join(upload_dir, annotated_name)
-		fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-		writer = cv2.VideoWriter(annotated_path, fourcc, fps, (width, height))
-
-		# How often to push a preview frame to the polling client.
-		# ~4 previews/sec is enough for a smooth UI without overwhelming it.
-		preview_step = max(1, int(fps // 4))
-
-		idx = 0
-		try:
-			while True:
-				ok, frame_bgr = cap.read()
-				if not ok or frame_bgr is None:
-					break
-				idx += 1
-
-				# Resize to declared dimensions if the frame differs (some codecs lie).
-				if frame_bgr.shape[1] != width or frame_bgr.shape[0] != height:
-					frame_bgr = cv2.resize(frame_bgr, (width, height))
-
-				# Annotate like detect_final.py (in-place BGR drawing) with BOTH models.
-				frame_for_models = frame_bgr
-				detections_by_pipeline: dict[str, list[dict]] = {}
-				for pipeline_id, cfg in (source.model_config or {}).items():
-					if cfg is not None and isinstance(cfg, dict) and not cfg.get('enabled', True):
-						continue
-					threshold = float((cfg or {}).get('threshold', 50))
-					if pipeline_id == 'fire_detection':
-						model_path = str(settings.BASE_DIR / 'models' / 'FireDetec' / 'bestF.pt')
-					elif pipeline_id == 'dangerous_object_i':
-						model_path = str(settings.BASE_DIR / 'models' / 'dangerousOb' / 'bestI.pt')
-					else:
-						continue
-					frame_for_models, dets, _max_conf = annotate_frame_bgr_with_yolo(
-						model_path,
-						frame_for_models,
-						threshold=threshold,
-					)
-					if dets:
-						detections_by_pipeline[pipeline_id] = dets
-
-				# Always write the frame (full FPS output).
-				writer.write(frame_for_models)
-
-				# Events for UI.
-				events = []
-				for pid, dets in detections_by_pipeline.items():
-					try:
-						threshold = float((source.model_config or {}).get(pid, {}).get('threshold', 50))
-					except Exception:
-						threshold = 50.0
-					score = max([float(d.get('confidence', 0)) for d in dets] + [0.0]) * 100.0
-					if score >= threshold and score > 0:
-						events.append({
-							'type': 'detection',
-							'pipeline': pid,
-							'label': (dets[0].get('label') if dets else 'Detected'),
-							'score': score,
-							'risk_level': 'HIGH',
-						})
-
-				progress = int((idx / max(1, frame_count)) * 100)
-				_VIDEO_JOBS[job_id]['progress'] = progress
-				_VIDEO_JOBS[job_id]['events'].extend(events)
-
-				# Push a preview frame to the polling client periodically.
-				if idx % preview_step == 0:
-					preview_rgb = cv2.cvtColor(frame_for_models, cv2.COLOR_BGR2RGB)
-					preview_b64 = numpy_to_b64(preview_rgb)
-					if preview_b64:
-						_VIDEO_JOBS[job_id]['frame'] = preview_b64
-		finally:
-			cap.release()
-			try:
-				writer.release()
-			except Exception:
-				pass
+		annotated_path = _process_video_capture_for_source(
+			cap=cap,
+			source=source,
+			upload_dir=upload_dir,
+			job_id=job_id,
+			work_path=work_path,
+		)
 
 		_VIDEO_JOBS[job_id]['done'] = True
 		_VIDEO_JOBS[job_id]['media_url'] = _media_url_from_path(annotated_path)

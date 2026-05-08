@@ -424,12 +424,22 @@ def annotate_frame_bgr_with_yolo(model_path: str, frame_bgr, *, threshold: float
     except Exception:
         return frame_bgr, [], 0.0
 
+    # Cache models by path so we don't reload weights for every frame.
     try:
         from ultralytics import YOLO
     except Exception:
         return frame_bgr, [], 0.0
 
-    model = YOLO(model_path)
+    global _YOLO_MODEL_CACHE  # type: ignore
+    try:
+        _YOLO_MODEL_CACHE
+    except NameError:
+        _YOLO_MODEL_CACHE = {}
+
+    model = _YOLO_MODEL_CACHE.get(model_path)
+    if model is None:
+        model = YOLO(model_path)
+        _YOLO_MODEL_CACHE[model_path] = model
     conf = max(0.01, min(0.99, float(threshold) / 100.0))
 
     results = model.predict(frame_bgr, conf=conf, iou=0.45, imgsz=640, verbose=False)
@@ -464,6 +474,36 @@ def annotate_frame_bgr_with_yolo(model_path: str, frame_bgr, *, threshold: float
                             0.52, (255, 255, 255), 1, cv2.LINE_AA)
 
     return frame_bgr, detections, max_conf
+
+
+def annotate_frame_bgr_with_two_yolos(
+    model_a_path: str,
+    model_b_path: str,
+    frame_bgr,
+    *,
+    threshold_a: float = 50,
+    threshold_b: float = 50,
+) -> tuple:
+    """Run and draw TWO YOLO models onto the same BGR frame (in-place).
+
+    Returns (frame_bgr, detections_by_pipeline, max_conf_overall)
+    where detections_by_pipeline is a dict with keys: 'a', 'b'.
+    """
+
+    dets_by: dict[str, list[dict]] = {}
+    max_conf = 0.0
+
+    frame_bgr, dets_a, max_a = annotate_frame_bgr_with_yolo(model_a_path, frame_bgr, threshold=threshold_a)
+    if dets_a:
+        dets_by['a'] = dets_a
+    max_conf = max(max_conf, float(max_a or 0.0))
+
+    frame_bgr, dets_b, max_b = annotate_frame_bgr_with_yolo(model_b_path, frame_bgr, threshold=threshold_b)
+    if dets_b:
+        dets_by['b'] = dets_b
+    max_conf = max(max_conf, float(max_b or 0.0))
+
+    return frame_bgr, dets_by, max_conf
 
 
 def _fire_detection_pipeline() -> ModelPipeline:

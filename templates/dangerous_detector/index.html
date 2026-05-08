@@ -287,6 +287,21 @@
           {% endif %}
         </div>
 
+        {% if source.source_type == 'video' %}
+        <div class="video-progress" id="video-progress-{{ source.id }}" style="display:none; margin-top:.75rem;">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:.35rem;">
+            <div style="font-size:.82rem; color:var(--text-soft);">Annotating video…</div>
+            <div class="mono" id="video-progress-label-{{ source.id }}" style="font-size:.78rem; color:var(--text-muted);">0%</div>
+          </div>
+          <div style="height:10px; background:rgba(196,150,60,.14); border:1px solid rgba(196,150,60,.18); border-radius:999px; overflow:hidden;">
+            <div id="video-progress-fill-{{ source.id }}" style="height:100%; width:0%; background:var(--grad-gold);"></div>
+          </div>
+          <div style="display:flex; gap:.5rem; justify-content:flex-end; margin-top:.5rem;">
+            <a class="btn btn-ghost" id="video-download-{{ source.id }}" href="#" style="display:none;" download>⬇ Download annotated video</a>
+          </div>
+        </div>
+        {% endif %}
+
         <div class="window-actions">
           <input type="file" id="file-{{ source.id }}" class="js-file-input" data-source-id="{{ source.id }}" style="display:none;" accept="{% if source.source_type == 'video' %}.mp4,.mov,.avi,.mkv{% else %}.jpg,.jpeg,.png,.webp{% endif %}">
           <button class="btn btn-primary js-trigger-upload" data-source-id="{{ source.id }}">📂 Upload</button>
@@ -297,16 +312,8 @@
         </div>
         {% if source.source_type == 'camera' %}
         <div style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; font-size:.78rem; color:var(--text-soft);">
-          <label style="display:flex; align-items:center; gap:.35rem;">
-            ⏱ Refresh
-            <input type="number" min="1" max="60"
-                   value="{{ source.camera_config.refresh_interval|default:5 }}"
-                   class="js-refresh-interval"
-                   data-source-id="{{ source.id }}"
-                   style="width:60px; padding:.2rem .35rem; border-radius:8px; border:1px solid var(--border-soft);" />
-            s
-          </label>
           <button class="btn btn-ghost js-toggle-refresh" data-source-id="{{ source.id }}">⏸ Pause</button>
+          <span style="color:var(--text-muted);">Continuous prediction while camera is on</span>
         </div>
         {% endif %}
 
@@ -657,10 +664,6 @@
       btn.addEventListener('click', () => removeSource(btn.dataset.sourceId));
     });
 
-    document.querySelectorAll('.js-refresh-interval').forEach(input => {
-      input.addEventListener('change', () => updateRefreshInterval(input.dataset.sourceId, input.value));
-    });
-
     document.querySelectorAll('.js-toggle-refresh').forEach(btn => {
       btn.addEventListener('click', () => toggleRefresh(btn.dataset.sourceId, btn));
     });
@@ -749,6 +752,11 @@
   }
 
   const cameraStreams = {};
+  const cameraLoops = {};
+  const lastCameraCall = {};
+  const cameraInFlight = {};
+  const cameraCanvasBySource = {};
+  const CAMERA_MIN_INTERVAL_MS = 650; // keep it responsive without spamming the server
 
   async function runVideoLive(sourceId) {
     const fileInput = document.getElementById(`file-${sourceId}`);
@@ -776,6 +784,18 @@
     const preview = document.getElementById(`media-preview-${sourceId}`);
   preview.innerHTML = '<div class="source-empty">Processing…</div>';
 
+    const progressWrap = document.getElementById(`video-progress-${sourceId}`);
+    const progressFill = document.getElementById(`video-progress-fill-${sourceId}`);
+    const progressLabel = document.getElementById(`video-progress-label-${sourceId}`);
+    const downloadLink = document.getElementById(`video-download-${sourceId}`);
+    if (progressWrap) progressWrap.style.display = 'block';
+    if (progressFill) progressFill.style.width = '0%';
+    if (progressLabel) progressLabel.textContent = '0%';
+    if (downloadLink) {
+      downloadLink.style.display = 'none';
+      downloadLink.href = '#';
+    }
+
   // Reuse a single <img> node for the live preview to avoid flicker/black frames
   // caused by constantly replacing preview.innerHTML.
   let liveImg = null;
@@ -795,6 +815,13 @@
       }
 
       notifyFromEvents(payload.events || []);
+
+      if (typeof payload.progress === 'number') {
+        const pct = Math.max(0, Math.min(100, payload.progress));
+        if (progressFill) progressFill.style.width = `${pct}%`;
+        if (progressLabel) progressLabel.textContent = `${pct}%`;
+      }
+
       if (payload.frame) {
         if (!liveImg) {
           preview.innerHTML = '';
@@ -807,7 +834,15 @@
       if (payload.done) {
         if (payload.media_url) {
           preview.innerHTML = `<video src="${payload.media_url}" controls autoplay></video>`;
+
+          if (downloadLink) {
+            downloadLink.href = payload.media_url;
+            downloadLink.style.display = 'inline-flex';
+          }
         }
+
+        if (progressFill) progressFill.style.width = '100%';
+        if (progressLabel) progressLabel.textContent = '100%';
         showToast('Video processing complete.', 'info');
         return;
       }
@@ -825,12 +860,13 @@
     if (cameraConfig.stream_url) {
       if (sourceEl.dataset.streamActive === 'true') {
         sourceEl.dataset.streamActive = 'false';
-        clearInterval(refreshTimers[sourceId]);
+        stopCameraLoop(sourceId);
         preview.innerHTML = '<div class="source-empty">Stream stopped</div>';
       } else {
         sourceEl.dataset.streamActive = 'true';
+        sourceEl.dataset.streamPaused = 'false';
         preview.innerHTML = `<video src="${cameraConfig.stream_url}" controls autoplay></video>`;
-        startStreamTimer(sourceId);
+        startCameraLoop(sourceId, null);
       }
       return;
     }
@@ -838,6 +874,9 @@
     if (cameraStreams[sourceId]) {
       cameraStreams[sourceId].getTracks().forEach(track => track.stop());
       delete cameraStreams[sourceId];
+      stopCameraLoop(sourceId);
+      delete cameraInFlight[sourceId];
+      delete cameraCanvasBySource[sourceId];
       preview.innerHTML = '<div class="source-empty">Camera stopped</div>';
       return;
     }
@@ -854,27 +893,121 @@
     preview.innerHTML = '';
     preview.appendChild(video);
 
-    setTimeout(() => captureFrame(sourceId, video), 1200);
+    // Keep annotated output as an overlay on top of the video element.
+    // Replacing preview.innerHTML with <img> will drop the <video> node and
+    // the stream can end up looking like a black screen.
+    preview.querySelectorAll('.artifact-overlay').forEach(el => el.remove());
+    const overlay = document.createElement('img');
+    overlay.className = 'artifact-overlay';
+    overlay.style.display = 'none';
+    overlay.alt = 'annotated';
+    preview.appendChild(overlay);
+
+    sourceEl.dataset.streamPaused = 'false';
+    // Start continuous inference once the video has dimensions.
+    setTimeout(() => startCameraLoop(sourceId, video), 900);
+  }
+
+  function stopCameraLoop(sourceId) {
+    if (cameraLoops[sourceId]) {
+      cancelAnimationFrame(cameraLoops[sourceId]);
+      delete cameraLoops[sourceId];
+    }
+  }
+
+  function startCameraLoop(sourceId, videoEl) {
+    stopCameraLoop(sourceId);
+    const sourceEl = document.getElementById(`source-${sourceId}`);
+    const tick = async () => {
+      // If camera/stream turned off, stop.
+      if (!sourceEl) return;
+      const cameraConfig = JSON.parse(sourceEl.dataset.camera || '{}');
+      const isStream = !!cameraConfig.stream_url;
+      const active = sourceEl.dataset.streamActive === 'true' || !!cameraStreams[sourceId];
+      if (!active) {
+        stopCameraLoop(sourceId);
+        return;
+      }
+      if (sourceEl.dataset.streamPaused === 'true') {
+        cameraLoops[sourceId] = requestAnimationFrame(tick);
+        return;
+      }
+
+      // throttle
+      const now = Date.now();
+      const last = lastCameraCall[sourceId] || 0;
+      if (now - last >= CAMERA_MIN_INTERVAL_MS) {
+        lastCameraCall[sourceId] = now;
+        if (isStream) {
+          // Stream URL: ask backend to grab a frame from the stream.
+          try {
+            const response = await fetch(`/dangerous/sources/${sourceId}/stream/`, {
+              method: 'POST',
+              headers: {'X-CSRFToken': csrfToken}
+            });
+            const payload = await response.json();
+            if (payload && payload.results) {
+              renderResults(sourceId, payload.results || {}, payload.combined || null);
+              notifyFromEvents(payload.events || []);
+            }
+          } catch (e) {
+            // ignore transient errors; next tick will retry
+          }
+        } else {
+          const sourceEl2 = document.getElementById(`source-${sourceId}`);
+          const video = videoEl || (sourceEl2 ? sourceEl2.querySelector('video') : null);
+          if (video) {
+            await captureFrame(sourceId, video);
+          }
+        }
+      }
+
+      cameraLoops[sourceId] = requestAnimationFrame(tick);
+    };
+
+    cameraLoops[sourceId] = requestAnimationFrame(tick);
   }
 
   async function captureFrame(sourceId, video) {
     if (!cameraStreams[sourceId]) return;
-    const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 360;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+    if (cameraInFlight[sourceId]) return;
+    // If video isn't ready yet, skip (common right after getUserMedia).
+    const vw = video.videoWidth || 0;
+    const vh = video.videoHeight || 0;
+    if (vw < 2 || vh < 2) return;
 
-    const response = await fetch(`/dangerous/sources/${sourceId}/frame/`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
-      body: JSON.stringify({image: dataUrl}),
-    });
-    const payload = await response.json();
-    if (payload.results) {
-      renderResults(sourceId, payload.results, payload.combined || null);
-      notifyFromEvents(payload.events || []);
+    let canvas = cameraCanvasBySource[sourceId];
+    if (!canvas) {
+      canvas = document.createElement('canvas');
+      cameraCanvasBySource[sourceId] = canvas;
+    }
+    // Keep canvas dimension in sync.
+    if (canvas.width !== vw || canvas.height !== vh) {
+      canvas.width = vw;
+      canvas.height = vh;
+    }
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+
+    cameraInFlight[sourceId] = true;
+    try {
+      const response = await fetch(`/dangerous/sources/${sourceId}/frame/`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+        body: JSON.stringify({image: dataUrl}),
+      });
+      if (!response.ok) return;
+      const payload = await response.json();
+      if (payload.results) {
+        renderResults(sourceId, payload.results, payload.combined || null);
+        notifyFromEvents(payload.events || []);
+      }
+    } catch (e) {
+      // ignore transient failures
+    } finally {
+      cameraInFlight[sourceId] = false;
     }
   }
 
@@ -904,10 +1037,17 @@
     });
 
     const overlayB64 = combined && combined.artifact ? combined.artifact : null;
-    // For camera/video: don't stack overlays (it can blacken the feed over time).
-    // Instead, replace the preview with the annotated image for that refresh tick.
-    if (overlayB64 && (sourceType === 'camera' || sourceType === 'video')) {
-      preview.querySelectorAll('.artifact-overlay').forEach(el => el.remove());
+    // For camera: keep the <video> alive and draw annotated output as an overlay.
+    if (overlayB64 && sourceType === 'camera') {
+      const overlay = preview.querySelector('.artifact-overlay');
+      if (overlay && overlay.tagName.toLowerCase() === 'img') {
+        overlay.style.display = 'block';
+        overlay.src = `data:image/jpeg;base64,${overlayB64}`;
+      }
+    }
+
+    // For video job preview: replace with image (no live <video> element to preserve).
+    if (overlayB64 && sourceType === 'video') {
       const existingImg = preview.querySelector('img[data-role="annotated-preview"]');
       if (existingImg) {
         existingImg.src = `data:image/jpeg;base64,${overlayB64}`;
@@ -935,41 +1075,15 @@
     }
   }
 
-  const refreshTimers = {};
-
-  async function updateRefreshInterval(sourceId, value) {
-    const sourceEl = document.getElementById(`source-${sourceId}`);
-    const cameraConfig = JSON.parse(sourceEl.dataset.camera || '{}');
-    cameraConfig.refresh_interval = Math.max(1, parseInt(value || '5', 10));
-    await updateCameraConfig(sourceId, cameraConfig);
-    sourceEl.dataset.camera = JSON.stringify(cameraConfig);
-    startStreamTimer(sourceId);
-  }
-
   async function toggleRefresh(sourceId, buttonEl) {
     const sourceEl = document.getElementById(`source-${sourceId}`);
     const paused = sourceEl.dataset.streamPaused === 'true';
     sourceEl.dataset.streamPaused = paused ? 'false' : 'true';
     buttonEl.textContent = paused ? '⏸ Pause' : '▶ Resume';
-    if (!paused) {
-      clearInterval(refreshTimers[sourceId]);
-    } else {
-      startStreamTimer(sourceId);
+    if (sourceEl.dataset.streamPaused === 'false') {
+      // Resume continuous loop.
+      startCameraLoop(sourceId, null);
     }
-  }
-
-  function startStreamTimer(sourceId) {
-    const sourceEl = document.getElementById(`source-${sourceId}`);
-    const cameraConfig = JSON.parse(sourceEl.dataset.camera || '{}');
-    if (!cameraConfig.stream_url) return;
-    if (sourceEl.dataset.streamPaused === 'true') return;
-    const seconds = Math.max(1, parseInt(cameraConfig.refresh_interval || '5', 10));
-    if (refreshTimers[sourceId]) clearInterval(refreshTimers[sourceId]);
-    refreshTimers[sourceId] = setInterval(() => {
-      if (sourceEl.dataset.streamActive === 'true') {
-        runModels(sourceId);
-      }
-    }, seconds * 1000);
   }
 
   async function updateCameraConfig(sourceId, cameraConfig) {
