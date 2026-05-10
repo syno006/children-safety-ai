@@ -19,19 +19,6 @@ def detection(request):
 
     if request.method == "POST" and request.FILES.get("image"):
         img_info = process_uploaded_image(request.FILES["image"])
-        
-        # ── DEBUG ──────────────────────────────────────────
-        from ultralytics import YOLO
-        from pathlib import Path
-        model = YOLO(str(Path(__file__).parent.parent / "models" / "sanitation" / "best.pt"))
-        raw = model(img_info["array"], conf=0.01, verbose=True)[0]  # conf=0.01 = see everything
-        print("=== RAW DETECTIONS ===")
-        print("Model classes:", model.names)
-        for box in raw.boxes:
-            print(f"  cls={int(box.cls)} conf={float(box.conf):.3f} xyxy={box.xyxy[0].tolist()}")
-        print("=== END ===")
-        # ── END DEBUG ──────────────────────────────────────
-        
         result   = model_loader.predict(img_info["array"])
         image_data = img_info["b64"]
         if result["annotated_image"] is not None:

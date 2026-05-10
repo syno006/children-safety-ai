@@ -1,4 +1,5 @@
 {% extends 'core/base.html' %}
+{% load static %}
 
 {% block title %}Tableau de bord — ShelterCare AI{% endblock %}
 {% block page_title %}Tableau de bord{% endblock %}
@@ -663,6 +664,151 @@
 .rs-dot.a { background: var(--gold); }
 .rs-dot.r { background: #c85040; }
 
+  /* ── Simulation card ── */
+  .b-cell.b-sim { grid-column: span 12; grid-row: span 12; }
+  .sim-cell {
+    display: grid;
+    gap: 1.5rem;
+    padding: 2rem;
+  }
+  .sim-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .sim-title {
+    display: inline-flex;
+    align-items: center;
+    gap: .75rem;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--brown-deep);
+  }
+  .sim-sub {
+    max-width: 800px;
+    color: var(--text-soft);
+    line-height: 1.8;
+    font-size: .95rem;
+  }
+  .sim-grid {
+    display: grid;
+    grid-template-columns: 1.8fr 1.2fr;
+    gap: 2rem;
+    align-items: stretch;
+  }
+  .sim-preview {
+    background: linear-gradient(135deg, rgba(255,255,255,.95), rgba(244,238,227,.96));
+    border: 2px solid rgba(196,150,60,.16);
+    border-radius: 1.5rem;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 600px;
+  }
+  .sim-preview-header {
+    padding: 1.1rem 1.2rem 0;
+    font-weight: 700;
+    color: var(--brown-deep);
+  }
+  .sim-preview-subtitle {
+    padding: 0 .95rem 1rem 1.2rem;
+    color: var(--text-soft);
+    font-size: .88rem;
+    line-height: 1.5;
+  }
+  .sim-preview-art {
+    flex: 1;
+    min-height: 480px;
+    background: radial-gradient(circle at top left, rgba(196,150,60,.12), transparent 35%),
+                radial-gradient(circle at bottom right, rgba(231,0,0,.08), transparent 32%),
+                linear-gradient(180deg, #fefcf6 0%, #f8f1e4 100%);
+    display: grid;
+    place-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .sim-preview-art::before {
+    content: '';
+  }
+  .sim-preview-art img,
+  .sim-preview-art video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 0 0 1rem 1rem;
+    display: block;
+  }
+  .sim-preview-art::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.85) 85%);
+    pointer-events: none;
+  }
+  .sim-preview-footer {
+    padding: 1rem 1.2rem 1.3rem;
+    font-size: .82rem;
+    color: var(--text-soft);
+    border-top: 1px solid rgba(196,150,60,.12);
+  }
+  .sim-preview-footer {
+    padding: 1rem 1.2rem 1.3rem;
+    font-size: .82rem;
+    color: var(--text-soft);
+    border-top: 1px solid rgba(196,150,60,.12);
+  }
+  .sim-summary {
+    display: grid;
+    gap: 1rem;
+    overflow-y: auto;
+    max-height: 600px;
+    padding-right: .5rem;
+  }
+  .sim-summary::-webkit-scrollbar {
+    width: 6px;
+  }
+  .sim-summary::-webkit-scrollbar-track {
+    background: rgba(196,150,60,.05);
+    border-radius: 3px;
+  }
+  .sim-summary::-webkit-scrollbar-thumb {
+    background: rgba(196,150,60,.2);
+    border-radius: 3px;
+  }
+  .sim-step {
+    padding: 1.2rem 1.3rem;
+    background: rgba(255,255,255,.92);
+    border: 1.5px solid rgba(196,150,60,.16);
+    border-radius: 1.1rem;
+    display: grid;
+    gap: .75rem;
+  }
+  .sim-step strong { color: var(--brown-deep); }
+  .sim-step .step-label {
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--brown-deep);
+  }
+  .sim-step .step-meta {
+    font-size: .88rem;
+    color: var(--text-soft);
+    line-height: 1.6;
+  }
+  .sim-step .badge {
+    display: inline-flex;
+    padding: .32rem .65rem;
+    border-radius: 999px;
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .03em;
+  }
+  .badge-danger { background: rgba(193,68,14,.12); color: #c1440e; }
+  .badge-warning { background: rgba(244,162,97,.12); color: #b86b2f; }
+  .badge-safe { background: rgba(60,160,90,.12); color: #2d7a48; }
 /* ── Responsive ── */
 @media (max-width: 1100px) {
   .bento {
@@ -675,11 +821,12 @@
   .b-activity { grid-column: span 3; }
   .b-qa { grid-column: span 3; }
   .b-insight { grid-column: span 6; }
+  .b-sim { grid-column: span 6; }
 }
 @media (max-width: 720px) {
   .bento { grid-template-columns: repeat(2,1fr); }
   .b-kpi-1,.b-kpi-2,.b-kpi-3,.b-kpi-4 { grid-column: span 1; }
-  .b-hero,.b-ring,.b-alerts,.b-activity,.b-qa,.b-insight { grid-column: span 2; }
+  .b-hero,.b-ring,.b-alerts,.b-activity,.b-qa,.b-insight,.b-sim { grid-column: span 2; }
   .masthead { grid-template-columns: 1fr; }
   .masthead-right { align-items: flex-start; }
   .hc-floats { display: none; }
@@ -889,6 +1036,51 @@
       <a href="{% url 'index' %}" class="btn btn-gold btn-sm" style="width:100%;justify-content:center;">
         <i class="fas fa-chart-line"></i> Rapport détaillé
       </a>
+    </div>
+  </div>
+
+  <!-- Simulation cell (12 cols × 3 rows) -->
+  <div class="b-cell b-sim reveal reveal-delay-2">
+    <div class="sim-cell">
+      <div class="sim-head">
+        <div class="sim-title"><i class="fas fa-layer-group"></i> Simulation multi-modèles</div>
+        <div class="sim-sub">Exemple de scène de refuge où tous nos modèles détectent simultanément des risques réels et donnent une vue d'ensemble immédiate.</div>
+      </div>
+      <div class="sim-grid">
+        <div class="sim-preview">
+          <div class="sim-preview-header">{{ simulation.scene_title }}</div>
+          <div class="sim-preview-subtitle">{{ simulation.scene_description }}</div>
+          <div class="sim-preview-art">
+            <video autoplay playsinline muted loop controls poster="{{ simulation.scene_poster }}" class="sim-preview-video">
+              <source src="{{ simulation.scene_video }}" type="video/mp4">
+              Votre navigateur ne prend pas en charge la vidéo.
+            </video>
+          </div>
+          <div class="sim-preview-footer">{{ simulation.scene_caption }}</div>
+        </div>
+        <div class="sim-summary">
+          {% for item in simulation.items %}
+          <div class="sim-step">
+            <div class="step-label">{{ item.label }}</div>
+            <div class="step-meta">{{ item.detail }}</div>
+            <span class="badge badge-{{ item.badge }}">{{ item.badge_text }}</span>
+          </div>
+          {% endfor %}
+          <div class="sim-step">
+            <div class="step-label">Vue d'ensemble</div>
+            <div class="step-meta">{{ simulation.summary }}</div>
+            <span class="badge badge-safe">Plateforme unifiée</span>
+          </div>
+          <div style="margin-top:1.2rem;display:flex;justify-content:flex-end;gap:.75rem;">
+            <a href="{% url 'detection' %}" class="btn btn-gold btn-sm" style="white-space:nowrap;font-weight:700;">
+              <i class="fas fa-play-circle"></i> Analyser cette vidéo
+            </a>
+            <a href="{% url 'dangerous:index' %}" class="btn btn-outline btn-sm" style="white-space:nowrap;">
+              <i class="fas fa-video"></i> Tous les modèles
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 

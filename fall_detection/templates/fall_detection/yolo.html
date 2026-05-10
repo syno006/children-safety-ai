@@ -1,7 +1,7 @@
 {% extends 'core/base.html' %}
 {% load static %}
 
-{% block title %}CNN - Détection de Chutes | ShelterCare{% endblock %}
+{% block title %}YOLO - Détection de Chutes | ShelterCare{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -85,8 +85,8 @@
 <div class="container my-5">
     <!-- En-tête -->
     <div class="text-center mb-4">
-        <h1 class="display-5 fw-bold text-primary">Détection CNN</h1>
-        <p class="text-muted">Détection et localisation précise des chutes avec réseau de neurones convolutifs</p>
+        <h1 class="display-5 fw-bold text-primary">Detection CNN</h1>
+        <p class="text-muted">Detection et localisation precise des chutes avec boite englobante</p>
     </div>
 
     <div class="row">
@@ -107,7 +107,7 @@
                         
                         <div id="dropZone" class="upload-area mb-3">
                             <i class="fas fa-cloud-upload-alt fa-3x text-secondary mb-3"></i>
-                            <p class="mb-2 fw-semibold">Déposez votre image ici</p>
+                            <p class="mb-2 fw-semibold">Deposez votre image ici</p>
                             <p class="text-muted small mb-2">ou</p>
                             <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('imageInput').click()">
                                 <i class="fas fa-folder-open me-1"></i> Parcourir
@@ -122,7 +122,7 @@
                         </div>
                         
                         <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold" id="submitBtn" disabled>
-                            <i class="fas fa-microchip me-2"></i> Lancer la détection CNN
+                            <i class="fas fa-microchip me-2"></i> Lancer la detection
                         </button>
                     </form>
                 </div>
@@ -130,16 +130,16 @@
         </div>
     </div>
     
-    <!-- Résultats -->
+    <!-- Resultats -->
     {% if result %}
     <div class="row mt-5 result-card">
         <div class="col-lg-8 mx-auto">
-            <!-- Carte résultat -->
+            <!-- Carte resultat -->
             <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
                 <div class="card-header text-center py-3 {% if result.prediction == 'FALL' %}bg-danger{% else %}bg-success{% endif %} text-white">
                     <h3 class="mb-0 fw-bold">
                         {% if result.prediction == 'FALL' %}
-                            <i class="fas fa-exclamation-triangle me-2"></i> CHUTE DÉTECTÉE
+                            <i class="fas fa-exclamation-triangle me-2"></i> CHUTE DETECTEE
                         {% else %}
                             <i class="fas fa-check-circle me-2"></i> SITUATION NORMALE
                         {% endif %}
@@ -149,17 +149,17 @@
                 <div class="card-body p-4">
                     <!-- Confiance -->
                     <div class="text-center mb-4">
-                        <h6 class="text-muted text-uppercase small fw-semibold">Niveau de confiance CNN</h6>
+                        <h6 class="text-muted text-uppercase small fw-semibold">Niveau de confiance</h6>
                         <div class="display-1 fw-bold {% if result.prediction == 'FALL' %}text-danger{% else %}text-success{% endif %}">
                             {{ result.confidence|floatformat:1 }}<small class="fs-4">%</small>
                         </div>
                         <div class="progress-custom mt-2">
                             <div class="progress-fill {% if result.prediction == 'FALL' %}danger{% else %}success{% endif %}" 
-                                 style="width: {{ result.confidence|floatformat:0 }}%"></div>
+                                 style="width: {{ result.confidence|default:0|floatformat:0 }}%"></div>
                         </div>
                     </div>
                     
-                    <!-- Probabilités -->
+                    <!-- Probabilites -->
                     <div class="row mb-4 g-3">
                         <div class="col-md-6">
                             <div class="stat-card">
@@ -182,7 +182,7 @@
                         {% if result.prediction == 'FALL' %}
                             <span class="badge-urgent"><i class="fas fa-bell me-1"></i> Intervention requise</span>
                         {% else %}
-                            <span class="badge-safe"><i class="fas fa-shield-alt me-1"></i> Situation sécuritaire</span>
+                            <span class="badge-safe"><i class="fas fa-shield-alt me-1"></i> Situation securitaire</span>
                         {% endif %}
                     </div>
                     
@@ -205,12 +205,12 @@
             {% if image_data %}
             <div class="card shadow-sm border-0 rounded-4 mt-4 overflow-hidden">
                 <div class="card-header bg-dark text-white">
-                    <h6 class="mb-0"><i class="fas fa-image me-2"></i> Analyse visuelle CNN - Carte d'activation</h6>
+                    <h6 class="mb-0"><i class="fas fa-image me-2"></i> Analyse visuelle - Boite englobante</h6>
                 </div>
                 <div class="card-body text-center p-3">
                     <img src="data:image/jpeg;base64,{{ image_data }}" class="img-fluid rounded shadow-sm" style="max-height: 450px; cursor: pointer;" onclick="window.open(this.src, '_blank')">
                     <div class="mt-3">
-                        <span class="badge bg-secondary">Zone rouge = zone d'intérêt détectée</span>
+                        <span class="badge bg-secondary">Boite rouge = zone de chute detectee</span>
                         <span class="badge bg-secondary ms-2"><i class="fas fa-search-plus me-1"></i> Cliquer pour agrandir</span>
                     </div>
                 </div>
@@ -220,7 +220,7 @@
             <!-- Bouton alerte si chute -->
             {% if result.prediction == 'FALL' %}
             <div class="text-center mt-4">
-                <button class="btn btn-danger btn-lg px-5 shadow" onclick="alert('Alerte envoyée au personnel du shelter. Intervention requise immédiatement.')">
+                <button class="btn btn-danger btn-lg px-5 shadow" onclick="alert('Alerte envoyee au personnel du shelter. Intervention requise immediatement.')">
                     <i class="fas fa-bell me-2"></i> Alerter le shelter
                 </button>
             </div>
@@ -258,7 +258,7 @@ imageInput.addEventListener('change', (e) => {
 
 function handleFile(file) {
     if (!file.type.match('image.*')) {
-        alert('Format non supporté. Veuillez choisir une image JPG ou PNG.');
+        alert('Format non supporte. Veuillez choisir une image JPG ou PNG.');
         return;
     }
     if (file.size > 10*1024*1024) {
@@ -275,7 +275,7 @@ function handleFile(file) {
 }
 document.getElementById('uploadForm').addEventListener('submit', function() {
     if(selectedFile) {
-        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analyse CNN en cours...';
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analyse en cours...';
         submitBtn.disabled = true;
     }
 });
