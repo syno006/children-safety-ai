@@ -8,33 +8,6 @@ import csv
 BASE_DIR = Path(__file__).resolve().parent.parent
 MODEL_PATH = BASE_DIR / "allergen_app" / "model" / "allergen_yolov8s_best.pt"
 _model = None
-
-
-def get_model():
-    global _model
-    if _model is not None:
-        return _model
-
-    try:
-        from ultralytics import YOLO
-    except ImportError:
-        print("[allergen_app] WARNING – ultralytics is not installed.")
-        return None
-
-    if MODEL_PATH.exists():
-        try:
-            _model = YOLO(str(MODEL_PATH))
-            print(f"[allergen_app] Model loaded from {MODEL_PATH}")
-        except Exception as exc:
-            print(f"[allergen_app] ERROR loading model: {exc}")
-            _model = None
-    else:
-        print(f"[allergen_app] WARNING – model not found at {MODEL_PATH}")
-
-    return _model
-
-<<<<<<< HEAD
-_model = None
 _model_load_error = None
 
 
@@ -56,8 +29,6 @@ def get_model():
 
     return _model
 
-=======
->>>>>>> d10794b (update django project and ai models)
 
 # ============================================================
 # LIRE CSV ENFANTS
