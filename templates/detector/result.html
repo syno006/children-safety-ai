@@ -1,7 +1,9 @@
-{% extends "detector/base.html" %}
+{% extends "core/base.html" %}
+{% load static %}
+
 {% block title %}Analysis Result — ShelterCare AI{% endblock %}
 
-{% block extra_head %}
+{% block extra_css %}
 <style>
   .result-hero {
     border-radius: var(--r-lg);
@@ -132,6 +134,109 @@
     0%, 100% { border-color: rgba(193,68,14,.3); }
     50%       { border-color: rgba(193,68,14,.8); }
   }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: 40px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    text-decoration: none;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #daa520, #b8860b);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-soft);
+  }
+
+  .btn-ghost:hover {
+    border-color: #daa520;
+    color: #b8860b;
+    background: rgba(196,150,60,.05);
+  }
+
+  .badge {
+    padding: 0.25rem 0.7rem;
+    border-radius: 30px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .badge-high {
+    background: rgba(193,68,14,.12);
+    color: #c1440e;
+    border: 1px solid rgba(193,68,14,.2);
+  }
+
+  .badge-medium {
+    background: rgba(244,162,97,.12);
+    color: #b86b2f;
+    border: 1px solid rgba(244,162,97,.2);
+  }
+
+  .badge-low {
+    background: rgba(109,138,42,.12);
+    color: #6d8a2a;
+    border: 1px solid rgba(109,138,42,.2);
+  }
+
+  .prob-bar {
+    height: 6px;
+    background: rgba(184,134,11,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .prob-fill-violent {
+    background: linear-gradient(90deg, #c1440e, #e74c3c);
+  }
+
+  .prob-fill-safe {
+    background: linear-gradient(90deg, #6d8a2a, #8bc34a);
+  }
+
+  .mono {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+  }
+
+  .fade-up {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 0.6s ease forwards;
+  }
+
+  @keyframes fadeUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .fade-up-1 { animation-delay: 0.05s; }
+  .fade-up-2 { animation-delay: 0.1s; }
+  .fade-up-3 { animation-delay: 0.15s; }
+  .fade-up-4 { animation-delay: 0.2s; }
 </style>
 {% endblock %}
 
@@ -219,7 +324,7 @@
     <div class="detail-lbl">P(Safe)</div>
   </div>
   <div class="detail-block">
-    <div class="detail-val" style="color:var(--gold-lt);">{{ record.confidence }}%</div>
+    <div class="detail-val" style="color:var(--gold);">{{ record.confidence }}%</div>
     <div class="detail-lbl">Confidence</div>
   </div>
 </div>
@@ -292,9 +397,6 @@
 
 </div>
 
-{% endblock %}
-
-{% block extra_scripts %}
 <script>
 // Animate gauge on load
 const circle = document.getElementById('gaugeCircle');
@@ -311,4 +413,5 @@ if (circle) {
   });
 }
 </script>
+
 {% endblock %}

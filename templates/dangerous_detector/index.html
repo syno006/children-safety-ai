@@ -1,19 +1,191 @@
-{% extends "dangerous_detector/base.html" %}
-{% block title %}Workspace — GuardianGrid{% endblock %}
+{% extends "core/base.html" %}
+{% load static %}
 
-{% block extra_head %}
+{% block title %}Fire &amp; Dangerous Object Detection — ShelterCare AI{% endblock %}
+
+{% block extra_css %}
 <style>
+  /* Hero strip styling */
+  .hero-strip {
+    background: var(--grad-hero);
+    border-radius: var(--r-xl);
+    padding: 2rem 2rem 1.75rem;
+    margin-bottom: 1.75rem;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .hero-strip::before {
+    content: '';
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: 45px solid rgba(196,150,60,.1);
+    pointer-events: none;
+  }
+  
+  .hero-strip h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--ivory);
+    margin-bottom: 0.75rem;
+  }
+  
+  .hero-strip h1 em {
+    font-style: italic;
+    color: var(--sand);
+  }
+  
+  .hero-strip p {
+    color: rgba(213,187,138,.7);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    max-width: 700px;
+  }
+
+  /* Animated floating icons in hero */
+  .hero-icons {
+    position: absolute;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    opacity: 0.7;
+  }
+  
+  .hero-icons i {
+    font-size: 2rem;
+    animation: floatIcon 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 5px rgba(255,100,0,0.4));
+  }
+  
+  .hero-icons i:nth-child(1) { animation-delay: 0s; color: #ff6b35; }
+  .hero-icons i:nth-child(2) { animation-delay: 0.4s; color: #ff4444; }
+  .hero-icons i:nth-child(3) { animation-delay: 0.8s; color: #ffaa33; }
+  .hero-icons i:nth-child(4) { animation-delay: 1.2s; color: #ff6b35; }
+  .hero-icons i:nth-child(5) { animation-delay: 1.6s; color: #ff8888; }
+  
+  @keyframes floatIcon {
+    0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.6; }
+    50% { transform: translateY(-12px) rotate(8deg); opacity: 1; }
+  }
+  
+  /* Fire particle animation */
+  .fire-particles {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  
+  .particle {
+    position: absolute;
+    bottom: -10px;
+    width: 4px;
+    height: 4px;
+    background: radial-gradient(circle, #ff6600, #ff3300);
+    border-radius: 50%;
+    animation: rise 2s ease-out infinite;
+    opacity: 0;
+  }
+  
+  @keyframes rise {
+    0% {
+      transform: translateY(0) scale(1);
+      opacity: 0.8;
+    }
+    100% {
+      transform: translateY(-150px) scale(0.5);
+      opacity: 0;
+    }
+  }
+  
+  /* Stat grid */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+  }
+  
+  .stat-block {
+    background: var(--grad-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: 1.25rem;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .stat-block::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #ff6600, #ffcc00, #ff6600);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+  }
+  
+  .stat-block:hover::after {
+    transform: scaleX(1);
+  }
+  
+  .stat-block:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--brown-deep);
+    line-height: 1;
+  }
+  
+  .stat-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-top: 0.4rem;
+  }
+  
+  /* Card title */
+  .card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--brown-deep);
+  }
+  
+  /* Workspace grid */
   .workspace-grid {
     position: relative;
     min-height: 680px;
-    border: 1px dashed rgba(196,150,60,.25);
+    border: 2px dashed rgba(196,150,60,.25);
     border-radius: var(--r-xl);
     padding: 1.5rem;
-    background: rgba(255,252,245,.6);
-    resize: vertical;
+    background: rgba(255,252,245,.4);
     overflow: auto;
   }
-
+  
+  /* Source window */
   .source-window {
     position: absolute;
     background: var(--grad-card);
@@ -23,213 +195,369 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    min-width: 260px;
-    min-height: 220px;
+    min-width: 280px;
+    min-height: 260px;
+    transition: transform 0.2s, box-shadow 0.2s;
   }
-
+  
+  .source-window:hover {
+    box-shadow: var(--shadow-md);
+    border-color: rgba(196,150,60,.3);
+  }
+  
   .window-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: .75rem 1rem;
+    padding: 0.85rem 1rem;
     background: rgba(196,150,60,.08);
     border-bottom: 1px solid var(--border-soft);
     cursor: move;
   }
-
+  
+  .window-header:hover {
+    background: rgba(196,150,60,.12);
+  }
+  
   .window-title {
     font-weight: 600;
+    font-size: 0.85rem;
     display: flex;
     align-items: center;
-    gap: .5rem;
+    gap: 0.5rem;
+    color: var(--brown-deep);
   }
-
+  
   .window-body {
-    padding: .9rem 1rem 1rem;
+    padding: 1rem;
     display: flex;
     flex-direction: column;
-    gap: .75rem;
+    gap: 0.75rem;
     flex: 1;
     overflow: auto;
   }
-
+  
   .window-actions {
     display: flex;
-    gap: .5rem;
+    gap: 0.5rem;
     flex-wrap: wrap;
   }
-
+  
+  /* Media preview */
   .media-preview {
     background: rgba(196,150,60,.05);
     border: 1px solid var(--border-soft);
     border-radius: var(--r-md);
-    padding: .5rem;
+    padding: 0.75rem;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 140px;
-    max-height: 240px;
+    max-height: 200px;
     overflow: hidden;
     position: relative;
   }
-
+  
   .artifact-overlay {
     position: absolute;
-    inset: .5rem;
+    inset: 0.5rem;
     border-radius: var(--r-sm);
     object-fit: contain;
     width: calc(100% - 1rem);
     height: calc(100% - 1rem);
     pointer-events: none;
   }
-
+  
   .media-preview img,
   .media-preview video {
     max-width: 100%;
-    max-height: 220px;
+    max-height: 180px;
     border-radius: var(--r-sm);
   }
-
+  
+  /* Result list */
   .result-list {
-    display: grid;
-    gap: .5rem;
-    max-height: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 160px;
     overflow: auto;
-    padding-right: .25rem;
   }
-
+  
   .result-chip {
-    padding: .5rem .75rem;
+    padding: 0.45rem 0.7rem;
     border-radius: var(--r-md);
     border: 1px solid var(--border-soft);
     background: rgba(255,255,255,.6);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: .78rem;
+    font-size: 0.75rem;
   }
-
-  .result-chip.high { border-color: rgba(193,68,14,.35); background: rgba(193,68,14,.08); color: #c1440e; }
-  .result-chip.medium { border-color: rgba(244,162,97,.35); background: rgba(244,162,97,.12); color: #b86b2f; }
-  .result-chip.low { border-color: rgba(109,138,42,.35); background: rgba(109,138,42,.08); color: #6d8a2a; }
-
+  
+  .result-chip.high { 
+    border-color: rgba(193,68,14,.35); 
+    background: rgba(193,68,14,.08); 
+    color: #c1440e; 
+  }
+  .result-chip.medium { 
+    border-color: rgba(244,162,97,.35); 
+    background: rgba(244,162,97,.12); 
+    color: #b86b2f; 
+  }
+  .result-chip.low { 
+    border-color: rgba(109,138,42,.35); 
+    background: rgba(109,138,42,.08); 
+    color: #6d8a2a; 
+  }
+  
+  /* Badge */
+  .badge {
+    background: rgba(196,150,60,.15);
+    color: var(--gold-deep);
+    padding: 0.2rem 0.5rem;
+    border-radius: 20px;
+    font-size: 0.6rem;
+    font-weight: 600;
+  }
+  
+  /* Resize handle */
   .resize-handle {
     position: absolute;
-    right: 6px;
-    bottom: 6px;
-    width: 14px;
-    height: 14px;
-    background: rgba(196,150,60,.5);
-    border-radius: 4px;
+    right: 8px;
+    bottom: 8px;
+    width: 12px;
+    height: 12px;
+    background: rgba(196,150,60,.4);
+    border-radius: 3px;
     cursor: se-resize;
   }
-
+  
+  .resize-handle:hover {
+    background: var(--gold);
+  }
+  
+  /* Model drawer */
   .model-drawer {
     position: fixed;
     right: 2rem;
-    top: 100px;
-    width: 360px;
+    top: 120px;
+    width: 380px;
     max-height: 75vh;
     overflow-y: auto;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: var(--r-lg);
+    border-radius: var(--r-xl);
     box-shadow: var(--shadow-lg);
     padding: 1.5rem;
     display: none;
     z-index: 400;
   }
-
+  
   .model-drawer.active { display: block; }
-
+  
   .model-item {
     display: flex;
     flex-direction: column;
-    gap: .4rem;
-    padding: .6rem 0;
+    gap: 0.5rem;
+    padding: 0.75rem 0;
     border-bottom: 1px solid var(--border-soft);
   }
-
+  
+  .model-item:last-child {
+    border-bottom: none;
+  }
+  
   .model-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: .5rem;
+    gap: 0.5rem;
   }
-
-  .model-row input[type="range"] { width: 100%; }
-
+  
+  .model-row input[type="range"] { 
+    width: 100%; 
+  }
+  
+  /* Empty state */
   .source-empty {
     text-align: center;
-    padding: 3rem 0;
+    padding: 2rem 0;
     color: var(--text-soft);
   }
-
+  
+  .source-empty i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.5;
+  }
+  
+  /* Modal */
   .modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(45,29,15,.55);
+    background: rgba(45,29,15,.6);
+    backdrop-filter: blur(4px);
     display: none;
     align-items: center;
     justify-content: center;
     z-index: 500;
   }
-
+  
   .modal-backdrop.active { display: flex; }
-
+  
   .modal-card {
     background: var(--surface);
-    border-radius: var(--r-lg);
-    padding: 2rem;
-    width: 360px;
+    border-radius: var(--r-xl);
+    padding: 1.75rem;
+    width: 400px;
     border: 1px solid var(--border);
     box-shadow: var(--shadow-lg);
   }
-
+  
   .field {
     display: flex;
     flex-direction: column;
-    gap: .3rem;
-    margin-bottom: .8rem;
-    font-size: .88rem;
+    gap: 0.35rem;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
   }
-
+  
+  .field label {
+    font-weight: 600;
+    color: var(--brown-deep);
+  }
+  
   .field input, .field select {
-    padding: .5rem .6rem;
+    padding: 0.6rem 0.75rem;
     border-radius: var(--r-md);
     border: 1px solid var(--border-soft);
     font-family: 'DM Sans', sans-serif;
+    background: white;
+  }
+  
+  .field input:focus, .field select:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(196,150,60,.1);
+  }
+  
+  /* Video progress */
+  .video-progress {
+    margin-top: 0.75rem;
+  }
+  
+  .mono {
+    font-family: 'DM Mono', monospace;
+  }
+  
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 30px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #ff6600, #cc3300);
+    color: white;
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+  }
+  
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-soft);
+  }
+  
+  .btn-ghost:hover {
+    border-color: #ff6600;
+    color: #ff6600;
+    background: rgba(255,102,0,.05);
+  }
+  
+  /* Toast zone */
+  #toast-zone {
+    position: fixed;
+    left: 1.25rem;
+    bottom: 1.25rem;
+    display: grid;
+    gap: 0.6rem;
+    z-index: 800;
+  }
+  
+  /* Fire animation effect for source windows with high risk */
+  @keyframes firePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,69,0,0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(255,69,0,0); }
+  }
+  
+  .source-window[data-risk="high"] {
+    animation: firePulse 2s ease-in-out infinite;
+  }
+  
+  /* Warning badge animation */
+  @keyframes warningBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  
+  .warning-badge {
+    animation: warningBlink 1s ease-in-out infinite;
   }
 </style>
 {% endblock %}
 
 {% block content %}
+<!-- Hero Section -->
 <div class="hero-strip">
-  <h1>Détection <em>incendie &amp; objets dangereux</em></h1>
-  <p>Analysez des images, vidéos ou flux caméra pour repérer rapidement les <strong>objets dangereux</strong> et les <strong>signes de feu/fumée</strong>. Ajustez les seuils de confiance par source et centralisez les alertes pour une intervention plus rapide.</p>
+  <div class="fire-particles" id="fireParticles"></div>
+  <div class="hero-icons">
+    <i class="fas fa-fire"></i>
+    <i class="fas fa-skull-crossbones"></i>
+    <i class="fas fa-bomb"></i>
+    <i class="fas fa-smog"></i>
+    <i class="fas fa-radiation"></i>
+  </div>
+  <h1><em>Fire &amp; Dangerous Object</em> Detection</h1>
+  <p>Analyze images, videos, or camera streams to quickly spot <strong>dangerous objects</strong> and <strong>signs of fire/smoke</strong>. Adjust confidence thresholds per source and centralize alerts for faster intervention.</p>
 </div>
 
+<!-- Statistics Grid -->
 <div class="stat-grid">
-  <div class="stat-block" style="--accent: var(--gold);">
+  <div class="stat-block">
     <div class="stat-num">{{ stats.sources }}</div>
     <div class="stat-label">Sources</div>
   </div>
-  <div class="stat-block" style="--accent: #c1440e;">
+  <div class="stat-block">
     <div class="stat-num">{{ stats.pipelines }}</div>
     <div class="stat-label">Pipelines</div>
   </div>
-  <div class="stat-block" style="--accent: #6d8a2a;">
+  <div class="stat-block">
     <div class="stat-num">{{ stats.enabled }}</div>
     <div class="stat-label">Enabled Models</div>
   </div>
 </div>
 
-<div id="toast-zone" style="position:fixed; left:1.25rem; bottom:1.25rem; display:grid; gap:.6rem; z-index:800;"></div>
+<!-- Notification Area -->
+<div id="toast-zone"></div>
 
 <div id="notification-bell" style="position:fixed; right:1.25rem; bottom:1.25rem; z-index:760;">
   <button class="btn btn-ghost" style="position:relative; width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center; padding:0;" onclick="toggleNotifications()" title="Notifications">
-    <span style="font-size:18px; line-height:1; display:block;">🔔</span>
-    <span id="notification-dot" style="display:none; position:absolute; top:9px; right:9px; width:10px; height:10px; border-radius:999px; background:rgba(193, 68, 14, .95);"></span>
+    <span style="font-size:18px;">🔔</span>
+    <span id="notification-dot" style="display:none; position:absolute; top:9px; right:9px; width:10px; height:10px; border-radius:999px; background:rgba(193,68,14,.95);"></span>
   </button>
 
   <div id="notification-panel" style="display:none; position:absolute; right:0; bottom:52px; width:360px; max-height:55vh; overflow:auto; background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow: var(--shadow-lg);">
@@ -244,26 +572,28 @@
   </div>
 </div>
 
+<!-- Workspace Header -->
 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-  <div class="card-title" style="margin-bottom:0;">🧩 Source Workspace</div>
-  <div style="display:flex; gap:.6rem; align-items:center; flex-wrap:wrap;">
+  <div class="card-title">🔥 Source Workspace</div>
+  <div style="display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap;">
     <button class="btn btn-primary" onclick="openSourceModal()">➕ Add Source</button>
     <button class="btn btn-ghost" onclick="resetLayout()">♻ Reset Layout</button>
   </div>
 </div>
 
+<!-- Workspace Grid -->
 <div class="workspace-grid" id="workspace">
   {% if sources %}
     {% for source in sources %}
     <div class="source-window" id="source-{{ source.id }}"
          data-id="{{ source.id }}"
          data-type="{{ source.source_type }}"
-      data-config='{{ source.config_json|escape }}'
-      data-layout='{{ source.layout_json|escape }}'
-      data-camera='{{ source.camera_json|escape }}'>
+         data-config='{{ source.config_json|escape }}'
+         data-layout='{{ source.layout_json|escape }}'
+         data-camera='{{ source.camera_json|escape }}'>
       <div class="window-header">
         <div class="window-title">
-          <span>🧠</span>
+          <span>🔥</span>
           <span>{{ source.name }}</span>
           <span class="badge">{{ source.source_type|upper }}</span>
         </div>
@@ -288,12 +618,12 @@
         </div>
 
         {% if source.source_type == 'video' %}
-        <div class="video-progress" id="video-progress-{{ source.id }}" style="display:none; margin-top:.75rem;">
+        <div class="video-progress" id="video-progress-{{ source.id }}" style="display:none;">
           <div style="display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:.35rem;">
             <div style="font-size:.82rem; color:var(--text-soft);">Annotating video…</div>
-            <div class="mono" id="video-progress-label-{{ source.id }}" style="font-size:.78rem; color:var(--text-muted);">0%</div>
+            <div class="mono" id="video-progress-label-{{ source.id }}" style="font-size:.78rem;">0%</div>
           </div>
-          <div style="height:10px; background:rgba(196,150,60,.14); border:1px solid rgba(196,150,60,.18); border-radius:999px; overflow:hidden;">
+          <div style="height:6px; background:rgba(196,150,60,.14); border-radius:999px; overflow:hidden;">
             <div id="video-progress-fill-{{ source.id }}" style="height:100%; width:0%; background:var(--grad-gold);"></div>
           </div>
           <div style="display:flex; gap:.5rem; justify-content:flex-end; margin-top:.5rem;">
@@ -310,10 +640,11 @@
           <button class="btn btn-ghost js-toggle-camera" data-source-id="{{ source.id }}">📷 Camera</button>
           {% endif %}
         </div>
+        
         {% if source.source_type == 'camera' %}
-        <div style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; font-size:.78rem; color:var(--text-soft);">
-          <button class="btn btn-ghost js-toggle-refresh" data-source-id="{{ source.id }}">⏸ Pause</button>
-          <span style="color:var(--text-muted);">Continuous prediction while camera is on</span>
+        <div style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; font-size:.75rem; color:var(--text-soft);">
+          <button class="btn btn-ghost js-toggle-refresh" data-source-id="{{ source.id }}" style="padding:0.3rem 0.7rem;">⏸ Pause</button>
+          <span>Continuous prediction while camera is on</span>
         </div>
         {% endif %}
 
@@ -335,13 +666,14 @@
     {% endfor %}
   {% else %}
     <div class="source-empty">
-      <div style="font-size:2rem;">🧩</div>
-      <div style="font-family:'Cormorant Garamond',serif; font-size:1.3rem; margin-top:.5rem;">No sources added yet</div>
-      <p style="font-size:.9rem; margin-top:.4rem; color:var(--text-muted);">Add your first image, video, or camera source to start orchestrating models.</p>
+      <div style="font-size:2.5rem;">🔥</div>
+      <div style="font-family:'Cormorant Garamond',serif; font-size:1.3rem; margin-top:0.5rem;">No sources added yet</div>
+      <p style="font-size:0.85rem; margin-top:0.4rem; color:var(--text-muted);">Add your first image, video, or camera source to start detecting dangerous objects and fire.</p>
     </div>
   {% endif %}
 </div>
 
+<!-- Model Drawer -->
 <div class="model-drawer" id="model-drawer">
   <div style="display:flex; justify-content:space-between; align-items:center;">
     <div class="card-title" style="margin-bottom:0;">⚙ Model Settings</div>
@@ -355,9 +687,10 @@
   </div>
 </div>
 
+<!-- Source Modal -->
 <div class="modal-backdrop" id="source-modal">
   <div class="modal-card">
-    <div class="card-title">➕ Add Source</div>
+    <div class="card-title" style="margin-bottom:1rem;">➕ Add Source</div>
     <div class="field">
       <label for="source-name">Name</label>
       <input id="source-name" placeholder="e.g. Entrance Camera" />
@@ -378,7 +711,7 @@
       <label for="camera-stream">External Stream URL (RTSP/HTTP)</label>
       <input id="camera-stream" placeholder="rtsp://... or http://..." />
     </div>
-    <div style="display:flex; gap:.6rem; justify-content:flex-end;">
+    <div style="display:flex; gap:.6rem; justify-content:flex-end; margin-top:1rem;">
       <button class="btn btn-ghost" onclick="closeSourceModal()">Cancel</button>
       <button class="btn btn-primary" onclick="createSource()">Create</button>
     </div>
@@ -386,7 +719,7 @@
 </div>
 {% endblock %}
 
-{% block extra_scripts %}
+{% block extra_js %}
 {{ pipelines|json_script:"pipelines-data" }}
 <script>
   const pipelineData = JSON.parse(document.getElementById('pipelines-data').textContent || '[]');
@@ -454,7 +787,6 @@
     row.appendChild(msg);
     list.prepend(row);
 
-    // show unread dot until panel is opened
     const dot = document.getElementById('notification-dot');
     if (dot) dot.style.display = 'block';
   }
@@ -564,7 +896,6 @@
     const config = JSON.parse(sourceEl.dataset.config || '{}');
     const sourceType = sourceEl.dataset.type;
 
-    // Prune stale model ids (pipelines removed from backend).
     const allowedIds = new Set(pipelineData.map(p => p.id));
     Object.keys(config).forEach(id => {
       if (!allowedIds.has(id)) delete config[id];
@@ -756,7 +1087,7 @@
   const lastCameraCall = {};
   const cameraInFlight = {};
   const cameraCanvasBySource = {};
-  const CAMERA_MIN_INTERVAL_MS = 650; // keep it responsive without spamming the server
+  const CAMERA_MIN_INTERVAL_MS = 650;
 
   async function runVideoLive(sourceId) {
     const fileInput = document.getElementById(`file-${sourceId}`);
@@ -782,7 +1113,7 @@
     const jobId = startPayload.job_id;
     showToast('Video processing started…', 'info');
     const preview = document.getElementById(`media-preview-${sourceId}`);
-  preview.innerHTML = '<div class="source-empty">Processing…</div>';
+    preview.innerHTML = '<div class="source-empty">Processing…</div>';
 
     const progressWrap = document.getElementById(`video-progress-${sourceId}`);
     const progressFill = document.getElementById(`video-progress-fill-${sourceId}`);
@@ -796,9 +1127,7 @@
       downloadLink.href = '#';
     }
 
-  // Reuse a single <img> node for the live preview to avoid flicker/black frames
-  // caused by constantly replacing preview.innerHTML.
-  let liveImg = null;
+    let liveImg = null;
 
     const poll = async () => {
       const pollData = new FormData();
@@ -893,9 +1222,6 @@
     preview.innerHTML = '';
     preview.appendChild(video);
 
-    // Keep annotated output as an overlay on top of the video element.
-    // Replacing preview.innerHTML with <img> will drop the <video> node and
-    // the stream can end up looking like a black screen.
     preview.querySelectorAll('.artifact-overlay').forEach(el => el.remove());
     const overlay = document.createElement('img');
     overlay.className = 'artifact-overlay';
@@ -904,7 +1230,6 @@
     preview.appendChild(overlay);
 
     sourceEl.dataset.streamPaused = 'false';
-    // Start continuous inference once the video has dimensions.
     setTimeout(() => startCameraLoop(sourceId, video), 900);
   }
 
@@ -919,7 +1244,6 @@
     stopCameraLoop(sourceId);
     const sourceEl = document.getElementById(`source-${sourceId}`);
     const tick = async () => {
-      // If camera/stream turned off, stop.
       if (!sourceEl) return;
       const cameraConfig = JSON.parse(sourceEl.dataset.camera || '{}');
       const isStream = !!cameraConfig.stream_url;
@@ -933,13 +1257,11 @@
         return;
       }
 
-      // throttle
       const now = Date.now();
       const last = lastCameraCall[sourceId] || 0;
       if (now - last >= CAMERA_MIN_INTERVAL_MS) {
         lastCameraCall[sourceId] = now;
         if (isStream) {
-          // Stream URL: ask backend to grab a frame from the stream.
           try {
             const response = await fetch(`/dangerous/sources/${sourceId}/stream/`, {
               method: 'POST',
@@ -950,9 +1272,7 @@
               renderResults(sourceId, payload.results || {}, payload.combined || null);
               notifyFromEvents(payload.events || []);
             }
-          } catch (e) {
-            // ignore transient errors; next tick will retry
-          }
+          } catch (e) {}
         } else {
           const sourceEl2 = document.getElementById(`source-${sourceId}`);
           const video = videoEl || (sourceEl2 ? sourceEl2.querySelector('video') : null);
@@ -971,7 +1291,6 @@
   async function captureFrame(sourceId, video) {
     if (!cameraStreams[sourceId]) return;
     if (cameraInFlight[sourceId]) return;
-    // If video isn't ready yet, skip (common right after getUserMedia).
     const vw = video.videoWidth || 0;
     const vh = video.videoHeight || 0;
     if (vw < 2 || vh < 2) return;
@@ -981,7 +1300,6 @@
       canvas = document.createElement('canvas');
       cameraCanvasBySource[sourceId] = canvas;
     }
-    // Keep canvas dimension in sync.
     if (canvas.width !== vw || canvas.height !== vh) {
       canvas.width = vw;
       canvas.height = vh;
@@ -1004,9 +1322,7 @@
         renderResults(sourceId, payload.results, payload.combined || null);
         notifyFromEvents(payload.events || []);
       }
-    } catch (e) {
-      // ignore transient failures
-    } finally {
+    } catch (e) {} finally {
       cameraInFlight[sourceId] = false;
     }
   }
@@ -1017,7 +1333,6 @@
     const preview = document.getElementById(`media-preview-${sourceId}`);
     const sourceType = sourceEl.dataset.type;
 
-    // Remove previous artifact panel if any.
     const windowEl = sourceEl;
     windowEl.querySelectorAll('.artifact-panel').forEach(el => el.remove());
 
@@ -1037,7 +1352,6 @@
     });
 
     const overlayB64 = combined && combined.artifact ? combined.artifact : null;
-    // For camera: keep the <video> alive and draw annotated output as an overlay.
     if (overlayB64 && sourceType === 'camera') {
       const overlay = preview.querySelector('.artifact-overlay');
       if (overlay && overlay.tagName.toLowerCase() === 'img') {
@@ -1046,7 +1360,6 @@
       }
     }
 
-    // For video job preview: replace with image (no live <video> element to preserve).
     if (overlayB64 && sourceType === 'video') {
       const existingImg = preview.querySelector('img[data-role="annotated-preview"]');
       if (existingImg) {
@@ -1056,7 +1369,6 @@
       }
     }
 
-    // For images: show a separate annotated artifact below preview.
     if (sourceType === 'image') {
       let artifactB64 = overlayB64;
       if (!artifactB64) {
@@ -1069,7 +1381,6 @@
         panel.className = 'artifact-panel';
         panel.style.cssText = 'margin-top:.75rem; padding:.5rem; border:1px solid var(--border-soft); border-radius: var(--r-md); background: rgba(196,150,60,.05);';
         panel.innerHTML = `<div style="font-size:.78rem; color:var(--text-soft); margin-bottom:.35rem;">Annotated (boxes)</div><img src="data:image/jpeg;base64,${artifactB64}" style="max-width:100%; border-radius: var(--r-sm);" alt="annotated" />`;
-        // Insert after preview
         preview.insertAdjacentElement('afterend', panel);
       }
     }
@@ -1081,17 +1392,8 @@
     sourceEl.dataset.streamPaused = paused ? 'false' : 'true';
     buttonEl.textContent = paused ? '⏸ Pause' : '▶ Resume';
     if (sourceEl.dataset.streamPaused === 'false') {
-      // Resume continuous loop.
       startCameraLoop(sourceId, null);
     }
-  }
-
-  async function updateCameraConfig(sourceId, cameraConfig) {
-    await fetch(`/dangerous/sources/${sourceId}/camera/`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
-      body: JSON.stringify({camera_config: cameraConfig})
-    });
   }
 
   function resetLayout() {
@@ -1116,9 +1418,7 @@
         try {
           const layout = JSON.parse(windowEl.dataset.layout);
           applyLayout(windowEl, layout);
-        } catch (err) {
-          // ignore
-        }
+        } catch (err) {}
       } else {
         windowEl.style.left = `${20 + (id * 30) % 320}px`;
         windowEl.style.top = `${20 + (id * 30) % 240}px`;
@@ -1222,14 +1522,23 @@
     });
   }
 
+  // Create fire particles animation
+  function createFireParticles() {
+    const container = document.getElementById('fireParticles');
+    if (!container) return;
+    
+    for (let i = 0; i < 30; i++) {
+      const particle = document.createElement('div');
+      particle.classList.add('particle');
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.animationDelay = Math.random() * 5 + 's';
+      particle.style.animationDuration = 1 + Math.random() * 2 + 's';
+      container.appendChild(particle);
+    }
+  }
+  
+  createFireParticles();
   initWorkspace();
   bindSourceActions();
-  document.querySelectorAll('.source-window').forEach(windowEl => {
-    if (windowEl.dataset.type !== 'camera') return;
-    const cameraConfig = JSON.parse(windowEl.dataset.camera || '{}');
-    if (cameraConfig.stream_url) {
-      startStreamTimer(windowEl.dataset.id);
-    }
-  });
 </script>
 {% endblock %}

@@ -1,7 +1,7 @@
 {% extends 'core/base.html' %}
 
-{% block page_title %}Analyse Vidéo{% endblock %}
-{% block page_subtitle %}Classification d'urgence · Détection YOLO des blessures{% endblock %}
+{% block page_title %}Video Analysis{% endblock %}
+{% block page_subtitle %}Emergency classification · YOLO injury detection{% endblock %}
 
 {% block extra_css %}
 
@@ -443,24 +443,24 @@ video.va-player {
 
   <!-- Intro (left) -->
   <div class="va-intro">
-    <div class="va-intro-eyebrow">Module IA · Analyse vidéo</div>
-    <div class="va-intro-title">Détection &amp; <em>Classification</em><br>en temps réel</div>
+    <div class="va-intro-eyebrow">AI Module · Video Analysis</div>
+    <div class="va-intro-title">Detection &amp; <em>Classification</em><br>in real time</div>
     <div class="va-intro-desc">
-      Importez une vidéo pour obtenir une classification d'urgence frame par frame
-      et une détection YOLO des blessures avec bounding boxes annotées.
+      Upload a video to get frame-by-frame emergency classification
+      and YOLO injury detection with annotated bounding boxes.
     </div>
     <div class="va-legend">
       <div class="va-legend-item">
         <div class="va-legend-dot" style="background:#c0392b;"></div>
-        Frames urgentes — intervention immédiate requise
+        Urgent frames — immediate intervention required
       </div>
       <div class="va-legend-item">
         <div class="va-legend-dot" style="background:#27ae60;"></div>
-        Frames non-urgentes — situation stable
+        Non-urgent frames — stable situation
       </div>
       <div class="va-legend-item">
         <div class="va-legend-dot" style="background:var(--gold);"></div>
-        Bounding boxes YOLO — zones de détection
+        YOLO bounding boxes — detection zones
       </div>
     </div>
   </div>
@@ -469,7 +469,7 @@ video.va-player {
   <div class="va-upload-card">
     <div class="va-upload-label">
       <i class="fas fa-cloud-arrow-up"></i>
-      Importer une vidéo
+      Upload a video
     </div>
 
     <form method="post" enctype="multipart/form-data" id="va-form">
@@ -480,19 +480,19 @@ video.va-player {
         <div class="va-dropzone-icon">
           <i class="fas fa-film"></i>
         </div>
-        <div class="va-dropzone-title">Glissez votre vidéo ici</div>
-        <div class="va-dropzone-sub">ou cliquez pour parcourir · mp4, avi, mov</div>
+        <div class="va-dropzone-title">Drag your video here</div>
+        <div class="va-dropzone-sub">or click to browse · mp4, avi, mov</div>
         <div class="va-filename" id="va-filename"></div>
       </div>
 
       <div style="font-size:.7rem;color:var(--text-soft);display:flex;align-items:center;gap:.4rem;">
         <i class="fas fa-circle-info" style="color:var(--gold);"></i>
-        Max ~10 secondes recommandé pour de meilleures performances
+        Max ~10 seconds recommended for best performance
       </div>
 
       <button type="submit" class="va-submit-btn" onclick="window.showLoading()">
         <i class="fas fa-play"></i>
-        Lancer l'analyse
+        Start analysis
       </button>
     </form>
   </div>
@@ -504,10 +504,10 @@ video.va-player {
 <div class="va-results reveal reveal-delay-1">
 
   <div class="va-results-header">
-    <div class="va-results-title">Résultats de l'analyse</div>
+    <div class="va-results-title">Analysis results</div>
     <div class="va-results-pill">
       <i class="fas fa-check-circle" style="margin-right:.35rem;color:var(--gold);"></i>
-      Traitement terminé
+      Processing complete
     </div>
   </div>
 
@@ -516,7 +516,7 @@ video.va-player {
   <div class="va-error">
     <div class="va-error-icon"><i class="fas fa-triangle-exclamation"></i></div>
     <div>
-      <div class="va-error-title">Erreur lors du traitement</div>
+      <div class="va-error-title">Error during processing</div>
       <div class="va-error-text">{{ result.error }}</div>
     </div>
   </div>
@@ -546,7 +546,7 @@ video.va-player {
         </div>
         <div>
           <div class="va-dominant-label" style="color: {% if result.dominant_class == 'Urgent' %}#c0392b{% elif result.dominant_class == 'Non-Urgent' %}#27ae60{% else %}var(--gold-deep){% endif %};">
-            Classe dominante
+            Dominant class
           </div>
           <div class="va-dominant-value" style="color: {% if result.dominant_class == 'Urgent' %}#c0392b{% elif result.dominant_class == 'Non-Urgent' %}#27ae60{% else %}var(--gold-deep){% endif %};">
             {{ result.dominant_class }}
@@ -556,14 +556,14 @@ video.va-player {
 
       <!-- Frame stats -->
       <div class="va-stat-card">
-        <div class="va-stat-card-title">Analyse des frames</div>
+        <div class="va-stat-card-title">Frame analysis</div>
 
         <div class="va-stat-row">
-          <span class="va-stat-row-label">Frames analysées</span>
+          <span class="va-stat-row-label">Frames analyzed</span>
           <span class="va-stat-row-value">{{ result.frames_processed }}</span>
         </div>
         <div class="va-stat-row">
-          <span class="va-stat-row-label">Frames totales</span>
+          <span class="va-stat-row-label">Total frames</span>
           <span class="va-stat-row-value">{{ result.total_frames }}</span>
         </div>
         <div class="va-stat-row">
@@ -579,23 +579,23 @@ video.va-player {
           </span>
         </div>
         <div class="va-stat-row">
-          <span class="va-stat-row-label">Incertain</span>
+          <span class="va-stat-row-label">Uncertain</span>
           <span class="va-stat-row-badge" style="background:rgba(196,150,60,.12);color:var(--gold-deep);">
             {{ result.incertain_frames }}
           </span>
         </div>
         <div class="va-stat-row">
-          <span class="va-stat-row-label">Détections YOLO</span>
+          <span class="va-stat-row-label">YOLO detections</span>
           <span class="va-stat-row-value">{{ result.total_detections }}</span>
         </div>
       </div>
 
       <!-- Confidence -->
       <div class="va-stat-card">
-        <div class="va-stat-card-title">Confiance du modèle</div>
+        <div class="va-stat-card-title">Model confidence</div>
         <div class="va-conf-bar-wrap">
           <div class="va-conf-label">
-            <span>Moyenne</span>
+            <span>Average</span>
             <span class="va-conf-val">{{ result.avg_confidence|floatformat:1 }}%</span>
           </div>
           <div class="progress-track">
@@ -617,7 +617,7 @@ video.va-player {
       {% if result.output_filename %}
       <a href="{% url 'blessures:download_video' result.output_filename %}" class="va-download-btn">
         <i class="fas fa-download"></i>
-        Télécharger la vidéo annotée
+        Download annotated video
       </a>
       {% endif %}
 
@@ -627,25 +627,25 @@ video.va-player {
     <div class="va-video-panel">
       <div class="va-video-header">
         <div class="va-video-header-icon"><i class="fas fa-clapperboard"></i></div>
-        <div class="va-video-header-title">Vidéo annotée</div>
+        <div class="va-video-header-title">Annotated video</div>
       </div>
 
       <div class="va-video-body">
         {% if output_video_url %}
         <video controls class="va-player" preload="metadata">
           <source src="{{ output_video_url }}" type="video/mp4">
-          Votre navigateur ne supporte pas la lecture vidéo.
+          Your browser does not support video playback.
         </video>
         <div class="va-video-hint">
           <i class="fas fa-info-circle" style="color:var(--gold);margin-right:.3rem;"></i>
-          Si la lecture échoue, téléchargez la vidéo via le bouton ci-contre
+          If playback fails, download the video using the button on the left
         </div>
 
         {% else %}
         <div class="va-no-video">
           <div class="va-no-video-icon"><i class="fas fa-video-slash"></i></div>
-          <div class="va-no-video-title">Vidéo non disponible</div>
-          <div class="va-no-video-sub">Problème de codec ou de format — utilisez le téléchargement</div>
+          <div class="va-no-video-title">Video not available</div>
+          <div class="va-no-video-sub">Codec or format issue — use download instead</div>
         </div>
         {% endif %}
       </div>

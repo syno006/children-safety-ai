@@ -3,15 +3,15 @@
 {% block content %}
 <div class="card">
     <div class="card-header">
-        <h2><i class="fas fa-cut"></i> Segmentation ciblée sur la blessure</h2>
-        <span class="badge-right">U-Net • Ciblé ROI</span>
+        <h2><i class="fas fa-cut"></i> Targeted injury segmentation</h2>
+        <span class="badge-right">U-Net • Targeted ROI</span>
     </div>
     <div class="card-body">
         <form method="post" enctype="multipart/form-data" id="uploadForm">
             {% csrf_token %}
             <div class="upload-area" onclick="document.getElementById('imageInput').click()">
                 <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea;"></i>
-                <p>Cliquez pour télécharger une image</p>
+                <p>Click to upload an image</p>
                 <input type="file" name="image" id="imageInput" accept="image/*" style="display: none;" onchange="this.form.submit()">
             </div>
         </form>
@@ -21,48 +21,48 @@
             <div class="stats-header">
                 <div class="stat-card">
                     <div class="stat-value">{{ result.num_lesions|default:0 }}</div>
-                    <div class="stat-label">Blessures détectées</div>
+                    <div class="stat-label">Injuries detected</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value">{{ result.area_percentage|floatformat:1|default:"0" }}%</div>
-                    <div class="stat-label">Surface totale</div>
+                    <div class="stat-label">Total area</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value">{{ result.roi_area_percentage|floatformat:1|default:"0" }}%</div>
-                    <div class="stat-label">de la ROI</div>
+                    <div class="stat-label">of ROI</div>
                 </div>
             </div>
 
             <div class="segmentation-grid">
                 <div class="image-section">
-                    <h4><i class="fas fa-image"></i> Image avec détection + segmentation</h4>
+                    <h4><i class="fas fa-image"></i> Image with detection + segmentation</h4>
                     <div class="image-container">
-                        <img src="data:image/jpeg;base64,{{ image_data }}" alt="Résultat">
+                        <img src="data:image/jpeg;base64,{{ image_data }}" alt="Result">
                     </div>
                     <div class="legend">
-                        <div><span style="background: #00ff00;"></span> Boîte de détection</div>
-                        <div><span style="background: #ff5050;"></span> Segmentation de la blessure</div>
-                        <div><span style="background: #00ff00; width: 4px; height: 4px;"></span> Contour précis</div>
+                        <div><span style="background: #00ff00;"></span> Detection box</div>
+                        <div><span style="background: #ff5050;"></span> Injury segmentation</div>
+                        <div><span style="background: #00ff00; width: 4px; height: 4px;"></span> Precise outline</div>
                     </div>
                 </div>
 
                 {% if lesion_images %}
                 <div class="lesions-section">
-                    <h4><i class="fas fa-microscope"></i> Détail par blessure</h4>
+                    <h4><i class="fas fa-microscope"></i> Detail by injury</h4>
                     <div class="lesions-list">
                         {% for lesion in lesion_images %}
                         <div class="lesion-card">
                             <div class="lesion-header">
-                                <span class="lesion-title">Blessure #{{ lesion.id }}</span>
-                                <span class="lesion-area">{{ lesion.area|floatformat:1 }}% de l'image</span>
+                                <span class="lesion-title">Injury #{{ lesion.id }}</span>
+                                <span class="lesion-area">{{ lesion.area|floatformat:1 }}% of image</span>
                             </div>
                             <div class="lesion-image">
-                                <img src="data:image/jpeg;base64,{{ lesion.image }}" alt="Blessure {{ lesion.id }}">
+                                <img src="data:image/jpeg;base64,{{ lesion.image }}" alt="Injury {{ lesion.id }}">
                             </div>
                             <div class="lesion-details">
                                 <div class="detail-row">
-                                    <span>Surface de la blessure:</span>
-                                    <span>{{ lesion.roi_area|floatformat:1 }}% de la zone</span>
+                                    <span>Injury area:</span>
+                                    <span>{{ lesion.roi_area|floatformat:1 }}% of zone</span>
                                 </div>
                             </div>
                         </div>
@@ -74,8 +74,8 @@
 
             <div class="info-note">
                 <i class="fas fa-info-circle"></i>
-                <strong>Note:</strong> La segmentation est appliquée UNIQUEMENT à l'intérieur des boîtes de détection,
-                ce qui permet d'ignorer le bruit en dehors de la zone d'intérêt.
+                <strong>Note:</strong> Segmentation is applied ONLY inside detection boxes,
+                which helps ignore noise outside the region of interest.
             </div>
         </div>
         {% endif %}

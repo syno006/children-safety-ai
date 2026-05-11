@@ -1,1270 +1,1464 @@
 {% extends 'core/base.html' %}
 {% load static %}
 
-{% block title %}Tableau de bord — ShelterCare AI{% endblock %}
-{% block page_title %}Tableau de bord{% endblock %}
-{% block page_subtitle %}Protection quotidienne des enfants en refuge{% endblock %}
+{% block title %}Home — ShelterCare AI · Child Protection{% endblock %}
+{% block page_title %}Hello, Guardian{% endblock %}
+{% block page_subtitle %}Every child under your care is protected in real time · 24/7{% endblock %}
 
 {% block extra_css %}
 <style>
 
 /* ══════════════════════════════════════════
-   EDITORIAL MAGAZINE LAYOUT
-   Asymmetric · Grid-breaking · Luxury print
+   CHILD PROTECTION HOME PAGE
+   Warm · Colorful · Child-first design
 ══════════════════════════════════════════ */
 
-/* ── Ambient background orbs ── */
-.home-canvas {
-  position: relative;
+.home-canvas { position: relative; }
+
+/* Floating child-like elements background */
+.child-bg-elements {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
 }
+
+.child-float-icon {
+    position: absolute;
+    font-size: 3rem;
+    opacity: 0.06;
+    animation: childFloat 25s ease-in-out infinite;
+}
+
+@keyframes childFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-15px) rotate(5deg); }
+    50% { transform: translateY(10px) rotate(-3deg); }
+    75% { transform: translateY(-5px) rotate(2deg); }
+}
+
+.child-float-icon:nth-child(1) { top: 10%; left: 5%; animation-duration: 20s; font-size: 4rem; }
+.child-float-icon:nth-child(2) { top: 70%; right: 3%; animation-duration: 28s; animation-delay: 2s; }
+.child-float-icon:nth-child(3) { bottom: 15%; left: 8%; animation-duration: 24s; animation-delay: 4s; }
+.child-float-icon:nth-child(4) { top: 40%; right: 12%; animation-duration: 22s; animation-delay: 1s; }
+.child-float-icon:nth-child(5) { bottom: 50%; left: 20%; animation-duration: 30s; animation-delay: 3s; }
+.child-float-icon:nth-child(6) { top: 85%; right: 18%; animation-duration: 26s; animation-delay: 5s; }
+
+/* Ambient glows - soft and warm */
 .home-canvas::before {
-  content: '';
-  position: fixed;
-  top: 10vh; right: 5vw;
-  width: 500px; height: 500px;
-  background: radial-gradient(circle, rgba(196,150,60,.07) 0%, transparent 65%);
-  pointer-events: none;
-  z-index: 0;
+    content: '';
+    position: fixed;
+    top: 8vh; right: 3vw;
+    width: 480px; height: 480px;
+    background: radial-gradient(circle, rgba(196,150,60,.08) 0%, transparent 65%);
+    pointer-events: none;
+    z-index: 0;
 }
 .home-canvas::after {
-  content: '';
-  position: fixed;
-  bottom: 5vh; left: 20vw;
-  width: 380px; height: 380px;
-  background: radial-gradient(circle, rgba(94,61,34,.06) 0%, transparent 65%);
-  pointer-events: none;
-  z-index: 0;
+    content: '';
+    position: fixed;
+    bottom: 8vh; left: 18vw;
+    width: 360px; height: 360px;
+    background: radial-gradient(circle, rgba(94,61,34,.06) 0%, transparent 65%);
+    pointer-events: none;
+    z-index: 0;
 }
 
-/* ── Editorial masthead ── */
-.masthead {
-  position: relative;
-  padding: 0 0 2rem;
-  margin-bottom: 2rem;
-  border-bottom: 1px solid var(--border-soft);
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 2rem;
-  align-items: end;
-  z-index: 1;
-}
-
-.masthead-left { position: relative; }
-
-.masthead-vol {
-  font-family: 'DM Mono', monospace;
-  font-size: .6rem;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  color: var(--text-soft);
-  opacity: .7;
-  margin-bottom: .5rem;
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-}
-.masthead-vol::before {
-  content: '';
-  display: inline-block;
-  width: 28px; height: 1px;
-  background: var(--gold);
-  opacity: .6;
-}
-
-.masthead-headline {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(2.8rem, 5vw, 4.2rem);
-  font-weight: 700;
-  color: var(--brown-deep);
-  line-height: .95;
-  letter-spacing: -.02em;
-  position: relative;
-}
-.masthead-headline .accent-word {
-  color: var(--gold);
-  font-style: italic;
-}
-.masthead-headline .ghost-text {
-  position: absolute;
-  bottom: -.15em;
-  left: -.02em;
-  font-size: 1em;
-  color: transparent;
-  -webkit-text-stroke: 1px rgba(196,150,60,.12);
-  pointer-events: none;
-  z-index: -1;
-  white-space: nowrap;
-}
-
-.masthead-sub {
-  margin-top: .85rem;
-  font-size: .83rem;
-  color: var(--text-soft);
-  max-width: 440px;
-  line-height: 1.65;
-}
-
-.masthead-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: .6rem;
-  padding-bottom: .15rem;
-}
-
-.status-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: .55rem;
-  padding: .45rem 1rem;
-  border-radius: var(--r-full);
-  background: rgba(60,160,90,.1);
-  border: 1px solid rgba(60,160,90,.2);
-  font-size: .7rem;
-  font-weight: 700;
-  color: #2d7a48;
-  letter-spacing: .04em;
-}
-.pulse-dot {
-  width: 8px; height: 8px;
-  background: #3ca05a;
-  border-radius: 50%;
-  animation: statusPulse 2s ease-in-out infinite;
-}
-@keyframes statusPulse {
-  0%,100% { opacity:1; transform:scale(1); box-shadow:0 0 0 0 rgba(60,160,90,.4); }
-  50% { opacity:.8; transform:scale(1.1); box-shadow:0 0 0 5px rgba(60,160,90,0); }
-}
-
-.masthead-cta-row {
-  display: flex;
-  gap: .6rem;
-}
-
-/* ── Bento grid layout ── */
-.bento {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  grid-auto-rows: 80px;
-  gap: 1rem;
-  position: relative;
-  z-index: 1;
-}
-
-/* Bento cell base */
-.b-cell {
-  background: var(--grad-card);
-  border: 1px solid var(--border);
-  border-radius: var(--r-xl);
-  overflow: hidden;
-  transition: box-shadow .3s var(--ease), transform .3s var(--ease);
-  position: relative;
-}
-.b-cell:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-3px);
-  z-index: 10;
-}
-
-/* ── Cell spans ── */
-.b-kpi-1  { grid-column: span 3; grid-row: span 2; }
-.b-kpi-2  { grid-column: span 3; grid-row: span 2; }
-.b-kpi-3  { grid-column: span 3; grid-row: span 2; }
-.b-kpi-4  { grid-column: span 3; grid-row: span 2; }
-.b-hero   { grid-column: span 8; grid-row: span 4; }
-.b-ring   { grid-column: span 4; grid-row: span 4; }
-.b-alerts { grid-column: span 5; grid-row: span 5; }
-.b-activity { grid-column: span 4; grid-row: span 5; }
-.b-qa     { grid-column: span 3; grid-row: span 5; }
-.b-insight { grid-column: span 12; grid-row: span 2; }
-
-/* ── KPI cells ── */
-.kpi-cell {
-  padding: 1.25rem 1.4rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
-}
-.kc-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-}
-.kc-icon {
-  width: 36px; height: 36px;
-  border-radius: 10px;
-  background: rgba(196,150,60,.1);
-  display: flex; align-items: center; justify-content: center;
-  color: var(--gold);
-  font-size: .95rem;
-}
-.kc-trend {
-  font-size: .65rem;
-  font-weight: 700;
-  padding: .15rem .5rem;
-  border-radius: var(--r-full);
-  display: flex;
-  align-items: center;
-  gap: .2rem;
-}
-.kc-trend.up   { background: rgba(60,160,90,.1);  color: #2d7a48; }
-.kc-trend.down { background: rgba(200,80,60,.1);  color: #b04030; }
-.kc-trend.flat { background: rgba(196,150,60,.1); color: var(--gold-deep); }
-.kc-value {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 2.4rem;
-  font-weight: 700;
-  color: var(--brown-deep);
-  line-height: 1;
-}
-.kc-label {
-  font-size: .72rem;
-  color: var(--text-soft);
-  font-weight: 500;
-}
-.kc-sub {
-  font-size: .62rem;
-  color: var(--text-muted);
-  margin-top: .1rem;
-}
-
-/* Accent bar at bottom of KPI */
-.kc-bar {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 3px;
-  background: var(--grad-gold);
-  opacity: 0;
-  transition: opacity .25s;
-}
-.b-cell:hover .kc-bar { opacity: 1; }
-
-/* ── Hero cell ── */
-.hero-cell {
-  background: var(--grad-hero);
-  padding: 2rem 2.25rem;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  position: relative;
-  overflow: hidden;
-}
-.hero-cell::before {
-  content: '';
-  position: absolute;
-  top: -100px; right: -100px;
-  width: 350px; height: 350px;
-  border-radius: 50%;
-  border: 70px solid rgba(196,150,60,.08);
-  pointer-events: none;
-}
-.hero-cell::after {
-  content: '';
-  position: absolute;
-  bottom: -60px; left: 30%;
-  width: 220px; height: 220px;
-  border-radius: 50%;
-  border: 45px solid rgba(196,150,60,.05);
-  pointer-events: none;
-}
-.hc-eyebrow {
-  font-size: .6rem;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  color: rgba(213,187,138,.5);
-  font-family: 'DM Mono', monospace;
-  position: relative; z-index: 1;
-}
-.hc-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 2.1rem;
-  font-weight: 700;
-  color: var(--cream);
-  line-height: 1.15;
-  position: relative; z-index: 1;
-}
-.hc-title em { font-style: italic; color: var(--sand); }
-.hc-body {
-  position: relative; z-index: 1;
-}
-.hc-desc {
-  font-size: .78rem;
-  color: rgba(245,237,216,.55);
-  line-height: 1.6;
-  margin-bottom: 1.1rem;
-  max-width: 380px;
-}
-.hc-pills {
-  display: flex;
-  gap: .6rem;
-  flex-wrap: wrap;
-}
-.hc-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: .4rem;
-  background: rgba(196,150,60,.18);
-  border: 1px solid rgba(196,150,60,.25);
-  padding: .35rem .9rem;
-  border-radius: var(--r-full);
-  font-size: .68rem;
-  font-weight: 600;
-  color: var(--sand);
-  text-decoration: none;
-  transition: all .2s;
-}
-.hc-pill:hover {
-  background: var(--grad-gold);
-  border-color: transparent;
-  color: white;
-  transform: translateY(-1px);
-}
-.hc-pill i { font-size: .8rem; }
-
-/* Floating stat badges on hero */
-.hc-floats {
-  position: absolute;
-  top: 1.5rem; right: 1.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: .6rem;
-  z-index: 2;
-}
-.hc-float {
-  background: rgba(255,252,245,.07);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(196,150,60,.2);
-  border-radius: var(--r-lg);
-  padding: .6rem 1rem;
-  min-width: 115px;
-}
-.hcf-val {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--cream);
-  line-height: 1;
-}
-.hcf-lbl {
-  font-size: .6rem;
-  color: rgba(213,187,138,.5);
-  margin-top: .1rem;
-}
-
-/* ── Ring cell ── */
-.ring-cell {
-  padding: 1.5rem 1.25rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  height: 100%;
-}
-.ring-cell-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--brown-deep);
-  text-align: center;
-  display: flex;
-  align-items: center;
-  gap: .4rem;
-}
-.ring-cell-title i { color: var(--gold); font-size: .85rem; }
-
-.ring-wrap {
-  position: relative;
-  width: 110px; height: 110px;
-}
-.ring-svg-el { transform: rotate(-90deg); }
-.r-track { fill: none; stroke: rgba(196,150,60,.12); }
-.r-fill  {
-  fill: none;
-  stroke: url(#rg2);
-  stroke-linecap: round;
-  stroke-dasharray: 283;
-  stroke-dashoffset: 283;
-  transition: stroke-dashoffset 1.4s cubic-bezier(.22,.68,0,1.2);
-}
-.ring-center-txt {
-  position: absolute; inset: 0;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-}
-.rct-score {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--brown-deep);
-  line-height: 1;
-}
-.rct-label { font-size: .58rem; color: var(--text-soft); }
-
-.ring-bars { width: 100%; display: flex; flex-direction: column; gap: .6rem; }
-.rb-row { display: flex; align-items: center; gap: .6rem; font-size: .67rem; }
-.rb-label { width: 80px; color: var(--text-soft); flex-shrink: 0; }
-.rb-track {
-  flex: 1; height: 4px;
-  background: rgba(196,150,60,.1);
-  border-radius: var(--r-full); overflow: hidden;
-}
-.rb-fill { height: 100%; background: var(--grad-gold); border-radius: var(--r-full); }
-.rb-pct { font-size: .6rem; color: var(--text-muted); font-family: 'DM Mono', monospace; width: 28px; text-align: right; }
-
-/* ── Alerts cell ── */
-.alerts-cell {
-  padding: 1.25rem 1.25rem 1rem;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-.cell-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-}
-.cell-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--brown-deep);
-  display: flex;
-  align-items: center;
-  gap: .4rem;
-}
-.cell-title i { color: var(--gold); font-size: .85rem; }
-
-.alert-items { display: flex; flex-direction: column; gap: .5rem; flex: 1; }
-.a-item {
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-  padding: .7rem .85rem;
-  border-radius: var(--r-lg);
-  border: 1px solid var(--border-soft);
-  background: var(--surface);
-  transition: all .2s;
-  cursor: pointer;
-}
-.a-item:hover { border-color: var(--gold); box-shadow: var(--shadow-xs); }
-.a-dot {
-  width: 32px; height: 32px;
-  border-radius: 9px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: .8rem;
-  flex-shrink: 0;
-}
-.a-dot.r { background: rgba(192,57,43,.1); color: #c0392b; }
-.a-dot.a { background: rgba(196,150,60,.12); color: var(--gold-deep); }
-.a-dot.g { background: rgba(39,174,96,.1); color: #27ae60; }
-.a-name {
-  font-size: .78rem;
-  font-weight: 600;
-  color: var(--brown-deep);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.a-meta { font-size: .62rem; color: var(--text-soft); margin-top: .1rem; }
-.a-action {
-  margin-left: auto;
-  font-size: .62rem;
-  font-weight: 700;
-  color: var(--gold);
-  text-decoration: none;
-  white-space: nowrap;
-  flex-shrink: 0;
-  opacity: 0;
-  transition: opacity .2s;
-}
-.a-item:hover .a-action { opacity: 1; }
-
-/* ── Activity cell ── */
-.act-cell {
-  padding: 1.25rem 1.2rem 1rem;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-.act-stream { display: flex; flex-direction: column; flex: 1; }
-.as-item {
-  display: flex;
-  gap: .7rem;
-  padding: .6rem 0;
-  border-bottom: 1px solid var(--border-soft);
-  position: relative;
-}
-.as-item:last-child { border-bottom: none; }
-.as-dot {
-  width: 22px; height: 22px;
-  border-radius: 50%;
-  background: rgba(196,150,60,.1);
-  border: 1.5px solid rgba(196,150,60,.2);
-  display: flex; align-items: center; justify-content: center;
-  font-size: .55rem;
-  color: var(--gold);
-  flex-shrink: 0;
-  margin-top: .15rem;
-  z-index: 1;
-}
-.as-connector {
-  position: absolute;
-  left: 10px; top: 26px; bottom: 0;
-  width: 1px;
-  background: var(--border-soft);
-}
-.as-item:last-child .as-connector { display: none; }
-.as-text { font-size: .75rem; color: var(--text); line-height: 1.4; }
-.as-time { font-size: .6rem; color: var(--text-soft); margin-top: .15rem; font-family: 'DM Mono', monospace; }
-
-/* ── Quick Actions cell ── */
-.qa-cell {
-  padding: 1.25rem 1rem 1rem;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-.qa-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: .5rem;
-  flex: 1;
-}
-.qa-row {
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-  padding: .75rem .9rem;
-  border-radius: var(--r-lg);
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text-soft);
-  text-decoration: none;
-  font-size: .78rem;
-  font-weight: 600;
-  transition: all .2s var(--ease);
-}
-.qa-row i {
-  width: 30px; height: 30px;
-  border-radius: 8px;
-  background: rgba(196,150,60,.1);
-  display: flex; align-items: center; justify-content: center;
-  font-size: .85rem;
-  color: var(--gold);
-  flex-shrink: 0;
-  transition: all .2s var(--ease);
-}
-.qa-row:hover {
-  background: var(--grad-gold);
-  color: white;
-  border-color: transparent;
-  box-shadow: var(--shadow-md);
-  transform: translateX(4px);
-}
-.qa-row:hover i {
-  background: rgba(255,255,255,.2);
-  color: white;
-}
-.qa-row-arrow {
-  margin-left: auto;
-  font-size: .65rem;
-  opacity: 0;
-  transition: opacity .2s;
-}
-.qa-row:hover .qa-row-arrow { opacity: 1; }
-
-/* ── Insight banner cell ── */
-.insight-cell {
-  background: linear-gradient(125deg, #432B16 0%, #2D1D0F 50%, #5E3D22 100%);
-  padding: 1.75rem 2.5rem;
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-  position: relative;
-  overflow: hidden;
-}
-.insight-cell::before {
-  content: '"';
-  position: absolute;
-  right: 2rem; top: -.5rem;
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 10rem;
-  color: rgba(196,150,60,.06);
-  pointer-events: none;
-  line-height: 1;
-}
-.ic-icon {
-  width: 48px; height: 48px;
-  background: rgba(196,150,60,.18);
-  border-radius: var(--r-md);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.25rem;
-  color: var(--sand);
-  flex-shrink: 0;
-}
-.ic-label {
-  font-size: .58rem;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: rgba(213,187,138,.45);
-  font-weight: 700;
-  margin-bottom: .3rem;
-}
-.ic-quote {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.1rem;
-  font-style: italic;
-  color: var(--cream);
-  line-height: 1.5;
-}
-.ic-sep {
-  width: 1px; height: 60px;
-  background: rgba(196,150,60,.2);
-  flex-shrink: 0;
-}
-.ic-link {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: .5rem;
-  font-size: .72rem;
-  font-weight: 700;
-  color: var(--sand);
-  text-decoration: none;
-  letter-spacing: .04em;
-  transition: color .2s;
-}
-.ic-link:hover { color: var(--gold); }
-
-/* ── Refuges strip (inside alerts cell bottom) ── */
-.refuge-strip {
-  display: flex;
-  gap: .4rem;
-  flex-wrap: wrap;
-  margin-top: auto;
-  padding-top: .75rem;
-  border-top: 1px solid var(--border-soft);
-}
-.rs-chip {
-  display: flex;
-  align-items: center;
-  gap: .4rem;
-  padding: .3rem .65rem;
-  border-radius: var(--r-full);
-  border: 1px solid var(--border-soft);
-  font-size: .65rem;
-  color: var(--text-soft);
-}
-.rs-dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-}
-.rs-dot.g { background: #3ca05a; }
-.rs-dot.a { background: var(--gold); }
-.rs-dot.r { background: #c85040; }
-
-  /* ── Simulation card ── */
-  .b-cell.b-sim { grid-column: span 12; grid-row: span 12; }
-  .sim-cell {
+/* ── Emotional greeting banner with child illustrations ── */
+.greeting-banner {
+    position: relative;
+    background: var(--grad-hero);
+    border-radius: var(--r-xl);
+    overflow: hidden;
+    padding: 2.25rem 2.5rem;
+    margin-bottom: 1.5rem;
     display: grid;
-    gap: 1.5rem;
-    padding: 2rem;
-  }
-  .sim-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-  .sim-title {
-    display: inline-flex;
+    grid-template-columns: 1fr auto;
     align-items: center;
-    gap: .75rem;
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--brown-deep);
-  }
-  .sim-sub {
-    max-width: 800px;
-    color: var(--text-soft);
-    line-height: 1.8;
-    font-size: .95rem;
-  }
-  .sim-grid {
-    display: grid;
-    grid-template-columns: 1.8fr 1.2fr;
     gap: 2rem;
-    align-items: stretch;
-  }
-  .sim-preview {
-    background: linear-gradient(135deg, rgba(255,255,255,.95), rgba(244,238,227,.96));
-    border: 2px solid rgba(196,150,60,.16);
-    border-radius: 1.5rem;
-    min-height: 100%;
+    z-index: 1;
+}
+
+/* Animated child silhouettes */
+.child-silhouettes {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.child-silhouette {
+    position: absolute;
+    bottom: 0;
+    font-size: 6rem;
+    opacity: 0.08;
+    animation: silhouetteSway 8s ease-in-out infinite;
+}
+
+@keyframes silhouetteSway {
+    0%, 100% { transform: rotate(0deg) translateX(0); }
+    50% { transform: rotate(3deg) translateX(5px); }
+}
+
+.child-silhouette:nth-child(1) { right: 10%; bottom: -10px; animation-delay: 0s; }
+.child-silhouette:nth-child(2) { right: 25%; bottom: -15px; animation-delay: 2s; animation-duration: 10s; }
+.child-silhouette:nth-child(3) { right: 40%; bottom: -5px; animation-delay: 4s; animation-duration: 7s; }
+
+/* Decorative elements */
+.greeting-banner::before {
+    content: '🌈';
+    position: absolute;
+    top: 20px; right: 180px;
+    font-size: 3rem;
+    opacity: 0.1;
+    pointer-events: none;
+}
+.greeting-banner::after {
+    content: '⭐';
+    position: absolute;
+    bottom: 20px; left: 30%;
+    font-size: 2rem;
+    opacity: 0.08;
+    pointer-events: none;
+}
+
+.gb-left { position: relative; z-index: 1; }
+.gb-eyebrow {
+    font-size: .6rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: rgba(213,187,138,.45);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: .6rem;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+}
+.gb-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 20px; height: 1px;
+    background: var(--gold);
+    opacity: .5;
+}
+
+.gb-headline {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 700;
+    color: var(--cream);
+    line-height: 1;
+    letter-spacing: -.02em;
+}
+.gb-headline em {
+    font-style: italic;
+    color: var(--sand);
+    display: inline-block;
+    animation: gentleWobble 3s ease-in-out infinite;
+}
+
+@keyframes gentleWobble {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(2deg); }
+    75% { transform: rotate(-2deg); }
+}
+
+.gb-sub {
+    font-size: .82rem;
+    color: rgba(245,237,216,.5);
+    line-height: 1.65;
+    margin-top: .75rem;
+    max-width: 420px;
+}
+
+.gb-quote {
+    margin-top: 1.25rem;
+    padding: .9rem 1.2rem;
+    background: rgba(196,150,60,.1);
+    border-left: 3px solid rgba(196,150,60,.4);
+    border-radius: 0 var(--r-md) var(--r-md) 0;
+    font-style: italic;
+    font-size: .8rem;
+    color: rgba(245,237,216,.65);
+    max-width: 400px;
+    position: relative;
+}
+
+.gb-quote::before {
+    content: '👧';
+    position: absolute;
+    left: -25px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+    opacity: 0.3;
+}
+
+.gb-actions {
+    display: flex;
+    gap: .65rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+/* Right panel */
+.gb-right {
+    position: relative;
+    z-index: 1;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    min-height: 600px;
-  }
-  .sim-preview-header {
-    padding: 1.1rem 1.2rem 0;
-    font-weight: 700;
-    color: var(--brown-deep);
-  }
-  .sim-preview-subtitle {
-    padding: 0 .95rem 1rem 1.2rem;
-    color: var(--text-soft);
-    font-size: .88rem;
-    line-height: 1.5;
-  }
-  .sim-preview-art {
-    flex: 1;
-    min-height: 480px;
-    background: radial-gradient(circle at top left, rgba(196,150,60,.12), transparent 35%),
-                radial-gradient(circle at bottom right, rgba(231,0,0,.08), transparent 32%),
-                linear-gradient(180deg, #fefcf6 0%, #f8f1e4 100%);
-    display: grid;
-    place-items: center;
+    align-items: flex-end;
+    gap: .65rem;
+}
+
+.gb-stat-card {
+    background: rgba(255,252,245,.07);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(196,150,60,.18);
+    border-radius: var(--r-lg);
+    padding: .75rem 1.1rem;
+    min-width: 130px;
     position: relative;
     overflow: hidden;
-  }
-  .sim-preview-art::before {
-    content: '';
-  }
-  .sim-preview-art img,
-  .sim-preview-art video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-    border-radius: 0 0 1rem 1rem;
-    display: block;
-  }
-  .sim-preview-art::after {
+    transition: all 0.3s;
+}
+
+.gb-stat-card:hover {
+    transform: translateY(-3px);
+    background: rgba(255,252,245,.12);
+}
+
+.gb-stat-card::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.85) 85%);
-    pointer-events: none;
-  }
-  .sim-preview-footer {
-    padding: 1rem 1.2rem 1.3rem;
-    font-size: .82rem;
-    color: var(--text-soft);
-    border-top: 1px solid rgba(196,150,60,.12);
-  }
-  .sim-preview-footer {
-    padding: 1rem 1.2rem 1.3rem;
-    font-size: .82rem;
-    color: var(--text-soft);
-    border-top: 1px solid rgba(196,150,60,.12);
-  }
-  .sim-summary {
+    background: linear-gradient(135deg, rgba(196,150,60,.06) 0%, transparent 60%);
+}
+
+.gsc-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: var(--cream);
+    line-height: 1;
+    position: relative;
+}
+
+.gsc-lbl {
+    font-size: .58rem;
+    color: rgba(213,187,138,.45);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    margin-top: .15rem;
+    position: relative;
+}
+
+.status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .42rem .95rem;
+    border-radius: var(--r-full);
+    background: rgba(60,160,90,.12);
+    border: 1px solid rgba(60,160,90,.22);
+    font-size: .68rem;
+    font-weight: 700;
+    color: #3ca05a;
+    letter-spacing: .04em;
+}
+
+.pulse-dot {
+    width: 7px; height: 7px;
+    background: #3ca05a;
+    border-radius: 50%;
+    animation: statusPulse 2s ease-in-out infinite;
+}
+
+@keyframes statusPulse {
+    0%,100% { opacity:1; transform:scale(1); }
+    50% { opacity:.7; transform:scale(1.2); }
+}
+
+/* ── KPI row with child-themed icons ── */
+.kpi-row {
     display: grid;
+    grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
-    overflow-y: auto;
-    max-height: 600px;
-    padding-right: .5rem;
-  }
-  .sim-summary::-webkit-scrollbar {
-    width: 6px;
-  }
-  .sim-summary::-webkit-scrollbar-track {
-    background: rgba(196,150,60,.05);
-    border-radius: 3px;
-  }
-  .sim-summary::-webkit-scrollbar-thumb {
-    background: rgba(196,150,60,.2);
-    border-radius: 3px;
-  }
-  .sim-step {
-    padding: 1.2rem 1.3rem;
-    background: rgba(255,255,255,.92);
-    border: 1.5px solid rgba(196,150,60,.16);
-    border-radius: 1.1rem;
-    display: grid;
-    gap: .75rem;
-  }
-  .sim-step strong { color: var(--brown-deep); }
-  .sim-step .step-label {
+    margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.kpi-card {
+    background: var(--grad-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: 1.35rem 1.4rem 1.1rem;
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow .25s, transform .25s;
+}
+
+.kpi-card:hover { 
+    box-shadow: var(--shadow-md); 
+    transform: translateY(-3px); 
+}
+
+.kpi-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--grad-gold);
+    opacity: 0;
+    transition: opacity .25s;
+}
+
+.kpi-card:hover::after { opacity: 1; }
+
+.kc-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: .9rem; }
+
+.kc-icon {
+    width: 38px; height: 38px;
+    border-radius: 11px;
+    background: rgba(196,150,60,.1);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gold);
     font-size: .95rem;
+}
+
+.kc-trend {
+    font-size: .62rem; font-weight: 700;
+    padding: .15rem .5rem;
+    border-radius: var(--r-full);
+    display: flex; align-items: center; gap: .2rem;
+}
+
+.kc-trend.up   { background: rgba(60,160,90,.1);  color: #2d7a48; }
+.kc-trend.down { background: rgba(200,80,60,.1);  color: #b04030; }
+.kc-trend.flat { background: rgba(196,150,60,.1); color: var(--gold-deep); }
+
+.kc-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.3rem;
     font-weight: 700;
     color: var(--brown-deep);
-  }
-  .sim-step .step-meta {
-    font-size: .88rem;
-    color: var(--text-soft);
-    line-height: 1.6;
-  }
-  .sim-step .badge {
-    display: inline-flex;
-    padding: .32rem .65rem;
-    border-radius: 999px;
-    font-size: .78rem;
+    line-height: 1;
+}
+
+.kc-label { font-size: .72rem; color: var(--text-soft); font-weight: 500; margin-top: .1rem; }
+.kc-sub { font-size: .6rem; color: var(--text-muted); margin-top: .08rem; }
+
+/* ── Main content grid ── */
+.content-grid {
+    display: grid;
+    grid-template-columns: 1fr .55fr;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+/* ── Module cards (child-friendly) ── */
+.modules-section { position: relative; z-index: 1; margin-bottom: 1.5rem; }
+
+.section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: 1rem;
     font-weight: 700;
-    letter-spacing: .03em;
-  }
-  .badge-danger { background: rgba(193,68,14,.12); color: #c1440e; }
-  .badge-warning { background: rgba(244,162,97,.12); color: #b86b2f; }
-  .badge-safe { background: rgba(60,160,90,.12); color: #2d7a48; }
+    color: var(--brown-deep);
+}
+
+.section-title-icon {
+    width: 28px;
+    height: 28px;
+    background: rgba(196,150,60,.1);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+}
+
+.modules-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: .9rem;
+}
+
+.module-card {
+    background: var(--grad-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: 1.25rem;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all .25s var(--ease);
+    position: relative;
+    overflow: hidden;
+}
+
+.module-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--grad-gold);
+    opacity: 0;
+    transition: opacity .25s;
+}
+
+.module-card:hover {
+    border-color: rgba(196,150,60,.4);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+    color: white;
+}
+
+.module-card:hover::before { opacity: 1; }
+.module-card:hover .mc-icon { background: rgba(255,255,255,.2); color: white; }
+.module-card:hover .mc-name { color: white; }
+.module-card:hover .mc-desc { color: rgba(255,255,255,.7); }
+.module-card:hover .mc-badge { background: rgba(255,255,255,.2); color: white; }
+
+.mc-icon {
+    width: 44px; height: 44px;
+    border-radius: var(--r-md);
+    background: rgba(196,150,60,.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    color: var(--gold);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+    transition: all .25s;
+}
+
+.mc-text { flex: 1; min-width: 0; position: relative; z-index: 1; }
+.mc-name {
+    font-size: .82rem;
+    font-weight: 700;
+    color: var(--brown-deep);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color .25s;
+}
+.mc-desc {
+    font-size: .67rem;
+    color: var(--text-soft);
+    margin-top: .1rem;
+    transition: color .25s;
+}
+.mc-badge {
+    flex-shrink: 0;
+    font-size: .6rem;
+    font-weight: 700;
+    background: rgba(196,150,60,.1);
+    color: var(--gold-deep);
+    padding: .18rem .55rem;
+    border-radius: var(--r-full);
+    position: relative;
+    z-index: 1;
+    transition: all .25s;
+}
+
+/* ── Child story card (emotional centrepiece) ── */
+.story-card {
+    background: var(--grad-hero);
+    border-radius: var(--r-xl);
+    padding: 2rem 2rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.story-card::before {
+    content: '🌈';
+    position: absolute;
+    top: 20px; right: 20px;
+    font-size: 4rem;
+    opacity: 0.08;
+    pointer-events: none;
+}
+
+.story-card::after {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 240px; height: 240px;
+    border-radius: 50%;
+    border: 55px solid rgba(196,150,60,.07);
+    pointer-events: none;
+}
+
+.story-eyebrow {
+    font-size: .58rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: rgba(213,187,138,.4);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: .65rem;
+    position: relative; z-index: 1;
+}
+
+.story-children-row {
+    display: flex;
+    gap: 0;
+    margin-bottom: .75rem;
+    position: relative; z-index: 1;
+    flex-wrap: wrap;
+}
+
+/* Child avatar circles with animations */
+.child-avi {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 2px solid rgba(196,150,60,.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .75rem;
+    color: var(--cream);
+    margin-left: -8px;
+    font-weight: 700;
+    flex-shrink: 0;
+    transition: all 0.3s;
+    animation: avatarPop 1s ease-out;
+}
+
+@keyframes avatarPop {
+    0% { transform: scale(0); opacity: 0; }
+    70% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.child-avi:first-child { margin-left: 0; }
+.child-avi:hover { transform: translateY(-5px) scale(1.1); z-index: 10; }
+
+.ca-1 { background: linear-gradient(135deg, #8C5E1E, #C4963C); }
+.ca-2 { background: linear-gradient(135deg, #5E3D22, #A87B2A); }
+.ca-3 { background: linear-gradient(135deg, #432B16, #8C5E1E); }
+.ca-4 { background: linear-gradient(135deg, #7A5230, #C4963C); }
+.ca-more {
+    background: rgba(196,150,60,.18);
+    border: 2px solid rgba(196,150,60,.25);
+    color: var(--sand);
+    font-size: .62rem;
+}
+
+.story-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--cream);
+    line-height: 1.2;
+    position: relative; z-index: 1;
+}
+
+.story-title em { font-style: italic; color: var(--sand); }
+
+.story-body {
+    font-size: .78rem;
+    color: rgba(245,237,216,.5);
+    line-height: 1.65;
+    margin-top: .65rem;
+    position: relative; z-index: 1;
+}
+
+.story-promise {
+    margin-top: 1.1rem;
+    padding: 1rem 1.1rem;
+    background: rgba(196,150,60,.1);
+    border-radius: var(--r-lg);
+    border: 1px solid rgba(196,150,60,.18);
+    position: relative; z-index: 1;
+}
+
+.sp-label {
+    font-size: .58rem;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: rgba(213,187,138,.4);
+    margin-bottom: .45rem;
+}
+
+.sp-values {
+    display: flex;
+    gap: 1.25rem;
+}
+
+.sp-item { text-align: center; }
+.sp-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--sand);
+    line-height: 1;
+}
+.sp-lbl {
+    font-size: .58rem;
+    color: rgba(213,187,138,.4);
+    margin-top: .1rem;
+}
+
+/* ── Safety ring with child theme ── */
+.ring-card {
+    background: var(--grad-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: 1.35rem;
+    position: relative;
+    z-index: 1;
+}
+
+/* ── Simulation section with child-friendly video ── */
+.sim-section {
+    background: var(--grad-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.sim-section-inner {
+    padding: 2rem;
+}
+
+.sim-grid {
+    display: grid;
+    grid-template-columns: 1.8fr 1.2fr;
+    gap: 1.75rem;
+    align-items: stretch;
+    margin-top: 1.5rem;
+}
+
+.sim-preview {
+    background: linear-gradient(135deg, rgba(255,255,255,.95), rgba(244,238,227,.96));
+    border: 1.5px solid rgba(196,150,60,.15);
+    border-radius: var(--r-lg);
+    min-height: 520px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.sim-preview-header { padding: 1rem 1.2rem 0; font-weight: 700; color: var(--brown-deep); }
+.sim-preview-sub { padding: 0 1.2rem .85rem; color: var(--text-soft); font-size: .82rem; line-height: 1.5; }
+
+.sim-preview-art {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    min-height: 380px;
+    background: #f0ebe0;
+}
+
+.sim-preview-art img, .sim-preview-art video {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+
+.sim-preview-art::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.8) 90%);
+    pointer-events: none;
+}
+
+.sim-preview-foot {
+    padding: .85rem 1.2rem 1rem;
+    font-size: .78rem;
+    color: var(--text-soft);
+    border-top: 1px solid rgba(196,150,60,.1);
+}
+
+.sim-steps {
+    display: flex;
+    flex-direction: column;
+    gap: .85rem;
+    overflow-y: auto;
+    max-height: 520px;
+    padding-right: .4rem;
+}
+
+.sim-steps::-webkit-scrollbar { width: 5px; }
+.sim-steps::-webkit-scrollbar-track { background: rgba(196,150,60,.04); border-radius: 3px; }
+.sim-steps::-webkit-scrollbar-thumb { background: rgba(196,150,60,.18); border-radius: 3px; }
+
+.sim-step {
+    padding: 1.1rem 1.2rem;
+    background: var(--surface);
+    border: 1.5px solid rgba(196,150,60,.14);
+    border-radius: var(--r-lg);
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+    transition: all 0.3s;
+}
+
+.sim-step:hover {
+    transform: translateX(5px);
+    border-color: rgba(196,150,60,.3);
+}
+
+.ss-label { font-size: .9rem; font-weight: 700; color: var(--brown-deep); }
+.ss-meta { font-size: .82rem; color: var(--text-soft); line-height: 1.55; }
+
+.badge-danger  { background: rgba(193,68,14,.1); color: #c1440e; }
+.badge-warning { background: rgba(244,162,97,.1); color: #b86b2f; }
+.badge-safe    { background: rgba(60,160,90,.1);  color: #2d7a48; }
+
+/* ── Bottom Grid ── */
+.bottom-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr .75fr;
+    gap: 1.25rem;
+    position: relative;
+    z-index: 1;
+}
+
+.inner-card {
+    background: var(--grad-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: 1.25rem 1.25rem 1rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.ic-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.ic-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--brown-deep);
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+}
+.ic-title i { color: var(--gold); font-size: .85rem; }
+
+/* Alert items */
+.alert-list { display: flex; flex-direction: column; gap: .5rem; flex: 1; }
+.alert-item {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    padding: .65rem .85rem;
+    border-radius: var(--r-lg);
+    border: 1px solid var(--border-soft);
+    background: var(--surface);
+    cursor: pointer;
+    transition: all .2s;
+}
+.alert-item:hover { border-color: var(--gold); box-shadow: var(--shadow-xs); transform: translateX(3px); }
+
+.ai-dot {
+    width: 30px; height: 30px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .75rem;
+    flex-shrink: 0;
+}
+.ai-dot.r { background: rgba(192,57,43,.1); color: #c0392b; }
+.ai-dot.a { background: rgba(196,150,60,.12); color: var(--gold-deep); }
+.ai-dot.g { background: rgba(39,174,96,.1); color: #27ae60; }
+
+.ai-name { font-size: .77rem; font-weight: 600; color: var(--brown-deep); }
+.ai-meta { font-size: .6rem; color: var(--text-soft); margin-top: .08rem; }
+.ai-link {
+    margin-left: auto;
+    font-size: .6rem;
+    font-weight: 700;
+    color: var(--gold);
+    opacity: 0;
+    transition: opacity .2s;
+    flex-shrink: 0;
+}
+.alert-item:hover .ai-link { opacity: 1; }
+
+/* Shelter chips */
+.shelter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    margin-top: auto;
+    padding-top: .75rem;
+    border-top: 1px solid var(--border-soft);
+}
+.sh-chip {
+    display: flex;
+    align-items: center;
+    gap: .38rem;
+    padding: .28rem .62rem;
+    border-radius: var(--r-full);
+    border: 1px solid var(--border-soft);
+    font-size: .63rem;
+    color: var(--text-soft);
+}
+.sh-dot { width: 6px; height: 6px; border-radius: 50%; }
+.sh-dot.g { background: #3ca05a; }
+.sh-dot.a { background: var(--gold); }
+.sh-dot.r { background: #c85040; }
+
+/* Activity stream */
+.activity-list { display: flex; flex-direction: column; flex: 1; }
+.act-item {
+    display: flex;
+    gap: .65rem;
+    padding: .55rem 0;
+    border-bottom: 1px solid var(--border-soft);
+    position: relative;
+}
+.act-item:last-child { border-bottom: none; }
+
+.act-dot {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: rgba(196,150,60,.1);
+    border: 1.5px solid rgba(196,150,60,.18);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .5rem;
+    color: var(--gold);
+    flex-shrink: 0;
+    margin-top: .1rem;
+    z-index: 1;
+}
+
+.act-connector {
+    position: absolute;
+    left: 9px; top: 24px; bottom: 0;
+    width: 1px;
+    background: var(--border-soft);
+}
+.act-item:last-child .act-connector { display: none; }
+
+.act-text { font-size: .73rem; color: var(--text); line-height: 1.4; }
+.act-time { font-size: .58rem; color: var(--text-soft); margin-top: .12rem; font-family: 'DM Mono', monospace; }
+
+/* Quick actions */
+.qa-list { display: flex; flex-direction: column; gap: .45rem; flex: 1; }
+.qa-row {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    padding: .72rem .85rem;
+    border-radius: var(--r-lg);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-soft);
+    text-decoration: none;
+    font-size: .77rem;
+    font-weight: 600;
+    transition: all .2s var(--ease);
+}
+.qa-row i {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: rgba(196,150,60,.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .82rem;
+    color: var(--gold);
+    flex-shrink: 0;
+    transition: all .2s;
+}
+.qa-row:hover {
+    background: var(--grad-gold);
+    color: white;
+    border-color: transparent;
+    box-shadow: var(--shadow-sm);
+    transform: translateX(3px);
+}
+.qa-row:hover i { background: rgba(255,255,255,.2); color: white; }
+.qa-arrow { margin-left: auto; font-size: .62rem; opacity: 0; transition: opacity .2s; }
+.qa-row:hover .qa-arrow { opacity: 1; }
+
+/* ── Insight strip with child quote ── */
+.insight-strip {
+    background: var(--grad-hero);
+    border-radius: var(--r-xl);
+    padding: 1.6rem 2.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1.75rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.insight-strip::before {
+    content: '👧👦';
+    position: absolute;
+    right: 1.5rem; bottom: -.5rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 5rem;
+    color: rgba(196,150,60,.06);
+    pointer-events: none;
+    line-height: 1;
+}
+
+.is-icon {
+    width: 44px; height: 44px;
+    background: rgba(196,150,60,.16);
+    border-radius: var(--r-md);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; color: var(--sand);
+    flex-shrink: 0;
+}
+
+.is-label {
+    font-size: .56rem; letter-spacing: .14em; text-transform: uppercase;
+    color: rgba(213,187,138,.4); font-weight: 700; margin-bottom: .28rem;
+}
+
+.is-quote {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem; font-style: italic;
+    color: var(--cream); line-height: 1.5;
+}
+
+.is-sep { width: 1px; height: 50px; background: rgba(196,150,60,.18); flex-shrink: 0; }
+.is-link {
+    flex-shrink: 0;
+    display: inline-flex; align-items: center; gap: .45rem;
+    font-size: .7rem; font-weight: 700; color: var(--sand);
+    text-decoration: none; letter-spacing: .04em; transition: color .2s;
+}
+.is-link:hover { color: var(--gold); }
+
 /* ── Responsive ── */
 @media (max-width: 1100px) {
-  .bento {
-    grid-template-columns: repeat(6, 1fr);
-  }
-  .b-kpi-1, .b-kpi-2, .b-kpi-3, .b-kpi-4 { grid-column: span 3; }
-  .b-hero { grid-column: span 6; }
-  .b-ring { grid-column: span 6; grid-row: span 3; }
-  .b-alerts { grid-column: span 6; }
-  .b-activity { grid-column: span 3; }
-  .b-qa { grid-column: span 3; }
-  .b-insight { grid-column: span 6; }
-  .b-sim { grid-column: span 6; }
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .content-grid { grid-template-columns: 1fr; }
+    .modules-grid { grid-template-columns: repeat(2, 1fr); }
+    .bottom-grid { grid-template-columns: 1fr 1fr; }
+    .sim-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 720px) {
-  .bento { grid-template-columns: repeat(2,1fr); }
-  .b-kpi-1,.b-kpi-2,.b-kpi-3,.b-kpi-4 { grid-column: span 1; }
-  .b-hero,.b-ring,.b-alerts,.b-activity,.b-qa,.b-insight,.b-sim { grid-column: span 2; }
-  .masthead { grid-template-columns: 1fr; }
-  .masthead-right { align-items: flex-start; }
-  .hc-floats { display: none; }
-  .insight-cell { flex-direction: column; gap: 1rem; }
-  .ic-sep { display: none; }
+    .kpi-row { grid-template-columns: 1fr 1fr; }
+    .modules-grid { grid-template-columns: 1fr; }
+    .bottom-grid { grid-template-columns: 1fr; }
+    .greeting-banner { grid-template-columns: 1fr; }
+    .gb-right { align-items: flex-start; flex-direction: row; flex-wrap: wrap; }
+    .is-sep { display: none; }
+    .insight-strip { flex-direction: column; gap: 1rem; }
 }
+
+/* Confetti animation for celebrations */
+@keyframes confetti {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+}
+
+.confetti {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    background: var(--gold);
+    position: fixed;
+    top: -10px;
+    animation: confetti 3s ease-out forwards;
+    pointer-events: none;
+    z-index: 9999;
+}
+
+{% include 'detector/_detection_styles.html' %}
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="home-canvas">
 
-<!-- ════════════ MASTHEAD ════════════ -->
-<div class="masthead reveal">
-  <div class="masthead-left">
-    <div class="masthead-vol">Vol. 2 · No. 47 &nbsp;·&nbsp; Aujourd'hui</div>
-    <div class="masthead-headline">
-      Protection
-      <span class="accent-word">active</span><br>
-      en refuge
-      <span class="ghost-text">Protection active</span>
+<!-- Background floating child elements -->
+<div class="child-bg-elements">
+    <div class="child-float-icon">🧸</div>
+    <div class="child-float-icon">🎈</div>
+    <div class="child-float-icon">⭐</div>
+    <div class="child-float-icon">🌈</div>
+    <div class="child-float-icon">🎨</div>
+    <div class="child-float-icon">📚</div>
+</div>
+
+<!-- ════════ GREETING BANNER ════════ -->
+<div class="greeting-banner reveal">
+    <div class="child-silhouettes">
+        <div class="child-silhouette">👧</div>
+        <div class="child-silhouette">👦</div>
+        <div class="child-silhouette">🧒</div>
     </div>
-    <div class="masthead-sub">
-      Surveillance intelligente de 156 refuges. Analyse en temps réel
-      des signaux de risque pour une protection holistique 24h/24.
+    
+    <div class="gb-left">
+        <div class="gb-eyebrow">Echo Verse · 24/7 Child Protection</div>
+        <div class="gb-headline">
+            Every child<br>
+            deserves to be <em>protected</em>
+        </div>
+        <div class="gb-sub">
+            Today you are watching over <strong style="color:var(--sand);">234 children</strong> across 
+            156 shelters. Our AI watches over every moment so no child is ever alone.
+        </div>
+        <div class="gb-quote">
+            "A child who feels safe is a child who can dream, laugh, and grow."
+        </div>
+        <div class="gb-actions">
+            <a href="{% url 'detection' %}" class="btn btn-gold btn-sm">
+                <i class="fas fa-camera"></i> New analysis
+            </a>
+            <a href="{% url 'index' %}" class="btn btn-outline btn-sm" style="border-color:rgba(196,150,60,.3);color:var(--sand);">
+                <i class="fas fa-chart-line"></i> View reports
+            </a>
+        </div>
     </div>
-  </div>
-  <div class="masthead-right">
-    <div class="status-chip">
-      <div class="pulse-dot"></div>
-      Système opérationnel
+    <div class="gb-right">
+        <div class="status-chip">
+            <div class="pulse-dot"></div>
+            All systems protecting
+        </div>
+        <div class="gb-stat-card">
+            <div class="gsc-val" data-count="234">0</div>
+            <div class="gsc-lbl">Children safe today</div>
+        </div>
+        <div class="gb-stat-card">
+            <div class="gsc-val">&lt;2 min</div>
+            <div class="gsc-lbl">Response time</div>
+        </div>
+        <div class="gb-stat-card">
+            <div class="gsc-val" style="color:#3ca05a;">98%</div>
+            <div class="gsc-lbl">Protection rate</div>
+        </div>
     </div>
-    <div class="masthead-cta-row">
-      <a href="{% url 'detection' %}" class="btn btn-gold btn-sm">
-        <i class="fas fa-robot"></i> Analyser
-      </a>
-      <a href="{% url 'index' %}" class="btn btn-outline btn-sm">
-        <i class="fas fa-chart-line"></i> Rapports
-      </a>
+</div>
+
+<!-- ════════ KPI ROW ════════ -->
+<div class="kpi-row">
+    <div class="kpi-card reveal">
+        <div class="kc-top">
+            <div class="kc-icon"><i class="fas fa-child"></i></div>
+            <div class="kc-trend up"><i class="fas fa-arrow-up"></i> +12</div>
+        </div>
+        <div class="kc-value" data-count="234">0</div>
+        <div class="kc-label">Children under care</div>
+        <div class="kc-sub">156 active shelters</div>
     </div>
-  </div>
+    <div class="kpi-card reveal reveal-delay-1">
+        <div class="kc-top">
+            <div class="kc-icon"><i class="fas fa-face-smile"></i></div>
+            <div class="kc-trend up"><i class="fas fa-arrow-up"></i> +89</div>
+        </div>
+        <div class="kc-value" data-count="1247">0</div>
+        <div class="kc-label">Positive interventions</div>
+        <div class="kc-sub">Children helped this month</div>
+    </div>
+    <div class="kpi-card reveal reveal-delay-2">
+        <div class="kc-top">
+            <div class="kc-icon" style="background:rgba(192,57,43,.1);color:#c0392b;"><i class="fas fa-heart"></i></div>
+            <div class="kc-trend down"><i class="fas fa-arrow-down"></i> −2</div>
+        </div>
+        <div class="kc-value" style="color:#b04030;" data-count="3">0</div>
+        <div class="kc-label">Active alerts</div>
+        <div class="kc-sub">Need your attention</div>
+    </div>
+    <div class="kpi-card reveal reveal-delay-3">
+        <div class="kc-top">
+            <div class="kc-icon"><i class="fas fa-shield-heart"></i></div>
+            <div class="kc-trend flat"><i class="fas fa-minus"></i> stable</div>
+        </div>
+        <div class="kc-value">98%</div>
+        <div class="kc-label">AI detection rate</div>
+        <div class="kc-sub">Validated by experts</div>
+    </div>
+</div>
+
+<!-- ════════ CONTENT GRID (Modules + Story) ════════ -->
+<div class="content-grid">
+
+    <!-- Left: Module quick access -->
+    <div>
+        <div class="section-head" style="position:relative;z-index:1;">
+            <div class="section-title">
+                <div class="section-title-icon"><i class="fas fa-grid-2"></i></div>
+                Protection modules for children
+            </div>
+            <a href="{% url 'detection' %}" class="btn btn-ghost btn-sm">See all <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="modules-grid">
+            <a href="{% url 'blessures:home' %}" class="module-card reveal">
+                <div class="mc-icon"><i class="fas fa-heart-pulse"></i></div>
+                <div class="mc-text">
+                    <div class="mc-name">Health & Care</div>
+                    <div class="mc-desc">Injury prevention and treatment</div>
+                </div>
+                <span class="mc-badge">Active</span>
+            </a>
+            <a href="{% url 'sanitation_app:home' %}" class="module-card reveal reveal-delay-1">
+                <div class="mc-icon"><i class="fas fa-hand-holding-heart"></i></div>
+                <div class="mc-text">
+                    <div class="mc-name">Health Risks</div>
+                    <div class="mc-desc">Hygiene and disease prevention</div>
+                </div>
+                <span class="mc-badge">Active</span>
+            </a>
+            <a href="{% url 'structural_app:home' %}" class="module-card reveal reveal-delay-2">
+                <div class="mc-icon"><i class="fas fa-building-shield"></i></div>
+                <div class="mc-text">
+                    <div class="mc-name">Safe Environment</div>
+                    <div class="mc-desc">Building and playground safety</div>
+                </div>
+                <span class="mc-badge">Active</span>
+            </a>
+            <a href="{% url 'fall_detection:home' %}" class="module-card reveal">
+                <div class="mc-icon"><i class="fas fa-person-falling"></i></div>
+                <div class="mc-text">
+                    <div class="mc-name">Fall Detection</div>
+                    <div class="mc-desc">Prevent accidents and falls</div>
+                </div>
+                <span class="mc-badge">Active</span>
+            </a>
+            <a href="{% url 'dangerous:index' %}" class="module-card reveal reveal-delay-1">
+                <div class="mc-icon" style="background:rgba(192,57,43,.1);color:#c0392b;"><i class="fas fa-ban"></i></div>
+                <div class="mc-text">
+                    <div class="mc-name">Dangerous Objects</div>
+                    <div class="mc-desc">Remove risks from child's reach</div>
+                </div>
+                <span class="mc-badge">Active</span>
+            </a>
+            <a href="{% url 'allergen_app:detect' %}" class="module-card reveal reveal-delay-2">
+                <div class="mc-icon"><i class="fas fa-apple-alt"></i></div>
+                <div class="mc-text">
+                    <div class="mc-name">Food Safety</div>
+                    <div class="mc-desc">Allergen detection and prevention</div>
+                </div>
+                <span class="mc-badge">Active</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Right: Child story + safety ring -->
+    <div style="display:flex;flex-direction:column;gap:1.25rem;">
+        <!-- Emotional child story card -->
+        <div class="story-card reveal">
+            <div>
+                <div class="story-eyebrow">❤️ These children count on you every day ❤️</div>
+                <div class="story-children-row">
+                    <div class="child-avi ca-1">👧</div>
+                    <div class="child-avi ca-2">👦</div>
+                    <div class="child-avi ca-3">🧒</div>
+                    <div class="child-avi ca-4">👧</div>
+                    <div class="child-avi ca-more">+230</div>
+                </div>
+                <div class="story-title">
+                    Your vigilance <em>changes lives</em><br>
+                    Every alert, every action matters
+                </div>
+                <div class="story-body">
+                    Behind every notification is a real child waiting for help.
+                    With AI and your caring heart, no child will ever be forgotten.
+                    Together, we build a safer tomorrow.
+                </div>
+            </div>
+            <div class="story-promise">
+                <div class="sp-label">🌟 Our promise to every child 🌟</div>
+                <div class="sp-values">
+                    <div class="sp-item">
+                        <div class="sp-val">234</div>
+                        <div class="sp-lbl">Children</div>
+                    </div>
+                    <div class="sp-item">
+                        <div class="sp-val">24/7</div>
+                        <div class="sp-lbl">Protection</div>
+                    </div>
+                    <div class="sp-item">
+                        <div class="sp-val">100%</div>
+                        <div class="sp-lbl">Attention</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Safety ring card -->
+        <div class="ring-card reveal reveal-delay-1">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+                <div class="section-title" style="font-size:.95rem;">
+                    <i class="fas fa-shield-alt" style="color:var(--gold);font-size:.85rem;"></i>
+                    Child safety index
+                </div>
+                <span style="font-size:.6rem;color:var(--text-soft);">↑ +5% this week</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:1.5rem;">
+                <div style="position:relative;width:90px;height:90px;flex-shrink:0;">
+                    <svg style="transform:rotate(-90deg);" width="90" height="90" viewBox="0 0 100 100">
+                        <defs>
+                            <linearGradient id="rg3" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#D4A84B"/>
+                                <stop offset="100%" stop-color="#A87B2A"/>
+                            </linearGradient>
+                        </defs>
+                        <circle fill="none" stroke="rgba(196,150,60,.1)" cx="50" cy="50" r="43" stroke-width="8"/>
+                        <circle fill="none" stroke="url(#rg3)" cx="50" cy="50" r="43" stroke-width="8"
+                            stroke-linecap="round"
+                            stroke-dasharray="270"
+                            stroke-dashoffset="270"
+                            id="ringEl2"/>
+                    </svg>
+                    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                        <span style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--brown-deep);line-height:1;">78%</span>
+                        <span style="font-size:.55rem;color:var(--text-soft);">Global</span>
+                    </div>
+                </div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:.55rem;">
+                    <div style="display:flex;align-items:center;gap:.6rem;font-size:.67rem;">
+                        <span style="width:75px;color:var(--text-soft);">Physical</span>
+                        <div style="flex:1;height:4px;background:rgba(196,150,60,.1);border-radius:99px;overflow:hidden;"><div style="height:100%;width:84%;background:var(--grad-gold);border-radius:99px;"></div></div>
+                        <span style="font-size:.6rem;color:var(--text-muted);font-family:'DM Mono',monospace;width:26px;text-align:right;">84%</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:.6rem;font-size:.67rem;">
+                        <span style="width:75px;color:var(--text-soft);">Emotional</span>
+                        <div style="flex:1;height:4px;background:rgba(196,150,60,.1);border-radius:99px;overflow:hidden;"><div style="height:100%;width:71%;background:var(--grad-gold);border-radius:99px;"></div></div>
+                        <span style="font-size:.6rem;color:var(--text-muted);font-family:'DM Mono',monospace;width:26px;text-align:right;">71%</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:.6rem;font-size:.67rem;">
+                        <span style="width:75px;color:var(--text-soft);">Environment</span>
+                        <div style="flex:1;height:4px;background:rgba(196,150,60,.1);border-radius:99px;overflow:hidden;"><div style="height:100%;width:90%;background:var(--grad-gold);border-radius:99px;"></div></div>
+                        <span style="font-size:.6rem;color:var(--text-muted);font-family:'DM Mono',monospace;width:26px;text-align:right;">90%</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:.6rem;font-size:.67rem;">
+                        <span style="width:75px;color:var(--text-soft);">Social</span>
+                        <div style="flex:1;height:4px;background:rgba(196,150,60,.1);border-radius:99px;overflow:hidden;"><div style="height:100%;width:68%;background:var(--grad-gold);border-radius:99px;"></div></div>
+                        <span style="font-size:.6rem;color:var(--text-muted);font-family:'DM Mono',monospace;width:26px;text-align:right;">68%</span>
+                    </div>
+                </div>
+            </div>
+            <a href="{% url 'index' %}" class="btn btn-gold btn-sm" style="width:100%;justify-content:center;margin-top:1rem;">
+                <i class="fas fa-chart-line"></i> Full protection report
+            </a>
+        </div>
+    </div>
 </div>
 
 
-<!-- ════════════ BENTO GRID ════════════ -->
-<div class="bento">
 
-  <!-- KPI 1 -->
-  <div class="b-cell b-kpi-1 reveal">
-    <div class="kpi-cell">
-      <div class="kc-top">
-        <div class="kc-icon"><i class="fas fa-child"></i></div>
-        <div class="kc-trend up"><i class="fas fa-arrow-up"></i> +12</div>
-      </div>
-      <div>
-        <div class="kc-value" data-count="234">0</div>
-        <div class="kc-label">Enfants suivis</div>
-        <div class="kc-sub">156 refuges actifs</div>
-      </div>
+<!-- ════════ BOTTOM GRID ════════ -->
+<div class="bottom-grid">
+    <!-- Alerts -->
+    <div class="inner-card reveal">
+        <div class="ic-head">
+            <div class="ic-title"><i class="fas fa-bell"></i> Child alerts</div>
+            <span style="display:inline-flex;align-items:center;gap:.3rem;font-size:.62rem;font-weight:700;color:#b04030;background:rgba(192,57,43,.08);padding:.18rem .55rem;border-radius:var(--r-full);">
+                <span style="width:5px;height:5px;background:#c0392b;border-radius:50%;animation:statusPulse 1.5s ease-in-out infinite;display:inline-block;"></span>
+                3 need attention
+            </span>
+        </div>
+        <div class="alert-list">
+            <div class="alert-item">
+                <div class="ai-dot r"><i class="fas fa-band-aid"></i></div>
+                <div style="flex:1;min-width:0;">
+                    <div class="ai-name">Child injury detected — Room A12</div>
+                    <div class="ai-meta"><i class="fas fa-location-dot"></i> Saint-Paul Shelter · <i class="fas fa-clock"></i> 15 min ago</div>
+                </div>
+                <a href="#" class="ai-link">Help now <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="alert-item">
+                <div class="ai-dot a"><i class="fas fa-thermometer-half"></i></div>
+                <div style="flex:1;min-width:0;">
+                    <div class="ai-name">Unusual temperature — Child #B07</div>
+                    <div class="ai-meta"><i class="fas fa-location-dot"></i> Common room · <i class="fas fa-clock"></i> 1 hour ago</div>
+                </div>
+                <a href="#" class="ai-link">Check child <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="alert-item">
+                <div class="ai-dot g"><i class="fas fa-face-smile-wink"></i></div>
+                <div style="flex:1;min-width:0;">
+                    <div class="ai-name">Emotional breakthrough — 3 children</div>
+                    <div class="ai-meta"><i class="fas fa-location-dot"></i> Play therapy · <i class="fas fa-clock"></i> 2 hours ago</div>
+                </div>
+                <a href="#" class="ai-link">Celebrate <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+        <div class="shelter-chips">
+            <div class="sh-chip"><div class="sh-dot g"></div> Saint-Paul · 42 children</div>
+            <div class="sh-chip"><div class="sh-dot g"></div> Soleil Shelter · 38</div>
+            <div class="sh-chip"><div class="sh-dot a"></div> Hope Center · 29</div>
+            <div class="sh-chip"><div class="sh-dot r"></div> North B · 18</div>
+        </div>
     </div>
-    <div class="kc-bar"></div>
-  </div>
 
-  <!-- KPI 2 -->
-  <div class="b-cell b-kpi-2 reveal reveal-delay-1">
-    <div class="kpi-cell">
-      <div class="kc-top">
-        <div class="kc-icon"><i class="fas fa-check-circle"></i></div>
-        <div class="kc-trend up"><i class="fas fa-arrow-up"></i> +89</div>
-      </div>
-      <div>
-        <div class="kc-value" data-count="1247">0</div>
-        <div class="kc-label">Interventions</div>
-        <div class="kc-sub">ce mois-ci</div>
-      </div>
+    <!-- Activity -->
+    <div class="inner-card reveal reveal-delay-1">
+        <div class="ic-head">
+            <div class="ic-title"><i class="fas fa-clock-rotate-left"></i> Today's actions</div>
+            <a href="{% url 'history' %}" class="btn btn-ghost btn-sm" style="font-size:.63rem;">History <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="activity-list">
+            <div class="act-item">
+                <div class="act-connector"></div>
+                <div class="act-dot"><i class="fas fa-robot"></i></div>
+                <div>
+                    <div class="act-text">AI check — <strong>12 children</strong>, North Shelter</div>
+                    <div class="act-time">Today · 10:30 AM</div>
+                </div>
+            </div>
+            <div class="act-item">
+                <div class="act-connector"></div>
+                <div class="act-dot"><i class="fas fa-file-alt"></i></div>
+                <div>
+                    <div class="act-text">Daily report <strong>sent to team</strong></div>
+                    <div class="act-time">Today · 09:15 AM</div>
+                </div>
+            </div>
+            <div class="act-item">
+                <div class="act-connector"></div>
+                <div class="act-dot"><i class="fas fa-users"></i></div>
+                <div>
+                    <div class="act-text">Protection training <strong>scheduled</strong> — Friday 2 PM</div>
+                    <div class="act-time">Yesterday · 4:40 PM</div>
+                </div>
+            </div>
+            <div class="act-item">
+                <div class="act-dot"><i class="fas fa-arrows-rotate"></i></div>
+                <div>
+                    <div class="act-text">System update <strong>v2.1</strong> deployed</div>
+                    <div class="act-time">Yesterday · 8:00 AM</div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="kc-bar"></div>
-  </div>
 
-  <!-- KPI 3 -->
-  <div class="b-cell b-kpi-3 reveal reveal-delay-2">
-    <div class="kpi-cell">
-      <div class="kc-top">
-        <div class="kc-icon"><i class="fas fa-triangle-exclamation"></i></div>
-        <div class="kc-trend down"><i class="fas fa-arrow-down"></i> −2</div>
-      </div>
-      <div>
-        <div class="kc-value" data-count="3">0</div>
-        <div class="kc-label">Alertes actives</div>
-        <div class="kc-sub">requièrent attention</div>
-      </div>
-    </div>
-    <div class="kc-bar" style="background:linear-gradient(90deg,#c0392b,#e74c3c);"></div>
-  </div>
-
-  <!-- KPI 4 -->
-  <div class="b-cell b-kpi-4 reveal reveal-delay-3">
-    <div class="kpi-cell">
-      <div class="kc-top">
-        <div class="kc-icon"><i class="fas fa-shield-halved"></i></div>
-        <div class="kc-trend flat"><i class="fas fa-minus"></i> stable</div>
-      </div>
-      <div>
-        <div class="kc-value">98%</div>
-        <div class="kc-label">Taux détection</div>
-        <div class="kc-sub">dernier audit IA</div>
-      </div>
-    </div>
-    <div class="kc-bar"></div>
-  </div>
-
-  <!-- Hero cell (8 cols × 4 rows) -->
-  <div class="b-cell b-hero reveal">
-    <div class="hero-cell">
-      <div>
-        <div class="hc-eyebrow">ShelterCare · Module principal</div>
-        <div class="hc-title" style="margin-top:.5rem;">
-          Comment assurer la <em>sécurité</em><br>
-          des enfants chaque jour ?
+    <!-- Quick Actions -->
+    <div class="inner-card reveal reveal-delay-2">
+        <div class="ic-head">
+            <div class="ic-title"><i class="fas fa-bolt"></i> Quick actions</div>
         </div>
-      </div>
-      <div class="hc-body">
-        <div class="hc-desc">
-          ShelterCare AI surveille en continu les refuges, analyse les signaux de risque
-          et guide votre équipe vers une protection holistique et proactive.
-        </div>
-        <div class="hc-pills">
-          <a href="{% url 'detection' %}" class="hc-pill">
-            <i class="fas fa-camera"></i> Nouvelle analyse
-          </a>
-          <a href="{% url 'dangerous:index' %}" class="hc-pill">
-            <i class="fas fa-triangle-exclamation"></i> Objets dangereux
-          </a>
-          <a href="{% url 'blessures:home' %}" class="hc-pill">
-            <i class="fas fa-heart-pulse"></i> Santé &amp; Soins
-          </a>
-          <a href="{% url 'history' %}" class="hc-pill">
-            <i class="fas fa-clock-rotate-left"></i> Historique
-          </a>
-          <a href="{% url 'core:about' %}" class="hc-pill">
-            <i class="fas fa-building-shield"></i> Environnement
-          </a>
-        </div>
-      </div>
-      <!-- Floating stats -->
-      <div class="hc-floats">
-        <div class="hc-float">
-          <div class="hcf-val">234</div>
-          <div class="hcf-lbl">Enfants protégés</div>
-        </div>
-        <div class="hc-float">
-          <div class="hcf-val">&lt;2 min</div>
-          <div class="hcf-lbl">Temps de réponse</div>
-        </div>
-        <div class="hc-float">
-          <div class="hcf-val">24/7</div>
-          <div class="hcf-lbl">Surveillance active</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Safety ring (4 cols × 4 rows) -->
-  <div class="b-cell b-ring reveal reveal-delay-1">
-    <div class="ring-cell">
-      <div class="ring-cell-title">
-        <i class="fas fa-shield-alt"></i> Niveau de sécurité
-      </div>
-      <div class="ring-wrap">
-        <svg class="ring-svg-el" width="110" height="110" viewBox="0 0 100 100">
-          <defs>
-            <linearGradient id="rg2" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%"   stop-color="#D4A84B"/>
-              <stop offset="100%" stop-color="#A87B2A"/>
-            </linearGradient>
-          </defs>
-          <circle class="r-track" cx="50" cy="50" r="45" stroke-width="8"/>
-          <circle class="r-fill"  cx="50" cy="50" r="45" stroke-width="8" id="ringEl"/>
-        </svg>
-        <div class="ring-center-txt">
-          <div class="rct-score">78%</div>
-          <div class="rct-label">Global</div>
-        </div>
-      </div>
-      <div class="ring-bars">
-        <div class="rb-row">
-          <span class="rb-label">Physique</span>
-          <div class="rb-track"><div class="rb-fill" style="width:84%"></div></div>
-          <span class="rb-pct">84%</span>
-        </div>
-        <div class="rb-row">
-          <span class="rb-label">Émotionnel</span>
-          <div class="rb-track"><div class="rb-fill" style="width:71%"></div></div>
-          <span class="rb-pct">71%</span>
-        </div>
-        <div class="rb-row">
-          <span class="rb-label">Environnement</span>
-          <div class="rb-track"><div class="rb-fill" style="width:90%"></div></div>
-          <span class="rb-pct">90%</span>
-        </div>
-        <div class="rb-row">
-          <span class="rb-label">Équipe</span>
-          <div class="rb-track"><div class="rb-fill" style="width:68%"></div></div>
-          <span class="rb-pct">68%</span>
-        </div>
-      </div>
-      <a href="{% url 'index' %}" class="btn btn-gold btn-sm" style="width:100%;justify-content:center;">
-        <i class="fas fa-chart-line"></i> Rapport détaillé
-      </a>
-    </div>
-  </div>
-
-  <!-- Simulation cell (12 cols × 3 rows) -->
-  <div class="b-cell b-sim reveal reveal-delay-2">
-    <div class="sim-cell">
-      <div class="sim-head">
-        <div class="sim-title"><i class="fas fa-layer-group"></i> Simulation multi-modèles</div>
-        <div class="sim-sub">Exemple de scène de refuge où tous nos modèles détectent simultanément des risques réels et donnent une vue d'ensemble immédiate.</div>
-      </div>
-      <div class="sim-grid">
-        <div class="sim-preview">
-          <div class="sim-preview-header">{{ simulation.scene_title }}</div>
-          <div class="sim-preview-subtitle">{{ simulation.scene_description }}</div>
-          <div class="sim-preview-art">
-            <video autoplay playsinline muted loop controls poster="{{ simulation.scene_poster }}" class="sim-preview-video">
-              <source src="{{ simulation.scene_video }}" type="video/mp4">
-              Votre navigateur ne prend pas en charge la vidéo.
-            </video>
-          </div>
-          <div class="sim-preview-footer">{{ simulation.scene_caption }}</div>
-        </div>
-        <div class="sim-summary">
-          {% for item in simulation.items %}
-          <div class="sim-step">
-            <div class="step-label">{{ item.label }}</div>
-            <div class="step-meta">{{ item.detail }}</div>
-            <span class="badge badge-{{ item.badge }}">{{ item.badge_text }}</span>
-          </div>
-          {% endfor %}
-          <div class="sim-step">
-            <div class="step-label">Vue d'ensemble</div>
-            <div class="step-meta">{{ simulation.summary }}</div>
-            <span class="badge badge-safe">Plateforme unifiée</span>
-          </div>
-          <div style="margin-top:1.2rem;display:flex;justify-content:flex-end;gap:.75rem;">
-            <a href="{% url 'detection' %}" class="btn btn-gold btn-sm" style="white-space:nowrap;font-weight:700;">
-              <i class="fas fa-play-circle"></i> Analyser cette vidéo
+        <div class="qa-list">
+            <a href="{% url 'detection' %}" class="qa-row">
+                <i class="fas fa-camera"></i> Analyze new situation
+                <i class="fas fa-chevron-right qa-arrow"></i>
             </a>
-            <a href="{% url 'dangerous:index' %}" class="btn btn-outline btn-sm" style="white-space:nowrap;">
-              <i class="fas fa-video"></i> Tous les modèles
+            <a href="#" class="qa-row">
+                <i class="fas fa-file-export"></i> Generate protection report
+                <i class="fas fa-chevron-right qa-arrow"></i>
             </a>
-          </div>
+            <a href="#" class="qa-row">
+                <i class="fas fa-child"></i> Register a child
+                <i class="fas fa-chevron-right qa-arrow"></i>
+            </a>
+            <a href="#" class="qa-row">
+                <i class="fas fa-chalkboard-user"></i> Train the team
+                <i class="fas fa-chevron-right qa-arrow"></i>
+            </a>
+            <a href="#" class="qa-row">
+                <i class="fas fa-bell"></i> Review all alerts
+                <i class="fas fa-chevron-right qa-arrow"></i>
+            </a>
         </div>
-      </div>
     </div>
-  </div>
 
-  <!-- Alerts cell (5 cols × 5 rows) -->
-  <div class="b-cell b-alerts reveal">
-    <div class="alerts-cell">
-      <div class="cell-header">
-        <div class="cell-title"><i class="fas fa-bell"></i> Alertes récentes</div>
-        <span style="display:inline-flex;align-items:center;gap:.35rem;font-size:.65rem;font-weight:700;color:#b04030;background:rgba(192,57,43,.1);padding:.2rem .6rem;border-radius:var(--r-full);">
-          <span style="width:6px;height:6px;background:#c0392b;border-radius:50%;animation:statusPulse 1.5s ease-in-out infinite;display:inline-block;"></span>
-          3 nouvelles
-        </span>
-      </div>
-      <div class="alert-items">
-        <div class="a-item">
-          <div class="a-dot r"><i class="fas fa-triangle-exclamation"></i></div>
-          <div style="flex:1;min-width:0;">
-            <div class="a-name">Blessure suspecte — Enfant #A12</div>
-            <div class="a-meta"><i class="fas fa-location-dot"></i> Refuge Saint-Paul &nbsp;·&nbsp; <i class="fas fa-clock"></i> 15 min</div>
-          </div>
-          <a href="#" class="a-action">Voir <i class="fas fa-arrow-right"></i></a>
+</div>
+
+<!-- ════════ INSIGHT STRIP ════════ -->
+<div class="insight-strip reveal">
+    <div class="is-icon"><i class="fas fa-lightbulb"></i></div>
+    <div>
+        <div class="is-label"><i class="fas fa-star" style="color:var(--gold);margin-right:.3rem;"></i>Daily inspiration · For every child</div>
+        <div class="is-quote">
+            "A child's smile is the greatest reward. Every alert you respond to protects that smile for another day."
         </div>
-        <div class="a-item">
-          <div class="a-dot a"><i class="fas fa-temperature-high"></i></div>
-          <div style="flex:1;min-width:0;">
-            <div class="a-name">Température anormale détectée</div>
-            <div class="a-meta"><i class="fas fa-location-dot"></i> Salle commune B &nbsp;·&nbsp; <i class="fas fa-clock"></i> 1h</div>
-          </div>
-          <a href="#" class="a-action">Voir <i class="fas fa-arrow-right"></i></a>
-        </div>
-        <div class="a-item">
-          <div class="a-dot g"><i class="fas fa-face-smile"></i></div>
-          <div style="flex:1;min-width:0;">
-            <div class="a-name">Progrès émotionnel — 3 enfants</div>
-            <div class="a-meta"><i class="fas fa-location-dot"></i> Unité thérapeutique &nbsp;·&nbsp; <i class="fas fa-clock"></i> 2h</div>
-          </div>
-          <a href="#" class="a-action">Voir <i class="fas fa-arrow-right"></i></a>
-        </div>
-      </div>
-      <!-- Refuges status strip -->
-      <div class="refuge-strip">
-        <div class="rs-chip"><div class="rs-dot g"></div> Saint-Paul · 42</div>
-        <div class="rs-chip"><div class="rs-dot g"></div> Soleil · 38</div>
-        <div class="rs-chip"><div class="rs-dot a"></div> Espérance · 29</div>
-        <div class="rs-chip"><div class="rs-dot r"></div> Nord B · 18</div>
-      </div>
     </div>
-  </div>
+    <div class="is-sep"></div>
+    <a href="#" class="is-link">More inspiring stories <i class="fas fa-arrow-right"></i></a>
+</div>
 
-  <!-- Activity cell (4 cols × 5 rows) -->
-  <div class="b-cell b-activity reveal reveal-delay-1">
-    <div class="act-cell">
-      <div class="cell-header">
-        <div class="cell-title"><i class="fas fa-clock-rotate-left"></i> Activité</div>
-        <a href="{% url 'history' %}" class="btn btn-ghost btn-sm" style="font-size:.65rem;">Tout voir <i class="fas fa-arrow-right"></i></a>
-      </div>
-      <div class="act-stream">
-        <div class="as-item">
-          <div class="as-connector"></div>
-          <div class="as-dot"><i class="fas fa-robot"></i></div>
-          <div>
-            <div class="as-text">Analyse IA — <strong>12 enfants</strong>, Refuge Nord</div>
-            <div class="as-time">Aujourd'hui · 10:30</div>
-          </div>
-        </div>
-        <div class="as-item">
-          <div class="as-connector"></div>
-          <div class="as-dot"><i class="fas fa-file-lines"></i></div>
-          <div>
-            <div class="as-text">Rapport hebdomadaire <strong>envoyé</strong></div>
-            <div class="as-time">Aujourd'hui · 09:15</div>
-          </div>
-        </div>
-        <div class="as-item">
-          <div class="as-connector"></div>
-          <div class="as-dot"><i class="fas fa-users"></i></div>
-          <div>
-            <div class="as-text">Formation <strong>programmée</strong> — vendredi 14h</div>
-            <div class="as-time">Hier · 16:40</div>
-          </div>
-        </div>
-        <div class="as-item">
-          <div class="as-dot"><i class="fas fa-arrows-rotate"></i></div>
-          <div>
-            <div class="as-text">Mise à jour <strong>v2.1</strong> déployée</div>
-            <div class="as-time">Hier · 08:00</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+{% include 'detector/_detection_content.html' %}
 
-  <!-- Quick Actions cell (3 cols × 5 rows) -->
-  <div class="b-cell b-qa reveal reveal-delay-2">
-    <div class="qa-cell">
-      <div class="cell-header">
-        <div class="cell-title"><i class="fas fa-bolt"></i> Actions</div>
-      </div>
-      <div class="qa-buttons">
-        <a href="{% url 'detection' %}" class="qa-row">
-          <i class="fas fa-camera"></i>
-          Nouvelle analyse
-          <i class="fas fa-chevron-right qa-row-arrow"></i>
-        </a>
-        <a href="#" class="qa-row">
-          <i class="fas fa-file-export"></i>
-          Générer rapport
-          <i class="fas fa-chevron-right qa-row-arrow"></i>
-        </a>
-        <a href="#" class="qa-row">
-          <i class="fas fa-user-plus"></i>
-          Ajouter enfant
-          <i class="fas fa-chevron-right qa-row-arrow"></i>
-        </a>
-        <a href="#" class="qa-row">
-          <i class="fas fa-chalkboard-user"></i>
-          Former équipe
-          <i class="fas fa-chevron-right qa-row-arrow"></i>
-        </a>
-        <a href="#" class="qa-row">
-          <i class="fas fa-bell"></i>
-          Gérer alertes
-          <i class="fas fa-chevron-right qa-row-arrow"></i>
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Insight banner (12 cols × 2 rows) -->
-  <div class="b-cell b-insight reveal reveal-delay-3">
-    <div class="insight-cell">
-      <div class="ic-icon"><i class="fas fa-lightbulb"></i></div>
-      <div>
-        <div class="ic-label"><i class="fas fa-star" style="color:var(--gold);margin-right:.3rem;"></i>Conseil du jour · Astuce #42</div>
-        <div class="ic-quote">
-          "La vigilance collective est la clé d'une protection efficace.
-          Impliquez toute l'équipe dans l'observation quotidienne des comportements."
-        </div>
-      </div>
-      <div class="ic-sep"></div>
-      <a href="#" class="ic-link">
-        Tous les conseils <i class="fas fa-arrow-right"></i>
-      </a>
-    </div>
-  </div>
-
-</div><!-- /bento -->
 </div><!-- /home-canvas -->
 {% endblock %}
 
-
 {% block extra_js %}
 <script>
-/* ── Animated KPI counters ── */
+/* Animated counters */
 const kpiObs = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (!e.isIntersecting || e.target.dataset.done) return;
-    e.target.dataset.done = 1;
-    const target = +e.target.dataset.count;
-    if (!target) return;
-    let val = 0;
-    const step = Math.max(1, Math.ceil(target / 50));
-    const t = setInterval(() => {
-      val = Math.min(val + step, target);
-      e.target.textContent = val.toLocaleString('fr-FR');
-      if (val >= target) clearInterval(t);
-    }, 25);
-  });
+    entries.forEach(e => {
+        if (!e.isIntersecting || e.target.dataset.done) return;
+        e.target.dataset.done = 1;
+        const target = +e.target.dataset.count;
+        if (!target) return;
+        let val = 0;
+        const step = Math.max(1, Math.ceil(target / 50));
+        const t = setInterval(() => {
+            val = Math.min(val + step, target);
+            e.target.textContent = val.toLocaleString('en-US');
+            if (val >= target) clearInterval(t);
+        }, 22);
+    });
 }, { threshold: .3 });
 document.querySelectorAll('[data-count]').forEach(el => kpiObs.observe(el));
 
-/* ── Animated safety ring ── */
-const ringEl = document.getElementById('ringEl');
-const ringObs = new IntersectionObserver(entries => {
-  if (entries[0].isIntersecting) {
-    const pct = 78;
-    const circ = 2 * Math.PI * 45;
-    ringEl.style.strokeDashoffset = circ * (1 - pct / 100);
-    ringObs.disconnect();
-  }
-}, { threshold: .4 });
-if (ringEl) {
-  ringEl.style.transition = 'stroke-dashoffset 1.4s cubic-bezier(.22,.68,0,1.2)';
-  ringObs.observe(ringEl);
+/* Safety ring animation */
+const ring2 = document.getElementById('ringEl2');
+const ringObs2 = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting && ring2) {
+        const pct = 78;
+        const circ = 2 * Math.PI * 43;
+        ring2.style.transition = 'stroke-dashoffset 1.4s cubic-bezier(.22,.68,0,1.2)';
+        ring2.style.strokeDashoffset = circ * (1 - pct / 100);
+        ringObs2.disconnect();
+    }
+}, { threshold: .3 });
+if (ring2) ringObs2.observe(ring2);
+
+/* Animate child avatars on load with confetti */
+function celebrateProtection() {
+    const confettiColors = ['#FFD700', '#C4963C', '#FFA07A', '#98FB98', '#87CEEB'];
+    for (let i = 0; i < 50; i++) {
+        const conf = document.createElement('div');
+        conf.className = 'confetti';
+        conf.style.left = Math.random() * 100 + '%';
+        conf.style.backgroundColor = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+        conf.style.width = Math.random() * 8 + 4 + 'px';
+        conf.style.height = Math.random() * 8 + 4 + 'px';
+        conf.style.animationDuration = Math.random() * 2 + 2 + 's';
+        conf.style.animationDelay = Math.random() * 2 + 's';
+        document.body.appendChild(conf);
+        setTimeout(() => conf.remove(), 4000);
+    }
 }
+
+// Celebrate protection on page load
+setTimeout(celebrateProtection, 500);
+</script>
+<script>
+{% include 'detector/_detection_js.html' %}
 </script>
 {% endblock %}

@@ -1,10 +1,356 @@
-{% extends "detector/base.html" %}
+{% extends "core/base.html" %}
+{% load static %}
+
 {% block title %}Dashboard — ShelterCare AI{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Dashboard specific styles */
+  .hero-strip {
+    background: linear-gradient(140deg, #432B16 0%, #2D1D0F 60%, #5E3D22 100%);
+    border-radius: var(--r-xl);
+    padding: 2rem 2rem 1.75rem;
+    margin-bottom: 1.75rem;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* Animated violence alert icons in hero */
+  .hero-violence-icons {
+    position: absolute;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    opacity: 0.5;
+    z-index: 1;
+  }
+
+  .hero-violence-icons i {
+    font-size: 2rem;
+    animation: floatViolenceIcon 3s ease-in-out infinite;
+  }
+
+  .hero-violence-icons i:nth-child(1) { animation-delay: 0s; color: #ff6b6b; }
+  .hero-violence-icons i:nth-child(2) { animation-delay: 0.5s; color: #ff9a3c; }
+  .hero-violence-icons i:nth-child(3) { animation-delay: 1s; color: #c1440e; }
+  .hero-violence-icons i:nth-child(4) { animation-delay: 1.5s; color: #ff6b6b; }
+
+  @keyframes floatViolenceIcon {
+    0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.5; }
+    50% { transform: translateY(-12px) rotate(8deg); opacity: 0.9; }
+  }
+
+  /* Pulsing alert dot animation */
+  @keyframes pulseAlert {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.3); opacity: 1; }
+  }
+
+  .alert-pulse {
+    animation: pulseAlert 1.5s ease-in-out infinite;
+    display: inline-block;
+  }
+
+  /* Floating particles for violence theme */
+  .violence-particles {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .violence-particle {
+    position: absolute;
+    bottom: -10px;
+    width: 4px;
+    height: 4px;
+    background: radial-gradient(circle, #c1440e, #e74c3c);
+    border-radius: 50%;
+    animation: riseViolence 3s ease-out infinite;
+    opacity: 0;
+  }
+
+  @keyframes riseViolence {
+    0% {
+      transform: translateY(0) scale(1);
+      opacity: 0.6;
+    }
+    100% {
+      transform: translateY(-180px) scale(0.2);
+      opacity: 0;
+    }
+  }
+
+  .hero-strip::before {
+    content: '';
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: 45px solid rgba(196,150,60,.1);
+    pointer-events: none;
+  }
+  
+  .hero-strip h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #9B7429;
+    margin-bottom: 0.75rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.45);
+  }
+  
+  .hero-strip h1 em {
+    font-style: italic;
+    color: #D6BB71;
+  }
+  
+  .hero-strip p {
+    color: rgba(255, 250, 235, 0.95);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    max-width: 700px;
+  }
+  
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+  }
+  
+  .stat-block {
+    background: var(--grad-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: 1.25rem;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-block::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--grad-gold);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+  }
+
+  .stat-block:hover::after {
+    transform: scaleX(1);
+  }
+  
+  .stat-block:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--brown-deep);
+    line-height: 1;
+  }
+  
+  .stat-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-top: 0.4rem;
+  }
+  
+  .card {
+    background: var(--grad-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: 1.5rem;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--brown-deep);
+    margin-bottom: 0.75rem;
+  }
+  
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: 40px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    text-decoration: none;
+  }
+  
+  .btn-primary {
+    background: var(--grad-gold);
+    color: white;
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+  }
+  
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-soft);
+  }
+  
+  .btn-ghost:hover {
+    border-color: var(--gold);
+    color: var(--gold-deep);
+    background: rgba(196,150,60,.05);
+  }
+  
+  .badge {
+    padding: 0.25rem 0.7rem;
+    border-radius: 30px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  
+  .badge-high {
+    background: rgba(193,68,14,.12);
+    color: #c1440e;
+    border: 1px solid rgba(193,68,14,.2);
+  }
+  
+  .badge-medium {
+    background: rgba(244,162,97,.12);
+    color: #b86b2f;
+    border: 1px solid rgba(244,162,97,.2);
+  }
+  
+  .badge-low {
+    background: rgba(109,138,42,.12);
+    color: #6d8a2a;
+    border: 1px solid rgba(109,138,42,.2);
+  }
+  
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .data-table th {
+    text-align: left;
+    padding: 0.75rem 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  
+  .data-table td {
+    padding: 0.9rem 0.5rem;
+    border-bottom: 1px solid var(--border-soft);
+    font-size: 0.85rem;
+    color: var(--brown-deep);
+  }
+  
+  .mono {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+  }
+  
+  .prob-bar {
+    height: 6px;
+    background: rgba(184,134,11,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  
+  .prob-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.3s;
+  }
+  
+  .prob-fill-violent {
+    background: linear-gradient(90deg, #c1440e, #e74c3c);
+  }
+  
+  .prob-fill-safe {
+    background: linear-gradient(90deg, #6d8a2a, #8bc34a);
+  }
+  
+  .fade-up {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 0.6s ease forwards;
+  }
+  
+  @keyframes fadeUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .fade-up-1 { animation-delay: 0.05s; }
+  .fade-up-2 { animation-delay: 0.1s; }
+  .fade-up-3 { animation-delay: 0.15s; }
+  .fade-up-4 { animation-delay: 0.2s; }
+  
+  @media (max-width: 800px) {
+    .stat-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .hero-violence-icons {
+      display: none;
+    }
+  }
+</style>
+{% endblock %}
 
 {% block content %}
 
 <!-- ── Hero ─────────────────────────────────────────────────────────────── -->
 <div class="hero-strip fade-up">
+  <div class="violence-particles" id="violenceParticles"></div>
+  <div class="hero-violence-icons">
+    <i class="fas fa-hand-fist"></i>
+    <i class="fas fa-skull-crossbones"></i>
+    <i class="fas fa-fist-raised"></i>
+    <i class="fas fa-exclamation-triangle alert-pulse"></i>
+  </div>
   <h1>Child Safety <em>Intelligence</em> Dashboard</h1>
   <p>Real-time violence & behavioral risk detection for children in shelters.
      Powered by AI, built for caregivers.</p>
@@ -12,19 +358,19 @@
 
 <!-- ── Stats ─────────────────────────────────────────────────────────────── -->
 <div class="stat-grid">
-  <div class="stat-block fade-up fade-up-1" style="--accent: var(--gold);">
+  <div class="stat-block fade-up fade-up-1">
     <div class="stat-num">{{ stats.total }}</div>
     <div class="stat-label">Total Analyses</div>
   </div>
-  <div class="stat-block fade-up fade-up-2" style="--accent: #c1440e;">
+  <div class="stat-block fade-up fade-up-2">
     <div class="stat-num">{{ stats.violent }}</div>
     <div class="stat-label">Violent Incidents</div>
   </div>
-  <div class="stat-block fade-up fade-up-3" style="--accent: #6d8a2a;">
+  <div class="stat-block fade-up fade-up-3">
     <div class="stat-num">{{ stats.safe }}</div>
     <div class="stat-label">Safe Videos</div>
   </div>
-  <div class="stat-block fade-up fade-up-4" style="--accent: #8C5E1E;">
+  <div class="stat-block fade-up fade-up-4">
     <div class="stat-num">{{ stats.high }}</div>
     <div class="stat-label">High-Risk Alerts</div>
   </div>
@@ -34,7 +380,7 @@
 <div style="display:grid; grid-template-columns: 1fr 2fr; gap:1.5rem; margin-bottom:2rem;">
 
   <div class="card fade-up fade-up-1" style="display:flex; flex-direction:column; align-items:flex-start; gap:1rem;">
-    <div class="card-title">🎬 Analyze New Video</div>
+    <div class="card-title">🛡️ Analyze New Video</div>
     <p style="font-size:.88rem; color:var(--text-soft); line-height:1.6;">
       Upload CCTV or shelter footage. Our EfficientNet-B4 + Bi-LSTM model 
       classifies violent behaviors in seconds.
@@ -48,7 +394,6 @@
   <div class="card fade-up fade-up-2">
     <div class="card-title">⚡ How ShelterCare Works</div>
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:.5rem;">
-      {% for step in "1234" %}{% endfor %}
       <div style="display:flex; gap:.75rem; align-items:flex-start;">
         <div style="width:32px; height:32px; border-radius:8px; background:rgba(196,150,60,.12); border:1px solid rgba(196,150,60,.2); display:flex; align-items:center; justify-content:center; font-size:.9rem; flex-shrink:0;">📹</div>
         <div>
@@ -85,7 +430,7 @@
 <!-- ── Recent Analyses ────────────────────────────────────────────────────── -->
 <div class="card fade-up fade-up-3">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
-    <div class="card-title" style="margin-bottom:0;">📋 Recent Analyses</div>
+    <div class="card-title" style="margin-bottom:0;">⚠️ Recent Violence Analyses</div>
     <a href="{% url 'history' %}" class="btn btn-ghost" style="padding:.4rem .9rem; font-size:.82rem;">View All</a>
   </div>
 
@@ -103,7 +448,7 @@
     </thead>
     <tbody>
       {% for rec in recent %}
-      <tr>
+      <tr class="fade-up">
         <td>
           <span class="mono" style="font-size:.82rem;">
             {{ rec.original_filename|truncatechars:30 }}
@@ -111,9 +456,9 @@
         </td>
         <td>
           {% if rec.alert %}
-            <span style="color:#c1440e; font-weight:600;">⚠ Violent</span>
+            <span style="color:#c1440e; font-weight:600;"><i class="fas fa-fist-raised"></i> Violent</span>
           {% else %}
-            <span style="color:#6d8a2a; font-weight:600;">✓ Safe</span>
+            <span style="color:#6d8a2a; font-weight:600;"><i class="fas fa-shield-alt"></i> Safe</span>
           {% endif %}
         </td>
         <td>
@@ -135,7 +480,7 @@
         </td>
         <td>
           <a href="{% url 'result' rec.pk %}" class="btn btn-ghost" style="padding:.3rem .7rem; font-size:.78rem;">
-            View
+            View <i class="fas fa-arrow-right"></i>
           </a>
         </td>
       </tr>
@@ -159,17 +504,36 @@
 <!-- ── SDG strip ──────────────────────────────────────────────────────────── -->
 <div style="margin-top:2rem; display:flex; gap:1rem; flex-wrap:wrap;" class="fade-up fade-up-4">
   <div style="padding:.5rem 1rem; border-radius:8px; background:rgba(229,36,59,.12); border:1px solid rgba(229,36,59,.25); font-size:.8rem; color:#ff9aaa; font-weight:600;">
-    SDG 10 · Reduced Inequalities
+    <i class="fas fa-hand-fist"></i> SDG 10 · Reduced Inequalities
   </div>
   <div style="padding:.5rem 1rem; border-radius:8px; background:rgba(76,159,56,.12); border:1px solid rgba(76,159,56,.25); font-size:.8rem; color:#8fffaa; font-weight:600;">
-    SDG 3 · Good Health & Well-Being
+    <i class="fas fa-heartbeat"></i> SDG 3 · Good Health & Well-Being
   </div>
   <div style="padding:.5rem 1rem; border-radius:8px; background:rgba(253,105,37,.12); border:1px solid rgba(253,105,37,.25); font-size:.8rem; color:#ffc48a; font-weight:600;">
-    SDG 9 · Industry & Innovation
+    <i class="fas fa-microchip"></i> SDG 9 · Industry & Innovation
   </div>
   <div style="padding:.5rem 1rem; border-radius:8px; background:rgba(25,72,106,.3); border:1px solid rgba(25,72,106,.5); font-size:.8rem; color:#7abfff; font-weight:600;">
-    SDG 17 · Partnerships for Goals
+    <i class="fas fa-handshake"></i> SDG 17 · Partnerships for Goals
   </div>
 </div>
+
+<script>
+// Create floating violence particles
+function createViolenceParticles() {
+    const container = document.getElementById('violenceParticles');
+    if (!container) return;
+    
+    for (let i = 0; i < 40; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('violence-particle');
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 5 + 's';
+        particle.style.animationDuration = 2 + Math.random() * 3 + 's';
+        container.appendChild(particle);
+    }
+}
+
+createViolenceParticles();
+</script>
 
 {% endblock %}

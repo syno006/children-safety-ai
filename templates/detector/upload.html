@@ -1,22 +1,142 @@
-{% extends "detector/base.html" %}
+{% extends "core/base.html" %}
+{% load static %}
+
 {% block title %}Analyze Video — ShelterCare AI{% endblock %}
 
-{% block extra_head %}
+{% block extra_css %}
 <style>
+  .hero-strip {
+    background: linear-gradient(145deg, #c0392b 0%, #2a1f14 40%, #1a5276 100%);
+    border-radius: 32px;
+    padding: 2rem 2rem 1.75rem;
+    margin-bottom: 1.75rem;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .hero-strip::before {
+    content: '';
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: 45px solid rgba(196,150,60,.1);
+    pointer-events: none;
+  }
+  
+  .hero-strip h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 0.75rem;
+  }
+  
+  .hero-strip h1 em {
+    font-style: italic;
+    color: #e8d5a8;
+  }
+  
+  .hero-strip p {
+    color: rgba(213,187,138,.7);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    max-width: 700px;
+  }
+
+  .alert-banner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-radius: 20px;
+    margin-bottom: 1.5rem;
+  }
+
+  .alert-danger {
+    background: rgba(193,68,14,.12);
+    border: 1px solid rgba(193,68,14,.25);
+    color: #c1440e;
+  }
+
+  .card {
+    background: linear-gradient(125deg, #ffffff 0%, #fffdf9 100%);
+    border: 1px solid rgba(184,134,11,0.15);
+    border-radius: 28px;
+    padding: 1.5rem;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 35px -12px rgba(0,0,0,0.12);
+  }
+  
+  .card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #4a3724;
+    margin-bottom: 0.75rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: 40px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    text-decoration: none;
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #daa520, #b8860b);
+    color: white;
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+  }
+  
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid rgba(184,134,11,0.2);
+    color: #8b6946;
+  }
+  
+  .btn-ghost:hover {
+    border-color: #daa520;
+    color: #b8860b;
+    background: rgba(196,150,60,.05);
+  }
+
+  .mono {
+    font-family: 'DM Mono', monospace;
+  }
+
   .upload-zone {
-    border: 2px dashed var(--border);
-    border-radius: var(--r-lg);
+    border: 2px dashed rgba(184,134,11,0.2);
+    border-radius: 24px;
     padding: 3.5rem 2rem;
     text-align: center;
     cursor: pointer;
-    transition: var(--transition);
+    transition: all 0.3s ease;
     background: rgba(196,150,60,.04);
     position: relative;
   }
 
   .upload-zone:hover,
   .upload-zone.drag-over {
-    border-color: var(--gold);
+    border-color: #daa520;
     background: rgba(196,150,60,.08);
     transform: scale(1.01);
   }
@@ -50,23 +170,23 @@
     margin-top: 1.25rem;
     padding: 1rem 1.25rem;
     background: rgba(196,150,60,.08);
-    border: 1px solid var(--border);
-    border-radius: var(--r-md);
+    border: 1px solid rgba(184,134,11,0.15);
+    border-radius: 16px;
   }
 
   .file-preview.visible { display: flex; }
 
   .file-icon {
     width: 44px; height: 44px;
-    background: var(--grad-gold);
-    border-radius: var(--r-sm);
+    background: linear-gradient(135deg, #daa520, #b8860b);
+    border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
     font-size: 1.3rem; flex-shrink: 0; color: white;
   }
 
   .file-info { flex: 1; text-align: left; }
-  .file-name { font-weight: 600; font-size: .9rem; color: var(--brown-deep); }
-  .file-size { font-size: .78rem; color: var(--text-soft); margin-top: .2rem; }
+  .file-name { font-weight: 600; font-size: .9rem; color: #4a3724; }
+  .file-size { font-size: .78rem; color: #8b6946; margin-top: .2rem; }
 
   .progress-bar {
     display: none;
@@ -82,7 +202,7 @@
   .progress-fill {
     height: 100%;
     border-radius: 3px;
-    background: var(--grad-gold);
+    background: linear-gradient(135deg, #daa520, #b8860b);
     width: 0%;
     transition: width .3s ease;
     animation: shimmer 1.5s infinite;
@@ -112,7 +232,7 @@
   .spinner {
     width: 64px; height: 64px;
     border: 3px solid rgba(196,150,60,.2);
-    border-top-color: var(--gold);
+    border-top-color: #daa520;
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
@@ -122,13 +242,31 @@
   .analyzing-text {
     font-family: 'Cormorant Garamond', serif;
     font-size: 1.6rem;
-    color: var(--cream);
+    color: #f5edc8;
   }
 
   .analyzing-sub {
     font-size: .88rem;
-    color: var(--text-soft);
+    color: #8b6946;
   }
+
+  .fade-up {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 0.6s ease forwards;
+  }
+  
+  @keyframes fadeUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .fade-up-1 { animation-delay: 0.05s; }
+  .fade-up-2 { animation-delay: 0.1s; }
+  .fade-up-3 { animation-delay: 0.15s; }
+  .fade-up-4 { animation-delay: 0.2s; }
 </style>
 {% endblock %}
 
@@ -161,18 +299,18 @@
       <div class="upload-zone" id="dropZone">
         <input type="file" name="video" id="videoInput" accept=".mp4,.avi,.mov,.mkv,.webm" required />
         <span class="upload-icon">🎬</span>
-        <div style="font-family:'Cormorant Garamond',serif; font-size:1.4rem; color:var(--brown-deep); margin-bottom:.5rem;">
+        <div style="font-family:'Cormorant Garamond',serif; font-size:1.4rem; color:#4a3724; margin-bottom:.5rem;">
           Drop your video here
         </div>
-        <div style="font-size:.88rem; color:var(--text-soft);">
+        <div style="font-size:.88rem; color:#8b6946;">
           or click to browse files
         </div>
         <div style="margin-top:1rem; display:flex; gap:.5rem; justify-content:center; flex-wrap:wrap;">
-          <span style="padding:.2rem .6rem; border-radius:6px; background:rgba(196,150,60,.08); font-size:.75rem; font-family:'DM Mono',monospace; color:var(--text-muted);">MP4</span>
-          <span style="padding:.2rem .6rem; border-radius:6px; background:rgba(196,150,60,.08); font-size:.75rem; font-family:'DM Mono',monospace; color:var(--text-muted);">AVI</span>
-          <span style="padding:.2rem .6rem; border-radius:6px; background:rgba(196,150,60,.08); font-size:.75rem; font-family:'DM Mono',monospace; color:var(--text-muted);">MOV</span>
-          <span style="padding:.2rem .6rem; border-radius:6px; background:rgba(196,150,60,.08); font-size:.75rem; font-family:'DM Mono',monospace; color:var(--text-muted);">MKV</span>
-          <span style="padding:.2rem .6rem; border-radius:6px; background:rgba(196,150,60,.08); font-size:.75rem; font-family:'DM Mono',monospace; color:var(--text-muted);">WEBM</span>
+          <span style="padding:.2rem .6rem; border-radius:6px; background:rgba(196,150,60,.08); font-size:.75rem; font-family:'DM Mono',monospace; color:#8b6946;">MP4</span>
+          <span style="padding:.2rem .6rem; border-radius:6px; background:rgba(196,150,60,.08); font-size:.75rem; font-family:'DM Mono',monospace; color:#8b6946;">AVI</span>
+          <span style="padding:.2rem .6rem; border-radius:6px; background:rgba(196,150,60,.08); font-size:.75rem; font-family:'DM Mono',monospace; color:#8b6946;">MOV</span>
+          <span style="padding:.2rem .6rem; border-radius:6px; background:rgba(196,150,60,.08); font-size:.75rem; font-family:'DM Mono',monospace; color:#8b6946;">MKV</span>
+          <span style="padding:.2rem .6rem; border-radius:6px; background:rgba(196,150,60,.08); font-size:.75rem; font-family:'DM Mono',monospace; color:#8b6946;">WEBM</span>
         </div>
       </div>
 
@@ -183,7 +321,7 @@
           <div class="file-name" id="fileName">—</div>
           <div class="file-size" id="fileSize">—</div>
         </div>
-        <button type="button" id="clearFile" style="background:none;border:none;color:var(--text-soft);cursor:pointer;font-size:1.2rem;">✕</button>
+        <button type="button" id="clearFile" style="background:none;border:none;color:#8b6946;cursor:pointer;font-size:1.2rem;">✕</button>
       </div>
 
       <div class="progress-bar" id="progressBar">
@@ -205,24 +343,23 @@
     <div class="card fade-up fade-up-2">
       <div class="card-title" style="font-size:1rem;">🤖 Model Info</div>
       <div style="display:flex; flex-direction:column; gap:.75rem; margin-top:.25rem;">
-        {% for label, val in model_specs %}{% endfor %}
         <div style="display:flex; justify-content:space-between; font-size:.84rem;">
-          <span style="color:rgba(245,240,232,.5);">Architecture</span>
+          <span style="color:#8b6946;">Architecture</span>
           <span class="mono" style="font-size:.78rem;">EfficientNet-B4</span>
         </div>
-        <div style="height:1px; background:rgba(255,255,255,.06);"></div>
+        <div style="height:1px; background:rgba(184,134,11,.1);"></div>
         <div style="display:flex; justify-content:space-between; font-size:.84rem;">
-          <span style="color:rgba(245,240,232,.5);">Temporal Model</span>
+          <span style="color:#8b6946;">Temporal Model</span>
           <span class="mono" style="font-size:.78rem;">Bi-LSTM + Attention</span>
         </div>
-        <div style="height:1px; background:rgba(255,255,255,.06);"></div>
+        <div style="height:1px; background:rgba(184,134,11,.1);"></div>
         <div style="display:flex; justify-content:space-between; font-size:.84rem;">
-          <span style="color:rgba(245,240,232,.5);">Frames Analyzed</span>
+          <span style="color:#8b6946;">Frames Analyzed</span>
           <span class="mono" style="font-size:.78rem;">16 per video</span>
         </div>
-        <div style="height:1px; background:rgba(255,255,255,.06);"></div>
+        <div style="height:1px; background:rgba(184,134,11,.1);"></div>
         <div style="display:flex; justify-content:space-between; font-size:.84rem;">
-          <span style="color:rgba(245,240,232,.5);">Classes</span>
+          <span style="color:#8b6946;">Classes</span>
           <span class="mono" style="font-size:.78rem;">Violent / NonViolent</span>
         </div>
       </div>
@@ -230,7 +367,7 @@
 
     <div class="card fade-up fade-up-3">
       <div class="card-title" style="font-size:1rem;">🛡️ Privacy First</div>
-      <p style="font-size:.84rem; color:rgba(245,240,232,.5); line-height:1.65; margin-top:.25rem;">
+      <p style="font-size:.84rem; color:#8b6946; line-height:1.65; margin-top:.25rem;">
         No facial recognition. Anonymized behavioral tracking only. 
         All data processed locally. Compliant with child protection frameworks.
       </p>
@@ -252,15 +389,15 @@
 <div class="analyzing-overlay" id="analyzingOverlay">
   <div class="spinner"></div>
   <div class="analyzing-text">Analyzing footage…</div>
-  <div class="analyzing-sub">EfficientNet-B4 is processing {{ MAX_FRAMES|default:16 }} frames</div>
+  <div class="analyzing-sub">EfficientNet-B4 is processing 16 frames</div>
   <div style="width:280px; height:4px; background:rgba(255,255,255,.08); border-radius:2px; overflow:hidden;">
-    <div id="aiProgress" style="height:100%; background:linear-gradient(90deg,var(--gold),var(--ember)); width:0%; transition:width .5s ease; border-radius:2px;"></div>
+    <div id="aiProgress" style="height:100%; background:linear-gradient(90deg, #daa520, #b8860b); width:0%; transition:width .5s ease; border-radius:2px;"></div>
   </div>
 </div>
 
 {% endblock %}
 
-{% block extra_scripts %}
+{% block extra_js %}
 <script>
 const input    = document.getElementById('videoInput');
 const dropZone = document.getElementById('dropZone');
@@ -298,7 +435,13 @@ dropZone.addEventListener('drop', e => {
   e.preventDefault();
   dropZone.classList.remove('drag-over');
   const file = e.dataTransfer.files[0];
-  if (file) { showPreview(file); /* assign to input via DataTransfer */ }
+  if (file) { 
+    showPreview(file);
+    // Create a DataTransfer object to assign the file to the input
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    input.files = dataTransfer.files;
+  }
 });
 
 form.addEventListener('submit', () => {

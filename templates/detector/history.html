@@ -1,5 +1,216 @@
-{% extends "detector/base.html" %}
+{% extends "core/base.html" %}
+{% load static %}
+
 {% block title %}Analysis History — ShelterCare AI{% endblock %}
+
+{% block extra_css %}
+<style>
+  .hero-strip {
+    background: linear-gradient(145deg, #c0392b 0%, #2a1f14 40%, #1a5276 100%);
+    border-radius: 32px;
+    padding: 2rem 2rem 1.75rem;
+    margin-bottom: 1.75rem;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .hero-strip::before {
+    content: '';
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: 45px solid rgba(196,150,60,.1);
+    pointer-events: none;
+  }
+  
+  .hero-strip h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 0.75rem;
+  }
+  
+  .hero-strip h1 em {
+    font-style: italic;
+    color: #e8d5a8;
+  }
+  
+  .hero-strip p {
+    color: rgba(213,187,138,.7);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    max-width: 700px;
+  }
+
+  .card {
+    background: linear-gradient(125deg, #ffffff 0%, #fffdf9 100%);
+    border: 1px solid rgba(184,134,11,0.15);
+    border-radius: 28px;
+    padding: 1.5rem;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 35px -12px rgba(0,0,0,0.12);
+  }
+  
+  .card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #4a3724;
+    margin-bottom: 0.75rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: 40px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    text-decoration: none;
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #daa520, #b8860b);
+    color: white;
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+  }
+  
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid rgba(184,134,11,0.2);
+    color: #8b6946;
+  }
+  
+  .btn-ghost:hover {
+    border-color: #daa520;
+    color: #b8860b;
+    background: rgba(196,150,60,.05);
+  }
+
+  .filter-btn {
+    background: transparent;
+    border: 1px solid rgba(184,134,11,0.2);
+    color: #8b6946;
+  }
+  
+  .filter-btn.active {
+    background: linear-gradient(135deg, #daa520, #b8860b);
+    color: white;
+    border-color: transparent;
+  }
+
+  .badge {
+    padding: 0.25rem 0.7rem;
+    border-radius: 30px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  
+  .badge-high {
+    background: rgba(193,68,14,.12);
+    color: #c1440e;
+    border: 1px solid rgba(193,68,14,.2);
+  }
+  
+  .badge-medium {
+    background: rgba(244,162,97,.12);
+    color: #b86b2f;
+    border: 1px solid rgba(244,162,97,.2);
+  }
+  
+  .badge-low {
+    background: rgba(109,138,42,.12);
+    color: #6d8a2a;
+    border: 1px solid rgba(109,138,42,.2);
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .data-table th {
+    text-align: left;
+    padding: 0.75rem 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #8b6946;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    border-bottom: 1px solid rgba(184,134,11,0.1);
+  }
+  
+  .data-table td {
+    padding: 0.9rem 0.5rem;
+    border-bottom: 1px solid rgba(184,134,11,0.08);
+    font-size: 0.85rem;
+    color: #4a3724;
+  }
+
+  .mono {
+    font-family: 'DM Mono', monospace;
+  }
+
+  .prob-bar {
+    height: 6px;
+    background: rgba(184,134,11,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  
+  .prob-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.3s;
+  }
+  
+  .prob-fill-violent {
+    background: linear-gradient(90deg, #c1440e, #e74c3c);
+  }
+  
+  .prob-fill-safe {
+    background: linear-gradient(90deg, #6d8a2a, #8bc34a);
+  }
+
+  .fade-up {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 0.6s ease forwards;
+  }
+  
+  @keyframes fadeUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .fade-up-1 { animation-delay: 0.05s; }
+  .fade-up-2 { animation-delay: 0.1s; }
+  .fade-up-3 { animation-delay: 0.15s; }
+  .fade-up-4 { animation-delay: 0.2s; }
+</style>
+{% endblock %}
 
 {% block content %}
 
@@ -12,7 +223,7 @@
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
     <div class="card-title" style="margin-bottom:0;">
       📋 All Analyses
-      <span style="font-size:.85rem; font-weight:400; color:var(--text-soft); margin-left:.5rem;">
+      <span style="font-size:.85rem; font-weight:400; color:#8b6946; margin-left:.5rem;">
         ({{ records|length }} records)
       </span>
     </div>
@@ -22,15 +233,15 @@
   {% if records %}
   <!-- Filter chips -->
   <div style="display:flex; gap:.5rem; margin-bottom:1.25rem; flex-wrap:wrap;" id="filters">
-    <button class="btn btn-ghost filter-btn active" data-filter="all"
+    <button class="filter-btn active" data-filter="all"
             style="padding:.35rem .85rem; font-size:.8rem;" onclick="filterTable('all')">All</button>
-    <button class="btn filter-btn" data-filter="violent"
+    <button class="filter-btn" data-filter="violent"
             style="padding:.35rem .85rem; font-size:.8rem; background:rgba(193,68,14,.1); color:#c1440e; border:1px solid rgba(193,68,14,.25);"
             onclick="filterTable('violent')">⚠ Violent</button>
-    <button class="btn filter-btn" data-filter="safe"
+    <button class="filter-btn" data-filter="safe"
             style="padding:.35rem .85rem; font-size:.8rem; background:rgba(120,150,60,.1); color:#6d8a2a; border:1px solid rgba(120,150,60,.25);"
             onclick="filterTable('safe')">✓ Safe</button>
-    <button class="btn filter-btn" data-filter="high"
+    <button class="filter-btn" data-filter="high"
             style="padding:.35rem .85rem; font-size:.8rem; background:rgba(193,68,14,.1); color:#c1440e; border:1px solid rgba(193,68,14,.3);"
             onclick="filterTable('high')">🚨 HIGH</button>
   </div>
@@ -51,9 +262,9 @@
     <tbody>
       {% for rec in records %}
       <tr data-label="{{ rec.label|lower }}" data-risk="{{ rec.risk_level|lower }}">
-        <td class="mono" style="font-size:.8rem; color:var(--text-muted);">#{{ rec.pk }}</td>
+        <td class="mono" style="font-size:.8rem; color:#8b6946;">#{{ rec.pk }}</td>
         <td>
-          <span style="font-size:.85rem; color:var(--text);">
+          <span style="font-size:.85rem; color:#4a3724;">
             {{ rec.original_filename|truncatechars:35 }}
           </span>
         </td>
@@ -81,7 +292,7 @@
           </div>
         </td>
         <td class="mono" style="font-size:.8rem;">{{ rec.confidence }}%</td>
-        <td style="color:var(--text-soft); font-size:.82rem; white-space:nowrap;">
+        <td style="color:#8b6946; font-size:.82rem; white-space:nowrap;">
           {{ rec.created_at|date:"M d, Y" }}<br>
           <span style="font-size:.78rem;">{{ rec.created_at|date:"H:i" }}</span>
         </td>
@@ -94,14 +305,14 @@
       </tr>
       {% endfor %}
     </tbody>
-  </table>
+   </table>
   {% else %}
-  <div style="text-align:center; padding:4rem 0; color:var(--text-soft);">
+  <div style="text-align:center; padding:4rem 0; color:#8b6946;">
     <div style="font-size:3rem; margin-bottom:1rem;">🕊️</div>
-    <div style="font-family:'Cormorant Garamond',serif; font-size:1.4rem; color:var(--text-soft);">
+    <div style="font-family:'Cormorant Garamond',serif; font-size:1.4rem; color:#8b6946;">
       No analyses on record
     </div>
-    <div style="font-size:.9rem; margin-top:.5rem; color:var(--text-muted);">Start by uploading shelter footage for analysis.</div>
+    <div style="font-size:.9rem; margin-top:.5rem; color:#8b6946;">Start by uploading shelter footage for analysis.</div>
     <a href="{% url 'upload' %}" class="btn btn-primary" style="margin-top:1.5rem;">📹 Analyze Now</a>
   </div>
   {% endif %}
@@ -109,12 +320,14 @@
 
 {% endblock %}
 
-{% block extra_scripts %}
+{% block extra_js %}
 <script>
 function filterTable(filter) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active', 'btn-ghost'));
-  document.querySelector(`[data-filter="${filter}"]`).classList.add('active', 'btn-ghost');
+  // Update active button styling
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
 
+  // Filter table rows
   document.querySelectorAll('#historyTable tbody tr').forEach(row => {
     const label = row.dataset.label;
     const risk  = row.dataset.risk;

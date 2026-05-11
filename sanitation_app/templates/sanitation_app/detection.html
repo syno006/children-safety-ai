@@ -1,7 +1,7 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Détection Sanitaire — ShelterCare AI{% endblock %}
-{% block page_title %}Détection des Risques Sanitaires{% endblock %}
+{% block title %}Sanitary Detection — ShelterCare AI{% endblock %}
+{% block page_title %}Sanitary Risk Detection{% endblock %}
 {% block page_subtitle %}YOLO11s · cockroach · trash · wet_surface{% endblock %}
 
 {% block extra_css %}
@@ -298,10 +298,10 @@
             <div class="upload-icon-ring">
                 <i class="fas fa-shield-virus"></i>
             </div>
-            <div class="upload-title">Déposer une image de l'espace à analyser</div>
+            <div class="upload-title">Upload an image of the area to analyze</div>
             <p class="upload-sub">
-                Analysée par <span class="model-chip">YOLO11s</span> —
-                détection de <span class="model-chip">cockroach</span>,
+                Analyzed by <span class="model-chip">YOLO11s</span> —
+                detection of <span class="model-chip">cockroach</span>,
                 <span class="model-chip">trash</span>,
                 <span class="model-chip">wet_surface</span>
             </p>
@@ -311,7 +311,7 @@
                 <span class="fmt-pill">WebP</span>
             </div><br>
             <span class="btn btn-gold btn-sm" style="margin-top:.6rem;">
-                <i class="fas fa-folder-open"></i> Parcourir les fichiers
+                <i class="fas fa-folder-open"></i> Browse files
             </span>
         </div>
     </label>
@@ -325,7 +325,7 @@
 <div class="section-head mt-3 reveal reveal-delay-1">
     <div class="section-title">
         <div class="section-title-icon"><i class="fas fa-circle-check"></i></div>
-        Score de risque hygiénique
+        Hygiene risk score
     </div>
     <span class="badge badge-gold"><i class="fas fa-robot"></i> YOLO11s</span>
 </div>
@@ -341,16 +341,16 @@
         {% endif %}
     </div>
     <div class="risk-meta">
-        <div class="risk-small-label">Niveau de risque</div>
+        <div class="risk-small-label">Risk level</div>
         <div class="risk-title">
-            {% if result.risk_level == 'critical' %}Risque Critique
-            {% elif result.risk_level == 'moderate' %}Risque Modéré
-            {% else %}Risque Faible{% endif %}
+            {% if result.risk_level == 'critical' %}Critical Risk
+            {% elif result.risk_level == 'moderate' %}Moderate Risk
+            {% else %}Low Risk{% endif %}
         </div>
     </div>
     <div class="score-block">
         <div class="score-head">
-            <span class="score-label">Score d'hygiène</span>
+            <span class="score-label">Hygiene score</span>
             <span class="score-val">{{ result.risk_score }}/100</span>
         </div>
         <div class="score-track">
@@ -364,22 +364,22 @@
     <div class="kpi-card">
         <div class="kpi-icon"><i class="fas fa-bullseye"></i></div>
         <div class="kpi-val">{{ result.count|default:0 }}</div>
-        <div class="kpi-lbl">Éléments détectés</div>
+        <div class="kpi-lbl">Items detected</div>
     </div>
     <div class="kpi-card">
         <div class="kpi-icon"><i class="fas fa-expand"></i></div>
         <div class="kpi-val">{{ result.total_area|floatformat:1 }}%</div>
-        <div class="kpi-lbl">Surface totale</div>
+        <div class="kpi-lbl">Total area</div>
     </div>
     <div class="kpi-card">
         <div class="kpi-icon"><i class="fas fa-arrow-trend-up"></i></div>
         <div class="kpi-val">{{ result.max_confidence|floatformat:1 }}%</div>
-        <div class="kpi-lbl">Confiance max</div>
+        <div class="kpi-lbl">Max confidence</div>
     </div>
     <div class="kpi-card">
         <div class="kpi-icon"><i class="fas fa-chart-bar"></i></div>
         <div class="kpi-val">{{ result.avg_confidence|floatformat:1 }}%</div>
-        <div class="kpi-lbl">Confiance moy.</div>
+        <div class="kpi-lbl">Avg. confidence</div>
     </div>
 </div>
 
@@ -388,17 +388,17 @@
     <div class="cls-card">
         <div class="cls-icon ci-roach"><i class="fas fa-bug"></i></div>
         <div class="cls-count">{{ result.class_counts.cockroach|default:0 }}</div>
-        <div class="cls-name">Cafard(s)</div>
+        <div class="cls-name">Cockroach(es)</div>
     </div>
     <div class="cls-card">
         <div class="cls-icon ci-trash"><i class="fas fa-trash"></i></div>
         <div class="cls-count">{{ result.class_counts.trash|default:0 }}</div>
-        <div class="cls-name">Déchet(s)</div>
+        <div class="cls-name">Trash item(s)</div>
     </div>
     <div class="cls-card">
         <div class="cls-icon ci-wet"><i class="fas fa-droplet"></i></div>
         <div class="cls-count">{{ result.class_counts.wet_surface|default:0 }}</div>
-        <div class="cls-name">Surface(s) mouillée(s)</div>
+        <div class="cls-name">Wet surface(s)</div>
     </div>
 </div>
 
@@ -407,20 +407,20 @@
 
     <div class="img-pane">
         <div class="pane-head">
-            <div class="pane-title"><i class="fas fa-image"></i> Image annotée</div>
+            <div class="pane-title"><i class="fas fa-image"></i> Annotated image</div>
             <span class="pane-badge">YOLO11s</span>
         </div>
         <div class="img-body">
             {% if annotated %}
-            <img src="data:image/jpeg;base64,{{ annotated }}" alt="Détections YOLO11s">
+            <img src="data:image/jpeg;base64,{{ annotated }}" alt="YOLO11s detections">
             {% endif %}
         </div>
     </div>
 
     <div class="boxes-pane">
         <div class="pane-head">
-            <div class="pane-title"><i class="fas fa-list-ul"></i> Détails des détections</div>
-            <span class="count-pill">{{ result.count }} détection{{ result.count|pluralize:"s" }}</span>
+            <div class="pane-title"><i class="fas fa-list-ul"></i> Detection details</div>
+            <span class="count-pill">{{ result.count }} detection{{ result.count|pluralize:"s" }}</span>
         </div>
         <div class="boxes-scroll">
             {% for det in result.detections %}
@@ -445,12 +445,12 @@
                         <span class="detail-val">({{ det.x1 }}, {{ det.y1 }}) → ({{ det.x2 }}, {{ det.y2 }})</span>
                     </div>
                     <div class="detail-row">
-                        <span class="detail-lbl">Taille</span>
+                        <span class="detail-lbl">Size</span>
                         <span class="detail-val">{{ det.width }} × {{ det.height }} px</span>
                     </div>
                     <div class="detail-row">
-                        <span class="detail-lbl">Surface</span>
-                        <span class="detail-val">{{ det.area_percentage|floatformat:1 }}% de l'image</span>
+                        <span class="detail-lbl">Area</span>
+                        <span class="detail-val">{{ det.area_percentage|floatformat:1 }}% of image</span>
                     </div>
                 </div>
                 <div class="conf-mini">
@@ -465,7 +465,7 @@
             {% empty %}
             <div class="empty-det">
                 <i class="fas fa-magnifying-glass"></i>
-                <p>Aucun risque sanitaire détecté</p>
+                <p>No sanitary risks detected</p>
             </div>
             {% endfor %}
         </div>

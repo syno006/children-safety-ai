@@ -1,15 +1,15 @@
 {% extends 'core/base.html' %}
 {% load static %}
 
-{% block title %}Détection de Chutes — ShelterCare pour Enfants{% endblock %}
+{% block title %}Fall Detection — ShelterCare for Children{% endblock %}
 
-{% block page_title %}Système de Détection de Chutes{% endblock %}
-{% block page_subtitle %}Protection des enfants en centres d'accueil par Intelligence Artificielle{% endblock %}
+{% block page_title %}Fall Detection System{% endblock %}
+{% block page_subtitle %}Protecting children in shelters through Artificial Intelligence{% endblock %}
 
 {% block extra_css %}
 
 /* ══════════════════════════════════════════════════════════
-   HERO BANNER PRINCIPAL - MARRON
+   MAIN HERO BANNER - BROWN
 ══════════════════════════════════════════════════════════ */
 .fall-hero {
     background: linear-gradient(135deg, #4a2c1a 0%, #3d2315 50%, #2e1a0f 100%);
@@ -37,6 +37,91 @@
     border-radius: 50%;
     border: 40px solid rgba(196,150,60,.07);
     pointer-events: none;
+}
+
+/* Animated fall detection icons */
+.fall-hero-icons {
+    position: absolute;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    opacity: 0.6;
+}
+
+.fall-hero-icons i {
+    font-size: 2rem;
+    animation: floatFallIcon 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 5px rgba(200,70,50,0.3));
+}
+
+.fall-hero-icons i:nth-child(1) { animation-delay: 0s; color: #e74c3c; }
+.fall-hero-icons i:nth-child(2) { animation-delay: 0.5s; color: #c0392b; }
+.fall-hero-icons i:nth-child(3) { animation-delay: 1s; color: #e67e22; }
+.fall-hero-icons i:nth-child(4) { animation-delay: 1.5s; color: #e74c3c; }
+.fall-hero-icons i:nth-child(5) { animation-delay: 2s; color: #ff6b6b; }
+
+@keyframes floatFallIcon {
+    0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.6; }
+    50% { transform: translateY(-12px) rotate(10deg); opacity: 1; }
+}
+
+/* Floating alert particles */
+.fall-particles {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.fall-particle {
+    position: absolute;
+    bottom: -10px;
+    width: 6px;
+    height: 6px;
+    background: radial-gradient(circle, #e74c3c, #c0392b);
+    border-radius: 50%;
+    animation: riseFall 3s ease-out infinite;
+    opacity: 0;
+}
+
+@keyframes riseFall {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 0.7;
+    }
+    100% {
+        transform: translateY(-180px) scale(0.2);
+        opacity: 0;
+    }
+}
+
+/* Person falling animation */
+@keyframes fallAnimation {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(15deg); }
+    50% { transform: rotate(-15deg); }
+    75% { transform: rotate(10deg); }
+}
+
+.fall-animation {
+    animation: fallAnimation 2s ease-in-out infinite;
+    display: inline-block;
+}
+
+/* Alert pulse animation */
+@keyframes alertPulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.2); opacity: 1; }
+}
+
+.alert-icon {
+    animation: alertPulse 2s ease-in-out infinite;
 }
 
 /* Live badge */
@@ -117,7 +202,7 @@
 }
 
 /* ══════════════════════════════════════════════════════════
-   GRILLE MODÈLES
+   MODELS GRID
 ══════════════════════════════════════════════════════════ */
 .models-grid {
     display: grid;
@@ -132,7 +217,7 @@
     }
 }
 
-/* Carte modèle */
+/* Model card */
 .model-card {
     background: var(--grad-card);
     border: 1px solid var(--border);
@@ -299,7 +384,7 @@
     border: none;
 }
 .btn-model.cnn {
-    background: var(--grad-gold);
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
     color: white;
     border: none;
 }
@@ -311,7 +396,7 @@
 }
 
 /* ══════════════════════════════════════════════════════════
-   CARTE OBJECTIFS & CONTEXTE
+   GOALS & CONTEXT CARD
 ══════════════════════════════════════════════════════════ */
 .context-card {
     background: linear-gradient(135deg, rgba(196,150,60,.05) 0%, rgba(140,94,30,.02) 100%);
@@ -411,7 +496,7 @@
 }
 
 /* ══════════════════════════════════════════════════════════
-   SECTION AJOUTÉE EN BAS - MARRON
+   ADDITIONAL SECTION AT BOTTOM - BROWN
 ══════════════════════════════════════════════════════════ */
 .footer-section {
     background: linear-gradient(135deg, #4a2c1a 0%, #3d2315 50%, #2e1a0f 100%);
@@ -486,176 +571,184 @@
 {% block content %}
 
 <!-- ══════════════════════════════════════════════════════
-     HERO SECTION - PAGE DE GARDE (MARRON)
+     HERO SECTION - LANDING PAGE (BROWN)
 ══════════════════════════════════════════════════════ -->
 <div class="fall-hero reveal">
+    <div class="fall-particles" id="fallParticles"></div>
+    <div class="fall-hero-icons">
+        <i class="fas fa-person-falling"></i>
+        <i class="fas fa-person-walking-arrow-right"></i>
+        <i class="fas fa-exclamation-triangle alert-icon"></i>
+        <i class="fas fa-shield-heart"></i>
+        <i class="fas fa-hand-holding-heart"></i>
+    </div>
     <div class="hero-badge">
         <span class="pulse-dot"></span>
-        ShelterCare · Protection des enfants
+        ShelterCare · Child Protection
     </div>
-    <h2>Système de <em>Détection de Chutes</em><br>pour Centres d'Accueil</h2>
+    <h2><em>Fall Detection</em> System<br>for Children's Shelters</h2>
     <p class="hero-sub">
-        Une solution innovante dédiée aux shelters pour assurer la sécurité des enfants
-        grâce à l'intelligence artificielle. Détection automatique des chutes en temps réel.
+        An innovative solution dedicated to shelters to ensure children's safety
+        through artificial intelligence. Automatic fall detection in real time.
     </p>
 </div>
 
 <!-- ══════════════════════════════════════════════════════
-     CONTEXTE & OBJECTIFS POUR SHELTERS
+     CONTEXT & GOALS FOR SHELTERS
 ══════════════════════════════════════════════════════ -->
 <div class="context-card reveal reveal-delay-1">
     <div class="context-title">
         <i class="fas fa-home"></i>
-        Pourquoi les shelters ?
+        Why shelters?
     </div>
     <div class="context-text">
-        Dans les centres d'accueil (shelters), la surveillance des enfants est une priorité absolue.
-        Notre système de détection de chutes permet aux éducateurs et au personnel d'être alertés
-        immédiatement en cas de chute, réduisant ainsi les risques de blessures graves.
+        In shelters, monitoring children is an absolute priority.
+        Our fall detection system allows educators and staff to be alerted
+        immediately in case of a fall, reducing the risk of serious injuries.
     </div>
     <div class="context-highlight">
-        <p><strong>🏠 Objectif ShelterCare :</strong> Offrir aux centres d'accueil un outil fiable et accessible
-        pour détecter rapidement toute situation dangereuse et protéger efficacement les enfants
-        dont ils ont la charge.</p>
+        <p><strong>🏠 ShelterCare Objective:</strong> Provide shelters with a reliable and accessible tool
+        to quickly detect any dangerous situation and effectively protect the children
+        under their care.</p>
     </div>
     <div class="bullet-list">
         <div class="bullet-item">
             <i class="fas fa-check-circle"></i>
-            <span>Détection automatique des chutes en temps réel</span>
+            <span>Automatic real-time fall detection</span>
         </div>
         <div class="bullet-item">
             <i class="fas fa-check-circle"></i>
-            <span>Alerte immédiate du personnel éducatif</span>
+            <span>Immediate alert to educational staff</span>
         </div>
         <div class="bullet-item">
             <i class="fas fa-check-circle"></i>
-            <span>Localisation précise de la zone de chute</span>
+            <span>Precise localization of the fall zone</span>
         </div>
         <div class="bullet-item">
             <i class="fas fa-check-circle"></i>
-            <span>Interface adaptée aux professionnels des shelters</span>
+            <span>Interface adapted to shelter professionals</span>
         </div>
     </div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════
-     STATISTIQUES CLÉS
+     KEY STATISTICS
 ══════════════════════════════════════════════════════ -->
 <div class="stats-banner reveal reveal-delay-2">
     <div class="stat-banner-item">
-        <div class="stat-banner-value">94,2%</div>
-        <div class="stat-banner-label">Précision globale</div>
+        <div class="stat-banner-value">94.2%</div>
+        <div class="stat-banner-label">Global accuracy</div>
     </div>
     <div class="stat-banner-item">
         <div class="stat-banner-value">&lt;1s</div>
-        <div class="stat-banner-label">Temps d'inférence</div>
+        <div class="stat-banner-label">Inference time</div>
     </div>
     <div class="stat-banner-item">
-        <div class="stat-banner-value">24h/7j</div>
-        <div class="stat-banner-label">Surveillance</div>
+        <div class="stat-banner-value">24/7</div>
+        <div class="stat-banner-label">Monitoring</div>
     </div>
     <div class="stat-banner-item">
         <div class="stat-banner-value">1000+</div>
-        <div class="stat-banner-label">Images entraînement</div>
+        <div class="stat-banner-label">Training images</div>
     </div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════
-     SECTION LABEL MODÈLES
+     MODELS SECTION LABEL
 ══════════════════════════════════════════════════════ -->
 <div class="section-label reveal reveal-delay-2">
-    <span>Modèles d'intelligence artificielle</span>
+    <span>Artificial Intelligence Models</span>
 </div>
 
 <!-- ══════════════════════════════════════════════════════
-     GRILLE DES MODÈLES
+     MODELS GRID
 ══════════════════════════════════════════════════════ -->
 <div class="models-grid">
 
-   <!-- MODÈLE YOLOv8 - DÉTECTION AVEC BOUNDING BOX -->
-<div class="model-card reveal reveal-delay-3">
-    <div class="model-header yolo">
-        <div class="model-icon yolo">
-            <i class="fas fa-crosshairs"></i>
-        </div>
-        <div class="model-tag yolo">Classification</div>
-        <div class="model-title">CNN</div>
-        <div class="model-subtitle">Convolutional Neural Network</div>
-    </div>
-    <div class="model-body">
-        <div class="model-description">
-            Modèle de classification basé sur les réseaux de neurones convolutifs (CNN)
-            permettant de détecter si une chute a eu lieu ou non à partir d’une image.
-            Il analyse les caractéristiques visuelles globales sans localisation précise.
-        </div>
-        <ul class="model-features">
-            <li><i class="fas fa-image"></i> Analyse globale de l’image</li>
-            <li><i class="fas fa-brain"></i> Apprentissage automatique des features</li>
-            <li><i class="fas fa-chart-line"></i> Précision de classification : 93,2%</li>
-            <li><i class="fas fa-bolt"></i> Inférence rapide en temps réel</li>
-        </ul>
-        <div class="model-stats">
-            <div class="stat-item">
-                <div class="stat-value">93,2%</div>
-                <div class="stat-label">Précision</div>
+    <!-- MODÈLE YOLOv8 - DETECTION WITH BOUNDING BOX -->
+    <div class="model-card reveal reveal-delay-3">
+        <div class="model-header yolo">
+            <div class="model-icon yolo">
+                <i class="fas fa-crosshairs"></i>
             </div>
-            <div class="stat-item">
-                <div class="stat-value">10ms</div>
-                <div class="stat-label">Temps GPU</div>
+            <div class="model-tag yolo">Detection + Localization</div>
+            <div class="model-title">YOLOv8</div>
+            <div class="model-subtitle">Bounding Box Detection</div>
+        </div>
+        <div class="model-body">
+            <div class="model-description">
+                State-of-the-art object detection model that identifies and locates falls
+                with precise bounding boxes. Displays exactly where the fall occurred
+                and provides confidence scores for each detection.
             </div>
-            <div class="stat-item">
-                <div class="stat-value">2 classes</div>
-                <div class="stat-label">Chute / Normal</div>
+            <ul class="model-features">
+                <li><i class="fas fa-chart-line"></i> mAP@50 : 85.6%</li>
+                <li><i class="fas fa-clock"></i> Real-time inference</li>
+                <li><i class="fas fa-map-pin"></i> Precise fall localization</li>
+                <li><i class="fas fa-box"></i> Bounding box + confidence</li>
+            </ul>
+            <div class="model-stats">
+                <div class="stat-item">
+                    <div class="stat-value">85.6%</div>
+                    <div class="stat-label">mAP@50</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">15ms</div>
+                    <div class="stat-label">GPU Time</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">Box</div>
+                    <div class="stat-label">Localization</div>
+                </div>
             </div>
         </div>
+        <div class="model-footer">
+            <a href="{% url 'fall_detection:yolo' %}" class="btn-model yolo">
+                <i class="fas fa-arrow-right"></i> Test YOLOv8 - Detection
+            </a>
+        </div>
     </div>
-    <div class="model-footer">
-        <a href="{% url 'fall_detection:yolo' %}" class="btn-model yolo">
-            <i class="fas fa-arrow-right"></i> Tester CNN - Classification
-        </a>
-    </div>
-</div>
 
-    <!-- MODÈLE CNN - CLASSIFICATION PURE -->
+    <!-- MODÈLE CNN - PURE CLASSIFICATION -->
     <div class="model-card reveal reveal-delay-4">
         <div class="model-header cnn">
             <div class="model-icon cnn">
                 <i class="fas fa-tag"></i>
             </div>
-            <div class="model-tag">Classification pure</div>
+            <div class="model-tag">Pure classification</div>
             <div class="model-title">CNN Classifier</div>
             <div class="model-subtitle">ResNet-50</div>
         </div>
         <div class="model-body">
             <div class="model-description">
-                Réseau de neurones convolutif spécialisé dans la classification binaire.
-                Analyse l'image entière et détermine avec un score de confiance s'il s'agit
-                d'une chute ou d'une situation normale. Plus rapide pour les vérifications.
+                Convolutional neural network specialized in binary classification.
+                Analyzes the entire image and determines with a confidence score whether
+                it's a fall or a normal situation. Faster for verification checks.
             </div>
             <ul class="model-features">
-                <li><i class="fas fa-chart-pie"></i> Classification rapide (Normal / Chute)</li>
-                <li><i class="fas fa-percent"></i> Score de confiance détaillé</li>
-                <li><i class="fas fa-microchip"></i> Transfer Learning sur ResNet-50</li>
-                <li><i class="fas fa-chart-simple"></i> Précision : 94,2%</li>
+                <li><i class="fas fa-chart-pie"></i> Fast classification (Normal / Fall)</li>
+                <li><i class="fas fa-percent"></i> Detailed confidence score</li>
+                <li><i class="fas fa-microchip"></i> Transfer Learning on ResNet-50</li>
+                <li><i class="fas fa-chart-simple"></i> Accuracy: 94.2%</li>
             </ul>
             <div class="model-stats">
                 <div class="stat-item">
-                    <div class="stat-value">94,2%</div>
-                    <div class="stat-label">Précision</div>
+                    <div class="stat-value">94.2%</div>
+                    <div class="stat-label">Accuracy</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value">2</div>
                     <div class="stat-label">Classes</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value">0,3s</div>
-                    <div class="stat-label">Inférence</div>
+                    <div class="stat-value">0.3s</div>
+                    <div class="stat-label">Inference</div>
                 </div>
             </div>
         </div>
         <div class="model-footer">
             <a href="{% url 'fall_detection:classification' %}" class="btn-model cnn">
-                <i class="fas fa-arrow-right"></i> Tester CNN - Classification
+                <i class="fas fa-arrow-right"></i> Test CNN - Classification
             </a>
         </div>
     </div>
@@ -663,33 +756,33 @@
 </div>
 
 <!-- ══════════════════════════════════════════════════════
-     COMPARAISON DES APPROCHES POUR SHELTERS
+     APPROACH COMPARISON FOR SHELTERS
 ══════════════════════════════════════════════════════ -->
 <div class="context-card reveal reveal-delay-4" style="margin-top: 0;">
     <div class="context-title">
         <i class="fas fa-code-branch"></i>
-        Comparaison des approches pour les shelters
+        Comparison of approaches for shelters
     </div>
     <div class="row" style="margin-top: 1rem;">
         <div class="col-md-6">
             <div class="context-highlight" style="background: rgba(52,152,219,.08);">
-                <p><strong><i class="fas fa-crosshairs"></i> YOLOv8 - Détection avec localisation</strong></p>
+                <p><strong><i class="fas fa-crosshairs"></i> YOLOv8 - Detection with localization</strong></p>
                 <ul style="margin-top: .5rem; margin-bottom: 0; padding-left: 1.2rem;">
-                    <li>Localise précisément l'endroit de la chute</li>
-                    <li>Affiche une boîte englobante sur l'image</li>
-                    <li>Idéal pour les grands espaces (cours, dortoirs)</li>
-                    <li>Permet une intervention ciblée du personnel</li>
+                    <li>Precisely locates where the fall occurred</li>
+                    <li>Displays a bounding box on the image</li>
+                    <li>Ideal for large spaces (playgrounds, dormitories)</li>
+                    <li>Enables targeted staff intervention</li>
                 </ul>
             </div>
         </div>
         <div class="col-md-6">
             <div class="context-highlight" style="background: rgba(196,150,60,.08);">
-                <p><strong><i class="fas fa-tag"></i> CNN - Classification rapide</strong></p>
+                <p><strong><i class="fas fa-tag"></i> CNN - Fast classification</strong></p>
                 <ul style="margin-top: .5rem; margin-bottom: 0; padding-left: 1.2rem;">
-                    <li>Analyse globale de la situation</li>
-                    <li>Plus rapide pour les vérifications fréquentes</li>
-                    <li>Idéal pour la surveillance en salle d'activités</li>
-                    <li>Score de confiance très fiable</li>
+                    <li>Global situation analysis</li>
+                    <li>Faster for frequent verification checks</li>
+                    <li>Ideal for activity room monitoring</li>
+                    <li>Highly reliable confidence score</li>
                 </ul>
             </div>
         </div>
@@ -697,24 +790,24 @@
 </div>
 
 <!-- ══════════════════════════════════════════════════════
-     SECTION CONCLUSION - MARRON
+     CONCLUSION SECTION - BROWN
 ══════════════════════════════════════════════════════ -->
 <div class="footer-section reveal reveal-delay-4">
     <div class="footer-title">
-        ShelterCare : La sécurité des enfants au cœur de notre mission
+        ShelterCare: Children's safety at the heart of our mission
     </div>
     <div class="footer-text">
-        Ce projet a été spécialement développé pour les centres d'accueil (shelters) afin de
-        fournir au personnel éducatif un outil fiable et performant pour détecter rapidement
-        les chutes et assurer la sécurité des enfants 24 heures sur 24.
+        This project has been specially developed for shelters to provide
+        educational staff with a reliable and efficient tool to quickly detect
+        falls and ensure children's safety 24 hours a day.
     </div>
     <div class="footer-divider"></div>
     <div class="footer-quote">
-        "Protéger chaque enfant, prévenir chaque chute, agir à chaque instant"
+        "Protect every child, prevent every fall, act at every moment"
     </div>
     <div class="footer-divider" style="width: 40px; opacity: 0.3;"></div>
     <div class="footer-text" style="font-size: 0.75rem; margin-top: 0.5rem;">
-        ShelterCare · Intelligence Artificielle au service de la protection infantile
+        ShelterCare · Artificial Intelligence serving child protection
     </div>
 </div>
 
@@ -732,6 +825,25 @@ function checkReveal() {
 }
 window.addEventListener('scroll', checkReveal);
 window.addEventListener('load', checkReveal);
+
+// Create floating fall particles
+function createFallParticles() {
+    const container = document.getElementById('fallParticles');
+    if (!container) return;
+    
+    for (let i = 0; i < 40; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('fall-particle');
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 4 + 's';
+        particle.style.animationDuration = 2 + Math.random() * 3 + 's';
+        particle.style.width = (Math.random() * 8 + 3) + 'px';
+        particle.style.height = particle.style.width;
+        container.appendChild(particle);
+    }
+}
+
+createFallParticles();
 </script>
 
 {% endblock %}

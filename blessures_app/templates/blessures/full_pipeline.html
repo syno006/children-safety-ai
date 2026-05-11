@@ -3,53 +3,53 @@
 {% block content %}
 <div class="card">
     <div class="card-header">
-        <h2><i class="fas fa-rocket"></i> Pipeline Complet</h2>
-        <span class="badge-right">Classification + Détection + Segmentation</span>
+        <h2><i class="fas fa-rocket"></i> Complete Pipeline</h2>
+        <span class="badge-right">Classification + Detection + Segmentation</span>
     </div>
     <div class="card-body">
         <form method="post" enctype="multipart/form-data" id="uploadForm">
             {% csrf_token %}
             <div class="upload-area" onclick="document.getElementById('imageInput').click()">
                 <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea;"></i>
-                <p>Cliquez pour télécharger une image</p>
+                <p>Click to upload an image</p>
                 <input type="file" name="image" id="imageInput" accept="image/*" style="display: none;" onchange="this.form.submit()">
             </div>
         </form>
 
         {% if result %}
-        <!-- Résumé des scores -->
+        <!-- Score summary -->
         <div class="scores-summary">
             <div class="score-card classification-score">
                 <div class="score-icon"><i class="fas fa-tag"></i></div>
                 <div class="score-info">
                     <div class="score-label">Classification</div>
-                    <div class="score-value">{{ result.classification.emoji|default:"🟡" }} {{ result.classification.prediction|default:"Incertain" }}</div>
-                    <div class="score-detail">{{ result.classification.confidence_score|floatformat:1|default:"0" }}% confiance</div>
+                    <div class="score-value">{{ result.classification.emoji|default:"🟡" }} {{ result.classification.prediction|default:"Uncertain" }}</div>
+                    <div class="score-detail">{{ result.classification.confidence_score|floatformat:1|default:"0" }}% confidence</div>
                 </div>
             </div>
             <div class="score-card detection-score">
                 <div class="score-icon"><i class="fas fa-crosshairs"></i></div>
                 <div class="score-info">
-                    <div class="score-label">Détection</div>
-                    <div class="score-value">{{ result.detection.count|default:0 }} blessure(s)</div>
-                    <div class="score-detail">Confiance max: {{ result.detection.max_confidence|floatformat:1|default:0 }}%</div>
+                    <div class="score-label">Detection</div>
+                    <div class="score-value">{{ result.detection.count|default:0 }} injury(ies)</div>
+                    <div class="score-detail">Max confidence: {{ result.detection.max_confidence|floatformat:1|default:0 }}%</div>
                 </div>
             </div>
             <div class="score-card segmentation-score">
                 <div class="score-icon"><i class="fas fa-chart-line"></i></div>
                 <div class="score-info">
                     <div class="score-label">Segmentation</div>
-                    <div class="score-value">{{ result.segmentation.area_percentage|floatformat:1|default:0 }}% zone</div>
-                    <div class="score-detail">{{ result.segmentation.area_pixels|default:0 }} pixels affectés</div>
+                    <div class="score-value">{{ result.segmentation.area_percentage|floatformat:1|default:0 }}% area</div>
+                    <div class="score-detail">{{ result.segmentation.area_pixels|default:0 }} affected pixels</div>
                 </div>
             </div>
         </div>
 
-        <!-- Résultats détaillés -->
+        <!-- Detailed results -->
         <div class="pipeline-tabs">
             <div class="tab-buttons">
                 <button class="tab-btn active" data-tab="classification">Classification</button>
-                <button class="tab-btn" data-tab="detection">Détection</button>
+                <button class="tab-btn" data-tab="detection">Detection</button>
                 <button class="tab-btn" data-tab="segmentation">Segmentation</button>
             </div>
 
@@ -57,7 +57,7 @@
             <div class="tab-content active" id="tab-classification">
                 <div class="tab-inner">
                     <div class="probabilities">
-                        <h4>Probabilités par classe</h4>
+                        <h4>Probabilities per class</h4>
                         {% for class, prob in result.classification.probabilities.items %}
                         <div class="prob-item">
                             <div class="prob-label">
@@ -76,54 +76,54 @@
                     <div class="classification-metrics">
                         <div class="metric">
                             <div class="metric-value">{{ result.classification.confidence_score|floatformat:1|default:"0" }}%</div>
-                            <div class="metric-label">Confiance max</div>
+                            <div class="metric-label">Max confidence</div>
                         </div>
                         <div class="metric">
                             <div class="metric-value">{{ result.classification.prediction|default:"-" }}</div>
-                            <div class="metric-label">Diagnostic</div>
+                            <div class="metric-label">Diagnosis</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Tab Détection -->
+            <!-- Tab Detection -->
             <div class="tab-content" id="tab-detection">
                 <div class="tab-inner">
                     <div class="detection-stats">
                         <div class="stat">
                             <div class="stat-value">{{ result.detection.count|default:0 }}</div>
-                            <div class="stat-label">Blessures</div>
+                            <div class="stat-label">Injuries</div>
                         </div>
                         <div class="stat">
                             <div class="stat-value">{{ result.detection.total_area|floatformat:1|default:0 }}%</div>
-                            <div class="stat-label">Surface totale</div>
+                            <div class="stat-label">Total area</div>
                         </div>
                         <div class="stat">
                             <div class="stat-value">{{ result.detection.max_confidence|floatformat:1|default:0 }}%</div>
-                            <div class="stat-label">Confiance max</div>
+                            <div class="stat-label">Max confidence</div>
                         </div>
                     </div>
                     
                     {% if result.detection.boxes and result.detection.boxes|length > 0 %}
                     <div class="detection-boxes">
-                        <h4>Détails des blessures</h4>
+                        <h4>Injury details</h4>
                         {% for box in result.detection.boxes %}
                         <div class="box-detail">
                             <div class="box-header">
-                                <span>Blessure #{{ forloop.counter }}</span>
+                                <span>Injury #{{ forloop.counter }}</span>
                                 <span class="confidence" style="background: {% if box.confidence > 70 %}#00c853{% elif box.confidence > 50 %}#ff9800{% else %}#ff5722{% endif %};">{{ box.confidence|floatformat:1 }}%</span>
                             </div>
                             <div class="box-coords">Position: ({{ box.x1 }}, {{ box.y1 }}) → ({{ box.x2 }}, {{ box.y2 }})</div>
-                            <div class="box-area">Surface: {{ box.area_percentage|floatformat:1 }}% de l'image</div>
-                            <div class="box-size">Taille: {{ box.width }} × {{ box.height }} px</div>
+                            <div class="box-area">Area: {{ box.area_percentage|floatformat:1 }}% of image</div>
+                            <div class="box-size">Size: {{ box.width }} × {{ box.height }} px</div>
                         </div>
                         {% endfor %}
                     </div>
                     {% else %}
                     <div class="no-data">
                         <i class="fas fa-search"></i>
-                        <p>Aucune blessure détectée par YOLO</p>
-                        <small>Vérifiez que le modèle YOLO est correctement chargé</small>
+                        <p>No injuries detected by YOLO</p>
+                        <small>Verify that the YOLO model is properly loaded</small>
                     </div>
                     {% endif %}
                 </div>
@@ -135,45 +135,45 @@
                     <div class="segmentation-stats">
                         <div class="stat">
                             <div class="stat-value">{{ result.segmentation.area_percentage|floatformat:1|default:0 }}%</div>
-                            <div class="stat-label">Zone affectée</div>
+                            <div class="stat-label">Affected area</div>
                         </div>
                         <div class="stat">
                             <div class="stat-value">{{ result.segmentation.area_pixels|default:0 }}</div>
-                            <div class="stat-label">Pixels affectés</div>
+                            <div class="stat-label">Affected pixels</div>
                         </div>
                         <div class="stat">
                             <div class="stat-value">
-                                {% if result.segmentation.has_segmentation %}✓ Oui{% else %}✗ Non{% endif %}
+                                {% if result.segmentation.has_segmentation %}✓ Yes{% else %}✗ No{% endif %}
                             </div>
-                            <div class="stat-label">Segmentation trouvée</div>
+                            <div class="stat-label">Segmentation found</div>
                         </div>
                     </div>
                     
                     {% if not result.segmentation.has_segmentation %}
                     <div class="warning-message">
                         <i class="fas fa-exclamation-triangle"></i>
-                        <p>La segmentation n'a pas détecté de région significative.</p>
-                        <small>Le modèle U-Net peut ne pas être adapté à ce type d'image.</small>
+                        <p>Segmentation did not detect any significant region.</p>
+                        <small>The U-Net model may not be suitable for this type of image.</small>
                     </div>
                     {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- Galerie d'images -->
+        <!-- Image gallery -->
         <div class="image-gallery">
-            <h4><i class="fas fa-images"></i> Visualisation</h4>
+            <h4><i class="fas fa-images"></i> Visualization</h4>
             <div class="gallery-grid">
                 <div class="gallery-item">
-                    <div class="gallery-label">Originale</div>
+                    <div class="gallery-label">Original</div>
                     <img src="data:image/jpeg;base64,{{ image_data }}" alt="Original">
                 </div>
                 <div class="gallery-item">
-                    <div class="gallery-label">Détection</div>
+                    <div class="gallery-label">Detection</div>
                     {% if detection_image %}
-                    <img src="data:image/jpeg;base64,{{ detection_image }}" alt="Détection">
+                    <img src="data:image/jpeg;base64,{{ detection_image }}" alt="Detection">
                     {% else %}
-                    <div class="no-image">Image non disponible</div>
+                    <div class="no-image">Image not available</div>
                     {% endif %}
                 </div>
                 <div class="gallery-item">
@@ -181,7 +181,7 @@
                     {% if segmentation_image %}
                     <img src="data:image/jpeg;base64,{{ segmentation_image }}" alt="Segmentation">
                     {% else %}
-                    <div class="no-image">Image non disponible</div>
+                    <div class="no-image">Image not available</div>
                     {% endif %}
                 </div>
             </div>

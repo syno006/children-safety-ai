@@ -1,9 +1,9 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Classification IA — ShelterCare AI{% endblock %}
+{% block title %}AI Classification — ShelterCare AI{% endblock %}
 
-{% block page_title %}Classification des Blessures{% endblock %}
-{% block page_subtitle %}EfficientNet-B3 · Analyse XAI par Grad-CAM{% endblock %}
+{% block page_title %}Injury Classification{% endblock %}
+{% block page_subtitle %}EfficientNet-B3 · XAI Analysis with Grad-CAM{% endblock %}
 
 {% block extra_css %}
 
@@ -92,13 +92,13 @@
     position: relative;
     overflow: hidden;
 }
-.result-banner.urgence-haute {
+.result-banner.urgency-high {
     background: rgba(200,70,50,.06);
     border: 1px solid rgba(200,70,50,.22);
     border-left: 4px solid #c84632;
     border-radius: 0 var(--r-xl) var(--r-xl) 0;
 }
-.result-banner.urgence-modere {
+.result-banner.urgency-moderate {
     background: rgba(196,150,60,.07);
     border: 1px solid rgba(196,150,60,.22);
     border-left: 4px solid var(--gold);
@@ -125,8 +125,8 @@
     font-size: 1.65rem;
     flex-shrink: 0;
 }
-.urgence-haute  .result-icon-wrap { background: rgba(200,70,50,.12); color: #c84632; }
-.urgence-modere .result-icon-wrap { background: rgba(196,150,60,.12); color: var(--gold); }
+.urgency-high  .result-icon-wrap { background: rgba(200,70,50,.12); color: #c84632; }
+.urgency-moderate .result-icon-wrap { background: rgba(196,150,60,.12); color: var(--gold); }
 .non-urgent     .result-icon-wrap { background: rgba(50,160,80,.1);   color: #329e50; }
 
 .result-meta { flex: 1; }
@@ -146,8 +146,8 @@
     font-weight: 700;
     line-height: 1.1;
 }
-.urgence-haute  .result-diag { color: #a8301e; }
-.urgence-modere .result-diag { color: var(--gold-deep); }
+.urgency-high  .result-diag { color: #a8301e; }
+.urgency-moderate .result-diag { color: var(--gold-deep); }
 .non-urgent     .result-diag { color: #267042; }
 
 .conf-block { min-width: 200px; }
@@ -178,8 +178,8 @@
     overflow: hidden;
 }
 .conf-fill { height: 100%; border-radius: var(--r-full); transition: width .8s var(--ease); }
-.urgence-haute  .conf-fill { background: #c84632; }
-.urgence-modere .conf-fill { background: var(--grad-gold); }
+.urgency-high  .conf-fill { background: #c84632; }
+.urgency-moderate .conf-fill { background: var(--grad-gold); }
 .non-urgent     .conf-fill { background: #329e50; }
 
 /* ── Probability rows ────────────────────────────────────── */
@@ -402,11 +402,11 @@
             <div class="upload-icon-ring">
                 <i class="fas fa-cloud-arrow-up"></i>
             </div>
-            <div class="upload-title">Déposer une image médicale</div>
+            <div class="upload-title">Upload a medical image</div>
             <p class="upload-sub">
-                Glissez-déposez ou cliquez pour sélectionner<br>
-                Analysée par <span class="model-chip">EfficientNet-B3</span>
-                avec explicabilité <span class="model-chip">Grad-CAM</span>
+                Drag & drop or click to select<br>
+                Analyzed by <span class="model-chip">EfficientNet-B3</span>
+                with <span class="model-chip">Grad-CAM</span> explainability
             </p>
             <div class="upload-formats">
                 <span class="fmt-pill">JPG</span>
@@ -415,7 +415,7 @@
                 <span class="fmt-pill">TIFF</span>
             </div>
             <span class="btn btn-gold btn-sm">
-                <i class="fas fa-folder-open"></i> Parcourir les fichiers
+                <i class="fas fa-folder-open"></i> Browse files
             </span>
         </div>
     </label>
@@ -429,7 +429,7 @@
 <div class="section-head mt-3 reveal reveal-delay-1">
     <div class="section-title">
         <div class="section-title-icon"><i class="fas fa-circle-check"></i></div>
-        Résultat du diagnostic
+        Diagnostic result
     </div>
     <span class="badge badge-gold">
         <i class="fas fa-robot"></i> EfficientNet-B3
@@ -437,37 +437,37 @@
 </div>
 
 <div class="result-banner
-    {% if result.urgency == 'haute' %}urgence-haute
-    {% elif result.urgency == 'modere' %}urgence-modere
+    {% if result.urgency == 'high' %}urgency-high
+    {% elif result.urgency == 'moderate' %}urgency-moderate
     {% else %}non-urgent{% endif %} reveal reveal-delay-1">
     <div class="result-content">
         <div class="result-icon-wrap">
-            {% if result.urgency == 'haute' %}
+            {% if result.urgency == 'high' %}
                 <i class="fas fa-triangle-exclamation"></i>
-            {% elif result.urgency == 'modere' %}
+            {% elif result.urgency == 'moderate' %}
                 <i class="fas fa-circle-exclamation"></i>
             {% else %}
                 <i class="fas fa-circle-check"></i>
             {% endif %}
         </div>
         <div class="result-meta">
-            <div class="result-small-label">Diagnostic</div>
+            <div class="result-small-label">Diagnosis</div>
             <div class="result-diag
-                {% if result.urgency == 'haute' %}urgence-haute
-                {% elif result.urgency == 'modere' %}urgence-modere
+                {% if result.urgency == 'high' %}urgency-high
+                {% elif result.urgency == 'moderate' %}urgency-moderate
                 {% else %}non-urgent{% endif %}">
                 {{ result.prediction }}
             </div>
         </div>
         <div class="conf-block">
             <div class="conf-head">
-                <span class="conf-label">Confiance</span>
+                <span class="conf-label">Confidence</span>
                 <span class="conf-val">{{ result.confidence_score|floatformat:1 }}%</span>
             </div>
             <div class="conf-track">
                 <div class="conf-fill
-                    {% if result.urgency == 'haute' %}urgence-haute
-                    {% elif result.urgency == 'modere' %}urgence-modere
+                    {% if result.urgency == 'high' %}urgency-high
+                    {% elif result.urgency == 'moderate' %}urgency-moderate
                     {% else %}non-urgent{% endif %}"
                     style="width: {{ result.confidence_score }}%;">
                 </div>
@@ -480,7 +480,7 @@
 <div class="section-head mt-3 reveal reveal-delay-2">
     <div class="section-title">
         <div class="section-title-icon"><i class="fas fa-chart-pie"></i></div>
-        Distribution des probabilités
+        Probability distribution
     </div>
 </div>
 

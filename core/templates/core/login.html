@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Echo Verse — Login · Child Protection</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --ivory:       #FAF6EF;
+            --cream:       #F5EDD8;
+            --sand-light:  #EDD9B4;
+            --sand:        #D9BB8A;
+            --gold:        #C4963C;
+            --gold-deep:   #A87B2A;
+            --amber:       #8C5E1E;
+            --brown-light: #7A5230;
+            --brown:       #5E3D22;
+            --brown-deep:  #432B16;
+            --brown-dark:  #2D1D0F;
+            --grad-gold:   linear-gradient(135deg, #D4A84B 0%, #A87B2A 100%);
+            --grad-hero:   linear-gradient(140deg, #432B16 0%, #2D1D0F 60%, #5E3D22 100%);
+            --ease:        cubic-bezier(.22,.68,0,1.2);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--ivory);
+            color: var(--brown-deep);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Paper texture */
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.022'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ═══════════════════════════
+           TWO-PANEL LAYOUT
+        ═══════════════════════════ */
+        .page-wrap {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            min-height: 100vh;
+        }
+
+        /* ── LEFT PANEL (Hero / Brand) ── */
+        .left-panel {
+            background: var(--grad-hero);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 2.5rem 3rem;
+        }
+
+        /* Decorative circles */
+        .lp-circle-1 {
+            position: absolute;
+            top: -100px; right: -100px;
+            width: 380px; height: 380px;
+            border-radius: 50%;
+            border: 80px solid rgba(196,150,60,.07);
+            pointer-events: none;
+        }
+        .lp-circle-2 {
+            position: absolute;
+            bottom: -80px; left: -80px;
+            width: 280px; height: 280px;
+            border-radius: 50%;
+            border: 55px solid rgba(196,150,60,.05);
+            pointer-events: none;
+        }
+        .lp-circle-3 {
+            position: absolute;
+            bottom: 30%; right: -50px;
+            width: 160px; height: 160px;
+            border-radius: 50%;
+            border: 30px solid rgba(196,150,60,.06);
+            pointer-events: none;
+        }
+
+        /* Brand */
+        .lp-brand {
+            display: flex;
+            align-items: center;
+            gap: .85rem;
+            position: relative; z-index: 2;
+        }
+        .lp-logo {
+            width: 50px; height: 50px;
+            background: var(--grad-gold);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 18px rgba(196,150,60,.35);
+        }
+        .lp-logo svg { width: 28px; height: 28px; }
+        .lp-brand-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--cream);
+            letter-spacing: -.01em;
+            line-height: 1;
+        }
+        .lp-brand-name em { font-style: italic; color: var(--sand); }
+        .lp-brand-sub {
+            font-size: .58rem;
+            color: rgba(213,187,138,.4);
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            margin-top: .2rem;
+        }
+        .brand-heart {
+            display: inline-block;
+            color: var(--gold);
+            font-size: .7rem;
+            margin-left: .25rem;
+            animation: heartbeat 2.5s ease-in-out infinite;
+        }
+        @keyframes heartbeat {
+            0%,100%{transform:scale(1)}14%{transform:scale(1.25)}28%{transform:scale(1)}42%{transform:scale(1.18)}56%{transform:scale(1)}
+        }
+
+        /* Hero content */
+        .lp-hero {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .lp-tagline {
+            font-size: .6rem;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: rgba(213,187,138,.4);
+            font-family: 'DM Mono', monospace;
+            margin-bottom: .75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: .6rem;
+        }
+        .lp-tagline::before {
+            content: '';
+            display: inline-block;
+            width: 22px; height: 1px;
+            background: var(--gold);
+            opacity: .5;
+        }
+        .lp-tagline::after {
+            content: '';
+            display: inline-block;
+            width: 22px; height: 1px;
+            background: var(--gold);
+            opacity: .5;
+        }
+
+        /* Rotating Globe Container */
+        .globe-container {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 1rem;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .rotating-globe {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            animation: rotateGlobe 20s linear infinite;
+            filter: drop-shadow(0 8px 20px rgba(0,0,0,0.3));
+            transition: transform 0.3s ease;
+            border-radius: 50%;
+        }
+
+        .rotating-globe:hover {
+            animation-play-state: paused;
+            transform: scale(1.05);
+        }
+
+        @keyframes rotateGlobe {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Pulse effect around globe */
+        .globe-container::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(196,150,60,0.2), transparent);
+            animation: pulseGlow 2s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% {
+                opacity: 0.3;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1.1);
+            }
+        }
+
+        /* Inspire text */
+        .inspire-text {
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .inspire-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--cream);
+            letter-spacing: 0.02em;
+            margin-bottom: 0.5rem;
+        }
+
+        .inspire-subtitle {
+            font-size: 0.65rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--sand);
+            margin-bottom: 0.5rem;
+        }
+
+        .begin-journey {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(196,150,60,0.2);
+            border: 1px solid rgba(196,150,60,0.3);
+            border-radius: 30px;
+            padding: 0.4rem 1rem;
+            font-size: 0.7rem;
+            color: var(--sand);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .begin-journey:hover {
+            background: rgba(196,150,60,0.3);
+            gap: 0.8rem;
+        }
+
+        .lp-headline {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            font-weight: 700;
+            color: var(--cream);
+            line-height: 1.2;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .lp-headline em { 
+            font-style: italic; 
+            color: var(--sand);
+        }
+
+        .lp-sub {
+            font-size: .72rem;
+            color: rgba(245,237,216,.48);
+            line-height: 1.6;
+            text-align: center;
+            max-width: 320px;
+            margin: 0 auto;
+        }
+
+        /* Child avatars on left */
+        .lp-children {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        .lp-avi-row {
+            display: flex;
+        }
+        .lp-avi {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid rgba(196,150,60,.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .7rem;
+            font-weight: 700;
+            color: var(--cream);
+            margin-left: -8px;
+            flex-shrink: 0;
+        }
+        .lp-avi:first-child { margin-left: 0; }
+        .la-1 { background: linear-gradient(135deg,#8C5E1E,#C4963C); }
+        .la-2 { background: linear-gradient(135deg,#5E3D22,#A87B2A); }
+        .la-3 { background: linear-gradient(135deg,#432B16,#8C5E1E); }
+        .la-4 { background: linear-gradient(135deg,#7A5230,#C4963C); }
+        .la-more {
+            background: rgba(196,150,60,.15);
+            border: 2px solid rgba(196,150,60,.2);
+            color: var(--sand);
+            font-size: .58rem;
+        }
+        .lp-children-label {
+            font-size: .65rem;
+            color: rgba(213,187,138,.45);
+        }
+        .lp-children-label strong { color: var(--sand); }
+
+        /* Stat cards on left */
+        .lp-stats {
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap: .5rem;
+            margin-top: 1rem;
+        }
+        .lp-stat {
+            background: rgba(255,252,245,.06);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(196,150,60,.15);
+            border-radius: 12px;
+            padding: .6rem .5rem;
+            text-align: center;
+        }
+        .ls-val {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--cream);
+            line-height: 1;
+        }
+        .ls-lbl {
+            font-size: .5rem;
+            color: rgba(213,187,138,.38);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-top: .1rem;
+        }
+
+        /* Quote */
+        .lp-quote {
+            position: relative;
+            z-index: 2;
+            padding: 0.8rem 1rem;
+            background: rgba(196,150,60,.07);
+            border-left: 3px solid rgba(196,150,60,.3);
+            border-radius: 0 12px 12px 0;
+            font-style: italic;
+            font-size: .7rem;
+            color: rgba(245,237,216,.5);
+            line-height: 1.5;
+            margin-top: 1rem;
+        }
+        .lp-quote cite {
+            display: block;
+            margin-top: .3rem;
+            font-style: normal;
+            font-size: .58rem;
+            color: rgba(213,187,138,.35);
+            letter-spacing: .05em;
+        }
+
+        /* ── RIGHT PANEL (Auth forms) ── */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2.5rem 3rem;
+            background: #FFFCF5;
+            position: relative;
+        }
+        .right-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 1px; height: 100%;
+            background: linear-gradient(180deg, transparent 0%, rgba(196,150,60,.15) 30%, rgba(196,150,60,.15) 70%, transparent 100%);
+        }
+
+        .auth-box {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        /* Tab switcher */
+        .tab-bar {
+            display: flex;
+            background: rgba(196,150,60,.07);
+            border: 1px solid rgba(196,150,60,.12);
+            border-radius: 14px;
+            padding: 4px;
+            margin-bottom: 2rem;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: .7rem;
+            border: none;
+            background: transparent;
+            border-radius: 11px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .83rem;
+            font-weight: 600;
+            color: var(--brown-light);
+            cursor: pointer;
+            transition: all .22s var(--ease);
+        }
+        .tab-btn.active {
+            background: var(--grad-gold);
+            color: white;
+            box-shadow: 0 4px 14px rgba(196,150,60,.28);
+        }
+
+        .auth-head { margin-bottom: 1.75rem; }
+        .ah-eyebrow {
+            font-size: .6rem;
+            letter-spacing: .15em;
+            text-transform: uppercase;
+            color: rgba(196,150,60,.5);
+            font-family: 'DM Mono', monospace;
+            margin-bottom: .45rem;
+        }
+        .ah-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: var(--brown-deep);
+            line-height: 1.05;
+        }
+        .ah-sub {
+            font-size: .78rem;
+            color: var(--brown-light);
+            margin-top: .4rem;
+            line-height: 1.55;
+        }
+
+        .form-group { margin-bottom: 1.1rem; }
+        .fg-label {
+            display: block;
+            font-size: .72rem;
+            font-weight: 600;
+            color: var(--brown-light);
+            margin-bottom: .4rem;
+            letter-spacing: .02em;
+        }
+        .fg-wrap {
+            position: relative;
+        }
+        .fg-icon {
+            position: absolute;
+            left: .95rem; top: 50%;
+            transform: translateY(-50%);
+            color: rgba(196,150,60,.5);
+            font-size: .85rem;
+            pointer-events: none;
+            transition: color .2s;
+        }
+        .fg-input {
+            width: 100%;
+            padding: .72rem .95rem .72rem 2.5rem;
+            border: 1.5px solid rgba(196,150,60,.18);
+            border-radius: 12px;
+            background: #FFFDF8;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .84rem;
+            color: var(--brown-deep);
+            transition: all .2s;
+            outline: none;
+        }
+        .fg-input::placeholder { color: rgba(122,82,48,.35); }
+        .fg-input:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 4px rgba(196,150,60,.1);
+            background: white;
+        }
+        .fg-input:focus + .fg-icon { color: var(--gold); }
+
+        .pwd-toggle {
+            position: absolute;
+            right: .9rem; top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: rgba(196,150,60,.4);
+            cursor: pointer;
+            font-size: .85rem;
+            padding: .2rem;
+            transition: color .2s;
+        }
+        .pwd-toggle:hover { color: var(--gold); }
+
+        .form-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.4rem;
+        }
+        .checkbox-wrap {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            cursor: pointer;
+        }
+        .checkbox-wrap input[type="checkbox"] {
+            width: 16px; height: 16px;
+            accent-color: var(--gold);
+            cursor: pointer;
+        }
+        .checkbox-wrap span {
+            font-size: .75rem;
+            color: var(--brown-light);
+        }
+        .form-link {
+            font-size: .75rem;
+            color: var(--gold-deep);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color .2s;
+        }
+        .form-link:hover { color: var(--brown); text-decoration: underline; }
+
+        .btn-submit {
+            width: 100%;
+            padding: .85rem;
+            border: none;
+            border-radius: 12px;
+            background: var(--grad-gold);
+            color: white;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .22s var(--ease);
+            box-shadow: 0 4px 16px rgba(196,150,60,.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .6rem;
+            letter-spacing: .02em;
+        }
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(196,150,60,.38);
+        }
+        .btn-submit:active { transform: scale(.98); }
+
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            gap: .85rem;
+            margin: 1.35rem 0;
+        }
+        .auth-divider::before, .auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(196,150,60,.13);
+        }
+        .auth-divider span {
+            font-size: .66rem;
+            color: rgba(122,82,48,.4);
+            text-transform: uppercase;
+            letter-spacing: .1em;
+        }
+
+        .register-note {
+            margin-top: 1rem;
+            padding: .85rem 1rem;
+            background: rgba(196,150,60,.07);
+            border: 1px solid rgba(196,150,60,.15);
+            border-radius: 12px;
+            font-size: .72rem;
+            color: var(--brown-light);
+            line-height: 1.55;
+            display: flex;
+            align-items: flex-start;
+            gap: .6rem;
+        }
+        .register-note i { color: var(--gold); margin-top: .05rem; flex-shrink: 0; }
+
+        .auth-form { display: none; }
+        .auth-form.active { display: block; }
+
+        .auth-footer-note {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-size: .7rem;
+            color: rgba(122,82,48,.45);
+            line-height: 1.55;
+        }
+        .auth-footer-note a { color: var(--gold-deep); text-decoration: none; font-weight: 600; }
+        .auth-footer-note a:hover { text-decoration: underline; }
+
+        .form-error {
+            display: none;
+            background: rgba(192,57,43,.07);
+            border: 1px solid rgba(192,57,43,.18);
+            border-radius: 10px;
+            padding: .65rem .9rem;
+            font-size: .73rem;
+            color: #b04030;
+            margin-bottom: 1rem;
+            align-items: center;
+            gap: .5rem;
+        }
+        .form-error.show { display: flex; }
+
+        .success-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(45,29,15,.8);
+            backdrop-filter: blur(14px);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1.5rem;
+            text-align: center;
+        }
+        .success-overlay.show { display: flex; }
+        .so-icon {
+            width: 80px; height: 80px;
+            background: var(--grad-gold);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem;
+            color: white;
+            box-shadow: 0 8px 32px rgba(196,150,60,.4);
+            animation: popIn .5s var(--ease);
+        }
+        @keyframes popIn { from { transform: scale(0); opacity:0; } to { transform: scale(1); opacity:1; } }
+        .so-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--cream);
+        }
+        .so-sub { font-size: .82rem; color: rgba(213,187,138,.5); max-width: 320px; line-height: 1.6; }
+        .so-btn {
+            margin-top: .5rem;
+            padding: .75rem 2rem;
+            background: var(--grad-gold);
+            border: none;
+            border-radius: 999px;
+            color: white;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .85rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(196,150,60,.35);
+            transition: all .2s;
+        }
+        .so-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(196,150,60,.4); }
+
+        @media (max-width: 900px) {
+            .page-wrap { grid-template-columns: 1fr; }
+            .left-panel { padding: 2rem; min-height: auto; }
+            .right-panel { padding: 2rem 1.5rem; }
+            .form-row { grid-template-columns: 1fr; }
+            .globe-container { width: 150px; height: 150px; }
+        }
+        @media (max-width: 480px) {
+            .left-panel { padding: 1.5rem; }
+            .right-panel { padding: 1.5rem 1rem; }
+            .auth-box { max-width: 100%; }
+            .globe-container { width: 120px; height: 120px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Success overlay -->
+<div class="success-overlay" id="successOverlay">
+    <div class="so-icon"><i class="fas fa-shield-heart"></i></div>
+    <div class="so-title" id="successTitle">Login successful</div>
+    <div class="so-sub" id="successSub">You are now logged in. Redirecting to dashboard…</div>
+    <button class="so-btn" onclick="window.location.href='{% url 'core:home' %}'">
+        <i class="fas fa-house-heart"></i> Go to dashboard
+    </button>
+</div>
+
+<div class="page-wrap">
+
+    <!-- ════════ LEFT PANEL ════════ -->
+    <div class="left-panel">
+        <div class="lp-circle-1"></div>
+        <div class="lp-circle-2"></div>
+        <div class="lp-circle-3"></div>
+
+        <!-- Brand -->
+        <div class="lp-brand">
+            <div class="lp-logo">
+                <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 2L4 6v8c0 5.5 4.3 10.6 10 12 5.7-1.4 10-6.5 10-12V6L14 2z" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.45)" stroke-width="1"/>
+                    <circle cx="14" cy="9.5" r="2.5" fill="white"/>
+                    <path d="M10.5 14.5c0-1.9 1.6-3.5 3.5-3.5s3.5 1.6 3.5 3.5v3h-7v-3z" fill="white"/>
+                    <path d="M9 16l-2.5 1.5M19 16l2.5 1.5" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <div>
+                <div class="lp-brand-name">Echo <em>Verse</em><span class="brand-heart">♥</span></div>
+                <div class="lp-brand-sub">Child Protection</div>
+            </div>
+        </div>
+
+        <!-- Hero with Rotating Globe -->
+        <div class="lp-hero">
+            <div class="lp-tagline">Surveillance System · Shelters · 24/7</div>
+            
+            <!-- Rotating Globe - URL d'image réelle et fonctionnelle -->
+            <div class="globe-container">
+                <img class="rotating-globe" 
+                     src="https://www.unicef.org/supply/sites/unicef.org.supply/files/styles/hero_extended/public/Uganda-UN0588335-banner.jpg.webp?itok=-RJrUD5m" 
+                     alt="Rotating Earth - Vue de la Terre la nuit"
+                     onerror="this.src='https://cdn.pixabay.com/photo/2012/04/18/13/05/earth-37009_640.png'">
+            </div>
+
+            <!-- Inspire Text -->
+            <div class="inspire-text">
+                <div class="inspire-title">Inspire the World</div>
+                <div class="inspire-subtitle">DISCOVER INFINITE POSSIBILITIES</div>
+                <a href="#" class="begin-journey" onclick="document.querySelector('.tab-btn.active').click(); return false;">
+                    BEGIN JOURNEY <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <div class="lp-headline">
+                Every child<br>
+                deserves a <em>voice</em>
+            </div>
+            <div class="lp-sub">
+                Echo Verse gives shelter supervisors the AI tools
+                to detect, prevent, and take action — so every child is safe.
+            </div>
+
+            <!-- Child avatars -->
+            <div class="lp-children">
+                <div class="lp-avi-row">
+                    <div class="lp-avi la-1">A</div>
+                    <div class="lp-avi la-2">M</div>
+                    <div class="lp-avi la-3">K</div>
+                    <div class="lp-avi la-4">S</div>
+                    <div class="lp-avi la-more">+230</div>
+                </div>
+                <div class="lp-children-label">
+                    <strong>234 children</strong> count on you
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="lp-stats">
+                <div class="lp-stat">
+                    <div class="ls-val">156</div>
+                    <div class="ls-lbl">Shelters</div>
+                </div>
+                <div class="lp-stat">
+                    <div class="ls-val">98%</div>
+                    <div class="ls-lbl">Detection</div>
+                </div>
+                <div class="lp-stat">
+                    <div class="ls-val">24/7</div>
+                    <div class="ls-lbl">Active</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quote -->
+        <div class="lp-quote">
+            "Protecting a child is not just a duty — it is an act of love
+            that all of society must carry together."
+            <cite>— Echo Verse Team</cite>
+        </div>
+    </div>
+
+    <!-- ════════ RIGHT PANEL ════════ -->
+    <div class="right-panel">
+        <div class="auth-box">
+
+            <!-- Tab switcher -->
+            <div class="tab-bar">
+                <button class="tab-btn active" id="tabLogin" onclick="switchTab('login')">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+                <button class="tab-btn" id="tabRegister" onclick="switchTab('register')">
+                    <i class="fas fa-user-plus"></i> Create account
+                </button>
+            </div>
+
+            <!-- ── LOGIN FORM ── -->
+            <div class="auth-form active" id="formLogin">
+                <div class="auth-head">
+                    <div class="ah-eyebrow">Shelter supervisor area</div>
+                    <div class="ah-title">Welcome back</div>
+                    <div class="ah-sub">Log in to access the real-time protection dashboard.</div>
+                </div>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="form-error show" style="background: {% if message.tags == 'error' %}rgba(192,57,43,.07){% else %}rgba(168,230,207,.2){% endif %}; border-color: {% if message.tags == 'error' %}rgba(192,57,43,.18){% else %}rgba(168,230,207,.3){% endif %}; color: {% if message.tags == 'error' %}#b04030{% else %}#2d7a48{% endif %};">
+                            <i class="fas fa-{% if message.tags == 'error' %}exclamation-circle{% else %}check-circle{% endif %}"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="post" action="{% url 'core:login' %}" onsubmit="return true;">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label class="fg-label" for="loginEmail">Email address or username</label>
+                        <div class="fg-wrap">
+                            <i class="fas fa-envelope fg-icon"></i>
+                            <input class="fg-input" type="text" id="loginEmail" name="username"
+                                   placeholder="your.email@shelter.fr or username" required autocomplete="username"/>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="fg-label" for="loginPwd">Password</label>
+                        <div class="fg-wrap">
+                            <i class="fas fa-lock fg-icon"></i>
+                            <input class="fg-input" type="password" id="loginPwd" name="password"
+                                   placeholder="••••••••" required autocomplete="current-password"/>
+                            <button type="button" class="pwd-toggle" onclick="togglePwd('loginPwd', this)" tabindex="-1">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-meta">
+                        <label class="checkbox-wrap">
+                            <input type="checkbox" name="remember">
+                            <span>Remember me</span>
+                        </label>
+                        <a href="#" class="form-link">Forgot password?</a>
+                    </div>
+
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-shield-heart"></i>
+                        Access dashboard
+                    </button>
+                </form>
+
+                <div class="auth-divider"><span>or</span></div>
+
+                <div style="text-align:center;">
+                    <span style="font-size:.75rem;color:var(--brown-light);">Don't have an account yet?</span>
+                    <button onclick="switchTab('register')"
+                        style="background:none;border:none;color:var(--gold-deep);font-size:.75rem;font-weight:700;cursor:pointer;margin-left:.4rem;font-family:'DM Sans',sans-serif;">
+                        Create supervisor account <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <div class="auth-footer-note">
+                    By logging in, you agree to our
+                    <a href="#">Terms of use</a> and
+                    <a href="#">Privacy policy</a>.<br>
+                    All data is protected and GDPR compliant.
+                </div>
+            </div>
+
+            <!-- ── REGISTER FORM ── -->
+            <div class="auth-form" id="formRegister">
+                <div class="auth-head">
+                    <div class="ah-eyebrow">Join the protection team</div>
+                    <div class="ah-title">Create your account</div>
+                    <div class="ah-sub">Sign up to monitor and protect the children in your shelter.</div>
+                </div>
+
+                <form method="post" action="{% url 'core:register' %}">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label class="fg-label" for="regFullName">Full name</label>
+                        <div class="fg-wrap">
+                            <i class="fas fa-user fg-icon"></i>
+                            <input class="fg-input" type="text" id="regFullName" name="full_name"
+                                   placeholder="Marie Dupont" required/>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="fg-label" for="regUsername">Username</label>
+                        <div class="fg-wrap">
+                            <i class="fas fa-at fg-icon"></i>
+                            <input class="fg-input" type="text" id="regUsername" name="username"
+                                   placeholder="marie.dupont" required/>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="fg-label" for="regEmail">Professional email address</label>
+                        <div class="fg-wrap">
+                            <i class="fas fa-envelope fg-icon"></i>
+                            <input class="fg-input" type="email" id="regEmail" name="email"
+                                   placeholder="marie.dupont@shelter.fr" required autocomplete="off"/>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="fg-label" for="regShelter">Shelter name</label>
+                        <div class="fg-wrap">
+                            <i class="fas fa-house-heart fg-icon"></i>
+                            <input class="fg-input" type="text" id="regShelter" name="shelter_name"
+                                   placeholder="Saint-Paul Shelter" required/>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="fg-label" for="regPwd">Password</label>
+                        <div class="fg-wrap">
+                            <i class="fas fa-lock fg-icon"></i>
+                            <input class="fg-input" type="password" id="regPwd" name="password1"
+                                   placeholder="Minimum 8 characters" required minlength="8" autocomplete="new-password"/>
+                            <button type="button" class="pwd-toggle" onclick="togglePwd('regPwd', this)" tabindex="-1">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="fg-label" for="regPwd2">Confirm password</label>
+                        <div class="fg-wrap">
+                            <i class="fas fa-lock fg-icon"></i>
+                            <input class="fg-input" type="password" id="regPwd2" name="password2"
+                                   placeholder="Retype your password" required autocomplete="new-password"/>
+                            <button type="button" class="pwd-toggle" onclick="togglePwd('regPwd2', this)" tabindex="-1">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <label class="checkbox-wrap" style="margin-bottom:1.25rem;">
+                        <input type="checkbox" name="terms" required>
+                        <span>I accept the <a href="#" class="form-link">Terms of use</a> and commit to protecting children's confidentiality.</span>
+                    </label>
+
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-child"></i>
+                        Create my account & protect children
+                    </button>
+                </form>
+
+                <div class="register-note">
+                    <i class="fas fa-circle-info"></i>
+                    <span>Your account will be verified by your shelter administrator before activation.
+                    All data is encrypted and GDPR compliant.</span>
+                </div>
+
+                <div class="auth-divider"><span>or</span></div>
+
+                <div style="text-align:center;">
+                    <span style="font-size:.75rem;color:var(--brown-light);">Already have an account?</span>
+                    <button onclick="switchTab('login')"
+                        style="background:none;border:none;color:var(--gold-deep);font-size:.75rem;font-weight:700;cursor:pointer;margin-left:.4rem;font-family:'DM Sans',sans-serif;">
+                        Log in <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+        </div><!-- /auth-box -->
+    </div><!-- /right-panel -->
+
+</div><!-- /page-wrap -->
+
+<script>
+function switchTab(tab) {
+    document.getElementById('formLogin').classList.toggle('active', tab === 'login');
+    document.getElementById('formRegister').classList.toggle('active', tab === 'register');
+    document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
+    document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
+    document.getElementById('loginError')?.classList.remove('show');
+    document.getElementById('registerError')?.classList.remove('show');
+}
+
+function togglePwd(inputId, btn) {
+    const inp = document.getElementById(inputId);
+    const icon = btn.querySelector('i');
+    if (inp.type === 'password') {
+        inp.type = 'text';
+        icon.className = 'fas fa-eye-slash';
+    } else {
+        inp.type = 'password';
+        icon.className = 'fas fa-eye';
+    }
+}
+
+document.querySelectorAll('.fg-input, .fg-select').forEach(inp => {
+    const wrap = inp.parentElement;
+    inp.addEventListener('focus', () => {
+        const icon = wrap.querySelector('.fg-icon');
+        if (icon) icon.style.color = 'var(--gold)';
+    });
+    inp.addEventListener('blur', () => {
+        const icon = wrap.querySelector('.fg-icon');
+        if (icon) icon.style.color = 'rgba(196,150,60,.5)';
+    });
+});
+</script>
+
+</body>
+</html>

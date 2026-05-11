@@ -1,9 +1,9 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Détection IA — ShelterCare AI{% endblock %}
+{% block title %}AI Detection — ShelterCare AI{% endblock %}
 
-{% block page_title %}Détection des Lésions{% endblock %}
-{% block page_subtitle %}YOLOv8s · Localisation par bounding boxes · Confiance min : {{ conf_threshold|floatformat:2 }}{% endblock %}
+{% block page_title %}Injury Detection{% endblock %}
+{% block page_subtitle %}YOLOv8s · Localization with bounding boxes · Min confidence : {{ conf_threshold|floatformat:2 }}{% endblock %}
 
 {% block extra_css %}
 
@@ -327,10 +327,10 @@
             <div class="upload-icon-ring">
                 <i class="fas fa-crosshairs"></i>
             </div>
-            <div class="upload-title">Déposer une image pour détection</div>
+            <div class="upload-title">Upload an image for detection</div>
             <p class="upload-sub">
-                Analysée par <span class="model-chip">YOLOv8s</span> — localisation et encadrement de chaque lésion<br>
-                Seuil de confiance minimum : <span class="model-chip">{{ conf_threshold|floatformat:2 }}</span>
+                Analyzed by <span class="model-chip">YOLOv8s</span> — localization and framing of each injury<br>
+                Minimum confidence threshold: <span class="model-chip">{{ conf_threshold|floatformat:2 }}</span>
             </p>
             <div class="upload-formats">
                 <span class="fmt-pill">JPG</span>
@@ -339,7 +339,7 @@
                 <span class="fmt-pill">TIFF</span>
             </div><br>
             <span class="btn btn-gold btn-sm" style="margin-top:.6rem;">
-                <i class="fas fa-folder-open"></i> Parcourir les fichiers
+                <i class="fas fa-folder-open"></i> Browse files
             </span>
         </div>
     </label>
@@ -354,22 +354,22 @@
     <div class="kpi-card">
         <div class="kpi-icon"><i class="fas fa-bullseye"></i></div>
         <div class="kpi-val">{{ result.count|default:0 }}</div>
-        <div class="kpi-lbl">Blessures détectées</div>
+        <div class="kpi-lbl">Injuries detected</div>
     </div>
     <div class="kpi-card">
         <div class="kpi-icon"><i class="fas fa-expand"></i></div>
         <div class="kpi-val">{{ result.total_area|floatformat:1|default:0 }}%</div>
-        <div class="kpi-lbl">Surface totale</div>
+        <div class="kpi-lbl">Total area</div>
     </div>
     <div class="kpi-card">
         <div class="kpi-icon"><i class="fas fa-arrow-trend-up"></i></div>
         <div class="kpi-val">{{ result.max_confidence|floatformat:1|default:0 }}%</div>
-        <div class="kpi-lbl">Confiance max</div>
+        <div class="kpi-lbl">Max confidence</div>
     </div>
     <div class="kpi-card">
         <div class="kpi-icon"><i class="fas fa-chart-bar"></i></div>
         <div class="kpi-val">{{ result.avg_confidence|floatformat:1|default:0 }}%</div>
-        <div class="kpi-lbl">Confiance moy.</div>
+        <div class="kpi-lbl">Avg. confidence</div>
     </div>
 </div>
 
@@ -380,17 +380,17 @@
     <div class="img-pane">
         <div class="pane-head">
             <div class="pane-title">
-                <i class="fas fa-image"></i> Image annotée
+                <i class="fas fa-image"></i> Annotated image
             </div>
             <span class="pane-badge">YOLOv8s</span>
         </div>
         <div class="img-body">
             {% if image_data %}
-            <img src="data:image/jpeg;base64,{{ image_data }}" alt="Détections YOLO">
+            <img src="data:image/jpeg;base64,{{ image_data }}" alt="YOLO detections">
             {% else %}
             <div class="img-placeholder">
                 <i class="fas fa-crosshairs"></i>
-                <p>Image annotée avec bounding boxes</p>
+                <p>Annotated image with bounding boxes</p>
             </div>
             {% endif %}
         </div>
@@ -400,9 +400,9 @@
     <div class="boxes-pane">
         <div class="pane-head">
             <div class="pane-title">
-                <i class="fas fa-list-ul"></i> Détails des blessures
+                <i class="fas fa-list-ul"></i> Injury details
             </div>
-            <span class="count-pill">{{ result.count|default:0 }} détection{{ result.count|pluralize:"s" }}</span>
+            <span class="count-pill">{{ result.count|default:0 }} detection{{ result.count|pluralize:"s" }}</span>
         </div>
         <div class="boxes-scroll">
             {% for box in result.boxes %}
@@ -410,7 +410,7 @@
                 <div class="box-top">
                     <div class="box-id-wrap">
                         <div class="box-num">{{ forloop.counter }}</div>
-                        <span class="box-label">Blessure #{{ forloop.counter }}</span>
+                        <span class="box-label">Injury #{{ forloop.counter }}</span>
                     </div>
                     <span class="conf-badge
                         {% if box.confidence >= 70 %}conf-high
@@ -425,12 +425,12 @@
                         <span class="detail-val">({{ box.x1 }}, {{ box.y1 }}) → ({{ box.x2 }}, {{ box.y2 }})</span>
                     </div>
                     <div class="detail-row">
-                        <span class="detail-lbl">Taille</span>
+                        <span class="detail-lbl">Size</span>
                         <span class="detail-val">{{ box.width }} × {{ box.height }} px</span>
                     </div>
                     <div class="detail-row">
-                        <span class="detail-lbl">Surface</span>
-                        <span class="detail-val">{{ box.area_percentage|floatformat:1 }}% de l'image</span>
+                        <span class="detail-lbl">Area</span>
+                        <span class="detail-val">{{ box.area_percentage|floatformat:1 }}% of image</span>
                     </div>
                 </div>
                 <div class="conf-mini">
@@ -445,7 +445,7 @@
             {% empty %}
             <div class="empty-det">
                 <i class="fas fa-magnifying-glass"></i>
-                <p>Aucune blessure détectée au-dessus du seuil</p>
+                <p>No injuries detected above threshold</p>
             </div>
             {% endfor %}
         </div>

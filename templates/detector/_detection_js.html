@@ -1,0 +1,259 @@
+// ── State ──
+let cameraStream = null, analysisTimer = null, isAnalyzing = false;
+let soundEnabled = true, alarmDismissed = false;
+let analysisInterval = 3000;
+let totalFrames = 0, violentCount = 0, safeCount = 0;
+let maxRisk = 0, confSum = 0, lastMinuteTs = [];
+
+const CIRC = 2 * Math.PI * 56; // 351.86
+
+// ── DOM refs ──
+const video          = document.getElementById('camera-feed');
+const canvas         = document.getElementById('camera-canvas');
+const cameraIdle     = document.getElementById('camera-idle');
+const cameraWrapper  = document.getElementById('camera-wrapper');
+const violentOverlay = document.getElementById('violent-overlay');
+const liveDot        = document.getElementById('live-dot');
+const liveLabel      = document.getElementById('live-label');
+const startBtn       = document.getElementById('start-btn');
+const stopBtn        = document.getElementById('stop-btn');
+const alarmBanner    = document.getElementById('alarm-banner');
+const alarmText      = document.getElementById('alarm-text');
+const gaugeArc       = document.getElementById('gauge-arc');
+const gaugePct       = document.getElementById('gauge-pct');
+const verdictBadge   = document.getElementById('verdict-badge');
+const timeline       = document.getElementById('timeline');
+
+// ── Audio (Web Audio API — no files needed) ──
+let audioCtx = null;
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playAlarmSound() {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getAudio();
+    [0, 0.18, 0.36, 0.54].forEach(d => {
+      const osc = ctx.createOscillator(), g = ctx.createGain();
+      osc.connect(g); g.connect(ctx.destination);
+      osc.type = 'square'; osc.frequency.value = 880;
+      g.gain.setValueAtTime(0, ctx.currentTime + d);
+      g.gain.linearRampToValueAtTime(0.35, ctx.currentTime + d + 0.01);
+      g.gain.linearRampToValueAtTime(0, ctx.currentTime + d + 0.14);
+      osc.start(ctx.currentTime + d); osc.stop(ctx.currentTime + d + 0.15);
+    });
+  } catch(e) {}
+}
+
+function playSafeSound() {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getAudio();
+    const osc = ctx.createOscillator(), g = ctx.createGain();
+    osc.connect(g); g.connect(ctx.destination);
+    osc.type = 'sine'; osc.frequency.value = 660;
+    g.gain.setValueAtTime(0, ctx.currentTime);
+    g.gain.linearRampToValueAtTime(0.07, ctx.currentTime + 0.02);
+    g.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.18);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.2);
+  } catch(e) {}
+}
+
+// ── Camera ──
+async function startCamera() {
+  try {
+    getAudio(); // unlock on gesture
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+    cameraStream = stream;
+    video.srcObject = stream;
+    video.style.display = 'block';
+    cameraIdle.style.display = 'none';
+    liveDot.classList.add('active');
+    liveLabel.textContent = 'Live — Analyzing';
+    startBtn.disabled = true; stopBtn.disabled = false;
+    alarmDismissed = false;
+    scheduleAnalysis();
+  } catch(err) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      cameraStream = stream;
+      video.srcObject = stream;
+      video.style.display = 'block';
+      cameraIdle.style.display = 'none';
+      liveDot.classList.add('active');
+      liveLabel.textContent = 'Live — Analyzing';
+      startBtn.disabled = true; stopBtn.disabled = false;
+      alarmDismissed = false;
+      scheduleAnalysis();
+    } catch(e) {
+      alert('Camera access denied: ' + e.message);
+    }
+  }
+}
+
+function stopCamera() {
+  if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+  clearTimeout(analysisTimer);
+  video.style.display = 'none';
+  cameraIdle.style.display = 'flex';
+  cameraWrapper.classList.remove('violent-border');
+  violentOverlay.classList.remove('visible');
+  liveDot.classList.remove('active');
+  liveLabel.textContent = 'Camera Inactive';
+  startBtn.disabled = false; stopBtn.disabled = true;
+  dismissAlarm();
+}
+
+// ── Analysis loop ──
+function scheduleAnalysis() {
+  if (!cameraStream) return;
+  analysisTimer = setTimeout(() => captureAndAnalyze().finally(scheduleAnalysis), analysisInterval);
+}
+
+async function captureAndAnalyze() {
+  if (!cameraStream || isAnalyzing) return;
+  isAnalyzing = true;
+  try {
+    canvas.width  = video.videoWidth  || 640;
+    canvas.height = video.videoHeight || 480;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.85));
+    const form = new FormData();
+    form.append('frame', blob, 'frame.jpg');
+
+    const csrf = document.cookie.split(';')
+      .find(c => c.trim().startsWith('csrftoken='))?.split('=')[1] || '';
+
+    const resp = await fetch('/violence/api/analyze-frame/', {
+      method: 'POST', body: form,
+      headers: { 'X-CSRFToken': csrf }
+    });
+    if (!resp.ok) throw new Error(`Server ${resp.status}`);
+    handleResult(await resp.json());
+  } catch(err) {
+    console.error('Frame analysis error:', err);
+    addLogEntry(null, err.message);
+  } finally {
+    isAnalyzing = false;
+  }
+}
+
+// ── Result handler ──
+function handleResult(r) {
+  totalFrames++;
+  const isViolent  = r.alert === true || r.label === 'Violent';
+  const probV      = parseFloat(r.prob_violent) || 0;
+  const confidence = parseFloat(r.confidence)  || 0;
+
+  if (isViolent) violentCount++; else safeCount++;
+  if (probV > maxRisk) maxRisk = probV;
+  confSum += confidence;
+  lastMinuteTs.push(Date.now());
+
+  updateGauge(probV, isViolent);
+
+  if (isViolent) {
+    cameraWrapper.classList.add('violent-border');
+    violentOverlay.classList.add('visible');
+    triggerAlarm(r);
+    playAlarmSound();
+  } else {
+    cameraWrapper.classList.remove('violent-border');
+    violentOverlay.classList.remove('visible');
+    dismissAlarm();
+    playSafeSound();
+  }
+
+  updateCounters();
+  addLogEntry(r);
+}
+
+function updateGauge(probV, isViolent) {
+  const pct    = Math.min(Math.max(probV, 0), 100);
+  const offset = CIRC * (1 - pct / 100);
+  gaugeArc.style.strokeDashoffset = offset;
+  gaugeArc.style.stroke           = isViolent ? '#c1440e' : '#6d8a2a';
+  gaugePct.textContent            = pct.toFixed(1) + '%';
+  gaugePct.style.color            = isViolent ? '#c1440e' : '#6d8a2a';
+
+  if (isViolent) {
+    verdictBadge.innerHTML  = '⚠ VIOLENT — ' + (probV >= 75 ? 'HIGH' : 'MEDIUM') + ' RISK';
+    verdictBadge.style.cssText = 'display:inline-flex;align-items:center;gap:.4rem;padding:.35rem 1rem;border-radius:9999px;font-size:.82rem;font-weight:600;background:rgba(193,68,14,.15);color:#c1440e;border:1px solid rgba(193,68,14,.35);margin-top:1rem;';
+  } else {
+    verdictBadge.innerHTML  = '✓ SAFE';
+    verdictBadge.style.cssText = 'display:inline-flex;align-items:center;gap:.4rem;padding:.35rem 1rem;border-radius:9999px;font-size:.82rem;font-weight:600;background:rgba(109,138,42,.1);color:#6d8a2a;border:1px solid rgba(109,138,42,.25);margin-top:1rem;';
+  }
+}
+
+function updateCounters() {
+  document.getElementById('stat-alerts').textContent  = violentCount;
+  document.getElementById('stat-safe').textContent    = safeCount;
+  document.getElementById('stat-frames').textContent  = totalFrames;
+  document.getElementById('sess-violent').textContent = violentCount;
+  document.getElementById('sess-safe').textContent    = safeCount;
+  document.getElementById('sess-max').textContent     = maxRisk.toFixed(1) + '%';
+  document.getElementById('sess-conf').textContent    = totalFrames
+    ? (confSum / totalFrames).toFixed(1) + '%' : '—';
+  const now = Date.now();
+  lastMinuteTs = lastMinuteTs.filter(t => now - t < 60000);
+  document.getElementById('stat-fps').textContent = lastMinuteTs.length;
+}
+
+// ── Alarm ──
+function triggerAlarm(r) {
+  if (alarmDismissed) return;
+  const risk = parseFloat(r.prob_violent) >= 75 ? 'HIGH RISK' : 'MEDIUM RISK';
+  alarmText.textContent = `VIOLENCE DETECTED — ${risk} (${parseFloat(r.prob_violent).toFixed(1)}%)`;
+  alarmBanner.classList.add('visible');
+  setTimeout(() => alarmBanner.classList.remove('visible'), 5000);
+}
+
+function dismissAlarm() { alarmBanner.classList.remove('visible'); }
+
+// ── Log ──
+function addLogEntry(r, errMsg) {
+  const empty = document.getElementById('timeline-empty');
+  if (empty) empty.remove();
+  const entry = document.createElement('div');
+  const ts = new Date().toTimeString().slice(0, 8);
+
+  if (errMsg) {
+    entry.className = 'timeline-entry';
+    entry.style.cssText = 'background:rgba(196,150,60,.05);border-color:rgba(196,150,60,.12);color:var(--text-soft);';
+    entry.innerHTML = `<span class="timeline-time">${ts}</span><span>⚠ ${errMsg}</span>`;
+  } else {
+    const isViolent = r.alert === true || r.label === 'Violent';
+    entry.className = `timeline-entry ${isViolent ? 'violent' : 'safe'}`;
+    entry.innerHTML = `
+      <span class="timeline-time">${ts}</span>
+      <span>${isViolent ? '🚨' : '✅'} ${r.label}</span>
+      <span style="margin-left:auto;font-family:'DM Mono',monospace;font-size:.75rem;opacity:.7;">
+        ${parseFloat(r.prob_violent).toFixed(1)}% · ${r.risk_level || '—'}
+      </span>`;
+  }
+  timeline.insertBefore(entry, timeline.firstChild);
+  while (timeline.children.length > 50) timeline.removeChild(timeline.lastChild);
+}
+
+function clearLog() {
+  timeline.innerHTML = '<div class="timeline-empty">Log cleared.</div>';
+}
+
+function updateInterval(val) {
+  analysisInterval = parseInt(val) * 1000;
+  document.getElementById('interval-label').textContent = val + ' s';
+}
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  const btn = document.getElementById('sound-btn');
+  btn.textContent = soundEnabled ? '🔔 Sound On' : '🔕 Sound Off';
+  btn.classList.toggle('active', !soundEnabled);
+}
+
+window.addEventListener('beforeunload', () => {
+  if (cameraStream) cameraStream.getTracks().forEach(t => t.stop());
+});

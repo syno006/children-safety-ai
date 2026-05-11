@@ -1,0 +1,133 @@
+<div id="alarm-banner">
+  <span style="font-size:1.3rem;">🚨</span>
+  <span id="alarm-text">VIOLENCE DETECTED</span>
+  <button onclick="dismissAlarm()" style="background:rgba(255,255,255,.2);border:none;color:white;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
+</div>
+
+<div class="hero-strip fade-up">
+  <h1>Live Camera <em>Violence Detection</em></h1>
+  <p>Real-time AI analysis using your camera. The model evaluates every captured frame and triggers an audio + visual alarm on detection.</p>
+</div>
+
+<div class="stat-grid" style="margin-bottom:1.5rem;">
+  <div class="stat-block fade-up fade-up-1" style="--accent:#c1440e;">
+    <div class="stat-num" id="stat-alerts">0</div>
+    <div class="stat-label">Alerts Triggered</div>
+  </div>
+  <div class="stat-block fade-up fade-up-2" style="--accent:#6d8a2a;">
+    <div class="stat-num" id="stat-safe">0</div>
+    <div class="stat-label">Safe Frames</div>
+  </div>
+  <div class="stat-block fade-up fade-up-3" style="--accent:var(--gold);">
+    <div class="stat-num" id="stat-frames">0</div>
+    <div class="stat-label">Frames Analyzed</div>
+  </div>
+  <div class="stat-block fade-up fade-up-4" style="--accent:#8C5E1E;">
+    <div class="stat-num" id="stat-fps">—</div>
+    <div class="stat-label">Analyses / min</div>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns:3fr 2fr; gap:1.5rem; margin-bottom:1.5rem;">
+
+  <!-- Camera feed -->
+  <div class="card fade-up fade-up-1" style="padding:1.25rem;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+      <div class="card-title" style="margin-bottom:0;">
+        <span class="live-dot" id="live-dot"></span>
+        <span id="live-label">Camera Inactive</span>
+      </div>
+      <div style="display:flex; gap:.5rem; align-items:center;">
+        <button class="sound-toggle" id="sound-btn" onclick="toggleSound()">🔔 Sound On</button>
+        <button id="start-btn" class="btn btn-primary" onclick="startCamera()">📷 Start</button>
+        <button id="stop-btn"  class="btn btn-ghost"   onclick="stopCamera()" disabled>⏹ Stop</button>
+      </div>
+    </div>
+
+    <div class="camera-wrapper" id="camera-wrapper">
+      <video id="camera-feed" autoplay playsinline muted></video>
+      <canvas id="camera-canvas"></canvas>
+      <div class="violent-overlay" id="violent-overlay">
+        <div class="violent-overlay-badge">⚠ VIOLENT</div>
+      </div>
+      <div class="camera-idle" id="camera-idle">
+        <div class="camera-idle-icon">📹</div>
+        <div class="camera-idle-text">Click Start to begin live detection</div>
+      </div>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:.75rem; margin-top:1rem; font-size:.82rem; color:var(--text-soft);">
+      <label for="interval-range">Analysis interval:</label>
+      <input type="range" id="interval-range" min="1" max="10" value="3" step="1"
+             style="flex:1; accent-color:var(--gold);" oninput="updateInterval(this.value)">
+      <span id="interval-label" style="font-family:'DM Mono',monospace; min-width:40px;">3 s</span>
+    </div>
+  </div>
+
+  <!-- Right panel -->
+  <div style="display:flex; flex-direction:column; gap:1rem;">
+
+    <div class="card fade-up fade-up-2" style="text-align:center; padding:1.5rem;">
+      <div class="card-title" style="justify-content:center; margin-bottom:1rem;">📊 Current Risk Score</div>
+      <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.5rem;">
+        <div style="position:relative; width:140px; height:140px;">
+          <svg class="gauge-svg" width="140" height="140" viewBox="0 0 140 140">
+            <circle class="gauge-track" cx="70" cy="70" r="56" />
+            <circle class="gauge-arc" id="gauge-arc"
+              cx="70" cy="70" r="56"
+              stroke="#6d8a2a"
+              stroke-dasharray="351.86"
+              stroke-dashoffset="351.86" />
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <div class="gauge-label" id="gauge-pct" style="color:#6d8a2a;">—</div>
+            <div class="gauge-sub">P(Violent)</div>
+          </div>
+        </div>
+      </div>
+      <div id="verdict-badge" style="margin-top:1rem;display:inline-flex;align-items:center;gap:.4rem;padding:.35rem 1rem;border-radius:9999px;font-size:.82rem;font-weight:600;background:rgba(109,138,42,.1);color:#6d8a2a;border:1px solid rgba(109,138,42,.25);">
+        ✓ Awaiting Analysis
+      </div>
+    </div>
+
+    <div class="card fade-up fade-up-3" style="padding:1.25rem;">
+      <div class="card-title" style="font-size:1rem; margin-bottom:.75rem;">⚡ Session Stats</div>
+      <div class="rt-stats">
+        <div class="rt-stat"><div class="rt-stat-val" id="sess-violent">0</div><div class="rt-stat-lbl">Violent</div></div>
+        <div class="rt-stat"><div class="rt-stat-val" id="sess-safe">0</div><div class="rt-stat-lbl">Safe</div></div>
+        <div class="rt-stat"><div class="rt-stat-val" id="sess-max">—</div><div class="rt-stat-lbl">Max Risk</div></div>
+        <div class="rt-stat"><div class="rt-stat-val" id="sess-conf">—</div><div class="rt-stat-lbl">Avg Conf.</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Detection log -->
+<div class="card fade-up fade-up-3">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+    <div class="card-title" style="margin-bottom:0;">📋 Live Detection Log</div>
+    <button onclick="clearLog()" class="btn btn-ghost" style="padding:.35rem .75rem; font-size:.78rem;">Clear</button>
+  </div>
+  <div class="timeline" id="timeline">
+    <div class="timeline-empty" id="timeline-empty">No analyses yet. Start the camera to begin.</div>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-top:1.5rem;" class="fade-up fade-up-4">
+  <div class="card" style="padding:1.25rem; text-align:center;">
+    <div style="font-size:1.8rem; margin-bottom:.5rem;">🤖</div>
+    <div style="font-weight:600; color:var(--brown-deep); font-size:.9rem; margin-bottom:.25rem;">EfficientNet-B4 + Bi-LSTM</div>
+    <div style="font-size:.75rem; color:var(--text-soft);">Main detection model · 99.2% accuracy</div>
+  </div>
+  <div class="card" style="padding:1.25rem; text-align:center;">
+    <div style="font-size:1.8rem; margin-bottom:.5rem;">🎯</div>
+    <div style="font-weight:600; color:var(--brown-deep); font-size:.9rem; margin-bottom:.25rem;">Frame-by-Frame Analysis</div>
+    <div style="font-size:.75rem; color:var(--text-soft);">16 frames per capture · sub-second inference</div>
+  </div>
+  <div class="card" style="padding:1.25rem; text-align:center;">
+    <div style="font-size:1.8rem; margin-bottom:.5rem;">🚨</div>
+    <div style="font-weight:600; color:var(--brown-deep); font-size:.9rem; margin-bottom:.25rem;">Instant Alarm System</div>
+    <div style="font-size:.75rem; color:var(--text-soft);">Visual + audio alert on detection</div>
+  </div>
+</div>

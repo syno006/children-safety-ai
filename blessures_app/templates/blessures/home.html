@@ -1,14 +1,14 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Analyse des Blessures — ShelterCare AI{% endblock %}
+{% block title %}Injury Analysis — ShelterCare AI{% endblock %}
 
-{% block page_title %}Analyse des Blessures{% endblock %}
-{% block page_subtitle %}Classification · Détection · Segmentation · Vidéo par IA{% endblock %}
+{% block page_title %}Injury Analysis{% endblock %}
+{% block page_subtitle %}Classification · Detection · Segmentation · AI Video{% endblock %}
 
 {% block extra_css %}
 
 /* ══════════════════════════════════════════════════════════
-   HERO BANNER
+   HERO BANNER - ENHANCED INJURY VISUALS
 ══════════════════════════════════════════════════════════ */
 .blessures-hero {
     background: var(--grad-hero);
@@ -19,6 +19,71 @@
     overflow: hidden;
 }
 
+/* Large background injury watermark */
+.blessures-hero .watermark-injury {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 22rem;
+    opacity: 0.035;
+    pointer-events: none;
+    white-space: nowrap;
+    font-weight: 900;
+    letter-spacing: 20px;
+    color: var(--sand);
+    z-index: 0;
+}
+
+/* Multiple injury icons in background */
+.bg-injury-icons {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.bg-injury {
+    position: absolute;
+    font-size: 4rem;
+    opacity: 0.06;
+    animation: slowDrift 30s ease-in-out infinite;
+}
+
+@keyframes slowDrift {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    25% { transform: translate(15px, -10px) rotate(5deg); }
+    50% { transform: translate(-10px, 20px) rotate(-3deg); }
+    75% { transform: translate(20px, 5px) rotate(2deg); }
+}
+
+.bg-injury-1 { top: 5%; left: 2%; font-size: 6rem; animation-duration: 25s; }
+.bg-injury-2 { bottom: 10%; right: 3%; font-size: 8rem; animation-duration: 35s; animation-delay: 2s; }
+.bg-injury-3 { top: 40%; left: -2%; font-size: 5rem; animation-duration: 28s; animation-delay: 4s; }
+.bg-injury-4 { bottom: 30%; right: -1%; font-size: 7rem; animation-duration: 32s; animation-delay: 1s; }
+.bg-injury-5 { top: 70%; left: 15%; font-size: 4.5rem; animation-duration: 27s; animation-delay: 6s; }
+
+/* Blood drip animation */
+.blood-drip {
+    position: absolute;
+    top: -20px;
+    right: 10%;
+    font-size: 2rem;
+    opacity: 0;
+    animation: drip 3s ease-in infinite;
+}
+
+@keyframes drip {
+    0% { top: -20px; opacity: 0; transform: scaleY(0.5); }
+    10% { opacity: 0.8; }
+    50% { top: 80%; opacity: 0.6; transform: scaleY(1); }
+    100% { top: 120%; opacity: 0; transform: scaleY(1.5); }
+}
+
+.blood-drip:nth-child(1) { animation-delay: 0s; right: 15%; }
+.blood-drip:nth-child(2) { animation-delay: 2.5s; right: 25%; font-size: 1.5rem; }
+.blood-drip:nth-child(3) { animation-delay: 5s; right: 8%; font-size: 1.8rem; }
+
 /* Decorative rings */
 .blessures-hero::before {
     content: '';
@@ -27,6 +92,7 @@
     border-radius: 50%;
     border: 60px solid rgba(196,150,60,.10);
     pointer-events: none;
+    z-index: 2;
 }
 .blessures-hero::after {
     content: '';
@@ -35,6 +101,44 @@
     border-radius: 50%;
     border: 40px solid rgba(196,150,60,.07);
     pointer-events: none;
+    z-index: 2;
+}
+
+/* Floating injury icons animation */
+.floating-icons {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 2;
+}
+
+.float-icon {
+    position: absolute;
+    opacity: 0.12;
+    animation: float 20s ease-in-out infinite;
+    font-size: 2rem;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(10deg); }
+}
+
+.float-icon:nth-child(1) { top: 15%; left: 5%; animation-delay: 0s; }
+.float-icon:nth-child(2) { top: 65%; right: 8%; animation-delay: 2s; animation-duration: 25s; }
+.float-icon:nth-child(3) { bottom: 20%; left: 12%; animation-delay: 4s; }
+.float-icon:nth-child(4) { top: 40%; right: 15%; animation-delay: 1s; animation-duration: 18s; }
+.float-icon:nth-child(5) { top: 80%; left: 20%; animation-delay: 3s; }
+.float-icon:nth-child(6) { bottom: 15%; right: 20%; animation-delay: 5s; animation-duration: 22s; }
+
+/* Hero content with higher z-index */
+.hero-content {
+    position: relative;
+    z-index: 10;
 }
 
 /* Live badge */
@@ -71,11 +175,27 @@
     color: var(--ivory);
     line-height: 1.1;
     margin-bottom: .6rem;
+    position: relative;
+    display: inline-block;
 }
+
 .blessures-hero h2 em {
     font-style: italic;
     color: var(--sand);
+    text-shadow: 0 0 10px rgba(196,150,60,0.3);
 }
+
+/* Pulse animation on injury word */
+@keyframes injuryPulse {
+    0%, 100% { text-shadow: 0 0 5px rgba(196,150,60,0.3); }
+    50% { text-shadow: 0 0 20px rgba(196,150,60,0.6), 0 0 5px rgba(196,150,60,0.4); }
+}
+
+.hero-injury-word {
+    animation: injuryPulse 2s ease-in-out infinite;
+    display: inline-block;
+}
+
 .blessures-hero .hero-sub {
     color: rgba(213,187,138,.6);
     font-size: .875rem;
@@ -84,12 +204,43 @@
     margin-bottom: 2rem;
 }
 
+/* Injury severity indicator bands */
+.severity-bands {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 5;
+}
+
+.severity-band {
+    width: 4px;
+    height: 40px;
+    border-radius: 2px;
+    animation: bandPulse 1.5s ease-in-out infinite;
+}
+
+.severity-band.mild { background: #f1c40f; animation-delay: 0s; }
+.severity-band.moderate { background: #e67e22; animation-delay: 0.3s; }
+.severity-band.severe { background: #e74c3c; animation-delay: 0.6s; }
+.severity-band.critical { background: #c0392b; animation-delay: 0.9s; }
+
+@keyframes bandPulse {
+    0%, 100% { opacity: 0.3; height: 40px; }
+    50% { opacity: 0.8; height: 50px; }
+}
+
 /* Pipeline flow strip */
 .pipeline-strip {
     display: flex;
     align-items: center;
     gap: .4rem;
     flex-wrap: wrap;
+    position: relative;
+    z-index: 10;
 }
 .pipe-step {
     display: flex;
@@ -162,7 +313,7 @@
 }
 
 /* ══════════════════════════════════════════════════════════
-   MODEL CARDS GRID  (3 classiques + 1 vidéo highlight)
+   MODEL CARDS GRID  (3 classic + 1 video highlight)
 ══════════════════════════════════════════════════════════ */
 .models-layout {
     display: grid;
@@ -172,7 +323,7 @@
     margin-bottom: 1.25rem;
 }
 
-/* Carte vidéo en pleine largeur sur la 2ème ligne */
+/* Full-width video card on second row */
 .model-card-video-row {
     grid-column: 1 / -1;
 }
@@ -206,6 +357,25 @@
     border-color: rgba(196,150,60,.3);
     text-decoration: none;
     color: inherit;
+}
+
+/* Injury images as background */
+.model-card-illustration {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 80px;
+    height: 80px;
+    opacity: 0.08;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    font-size: 3rem;
+}
+
+.model-card:hover .model-card-illustration {
+    opacity: 0.2;
+    transform: scale(1.1);
+    transition: all 0.3s;
 }
 
 /* Corner glows */
@@ -305,7 +475,7 @@
 }
 
 /* ══════════════════════════════════════════════════════════
-   CARTE VIDÉO — PLEINE LARGEUR HORIZONTALE
+   VIDEO CARD — FULL WIDTH HORIZONTAL
 ══════════════════════════════════════════════════════════ */
 .model-card-video {
     background: linear-gradient(135deg,
@@ -370,6 +540,15 @@
     overflow: hidden;
 }
 
+/* Video preview animation */
+.video-preview {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.3;
+}
+
 /* Animated rings in visual panel */
 .video-rings {
     position: absolute; inset: 0;
@@ -420,11 +599,20 @@
     width: 3px; height: 12px;
     background: rgba(52,152,219,.25);
     border-radius: 2px;
+    transition: all 0.2s;
+    animation: frameTick 2s ease-in-out infinite;
+}
+@keyframes frameTick {
+    0%, 100% { height: 12px; opacity: 0.25; }
+    50% { height: 18px; opacity: 0.5; }
 }
 .frame-tick:nth-child(3n) {
     height: 18px;
     background: rgba(52,152,219,.4);
 }
+.frame-tick:nth-child(3n+1) { animation-delay: 0s; }
+.frame-tick:nth-child(3n+2) { animation-delay: 0.3s; }
+.frame-tick:nth-child(3n+3) { animation-delay: 0.6s; }
 
 /* Right content */
 .video-card-content {
@@ -576,7 +764,7 @@
 }
 
 /* ══════════════════════════════════════════════════════════
-   PIPELINE COMPLET CARD
+   COMPLETE PIPELINE CARD
 ══════════════════════════════════════════════════════════ */
 .pipeline-card {
     background: var(--grad-hero);
@@ -642,36 +830,99 @@
     .pipeline-card { flex-direction: column; align-items: flex-start; }
 }
 
+/* Additional animations for injury icons */
+@keyframes glowPulse {
+    0%, 100% { filter: drop-shadow(0 0 2px rgba(196,150,60,0.3)); }
+    50% { filter: drop-shadow(0 0 8px rgba(196,150,60,0.6)); }
+}
+
+.injury-glow {
+    animation: glowPulse 3s ease-in-out infinite;
+}
+
+/* Blood stain effect on cards */
+.card-blood-stain {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, rgba(192,57,43,0.05) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
 {% endblock %}
 
 {% block content %}
 
 <!-- ══════════════════════════════════════════════════════
-     HERO
+     HERO - MAXIMUM INJURY VISIBILITY
 ══════════════════════════════════════════════════════ -->
 <div class="blessures-hero reveal">
-    <div class="hero-badge">
-        <span class="pulse-dot"></span>
-        Modèles IA actifs
+    
+    <!-- Large background watermark -->
+    <div class="watermark-injury">⚠️ INJURY ⚠️ TRAUMA ⚠️ WOUND ⚠️</div>
+    
+    <!-- Background injury icons array -->
+    <div class="bg-injury-icons">
+        <div class="bg-injury bg-injury-1">🩸</div>
+        <div class="bg-injury bg-injury-2">🏥</div>
+        <div class="bg-injury bg-injury-3">🩹</div>
+        <div class="bg-injury bg-injury-4">⚕️</div>
+        <div class="bg-injury bg-injury-5">💊</div>
     </div>
-    <h2>Analyse des <em>Blessures</em><br>par Intelligence Artificielle</h2>
-    <p class="hero-sub">
-        Quatre outils spécialisés travaillent en synergie — images et vidéos —
-        pour détecter, classifier et segmenter les blessures avec précision clinique.
-    </p>
+    
+    <!-- Blood drip animation -->
+    <div class="blood-drip">🩸</div>
+    <div class="blood-drip">🩸</div>
+    <div class="blood-drip">🩸</div>
+    
+    <!-- Severity indicator bands -->
+    <div class="severity-bands">
+        <div class="severity-band mild"></div>
+        <div class="severity-band moderate"></div>
+        <div class="severity-band severe"></div>
+        <div class="severity-band critical"></div>
+    </div>
+    
+    <!-- Floating icons -->
+    <div class="floating-icons">
+        <div class="float-icon injury-glow">🩸</div>
+        <div class="float-icon injury-glow">🏥</div>
+        <div class="float-icon injury-glow">🩹</div>
+        <div class="float-icon injury-glow">⚕️</div>
+        <div class="float-icon injury-glow">💢</div>
+        <div class="float-icon injury-glow">🩸</div>
+    </div>
+    
+    <div class="hero-content">
+        <div class="hero-badge">
+            <span class="pulse-dot"></span>
+            Active AI Models — Injury Analysis
+        </div>
+        <h2>
+            <span class="hero-injury-word">⚕️ Injury</span> Analysis<br>
+            by Artificial Intelligence
+        </h2>
+        <p class="hero-sub">
+            Four specialized tools work in synergy — images and videos —
+            to detect, classify, and segment injuries with clinical precision.
+        </p>
 
-    <div class="pipeline-strip">
-        <div class="pipe-step"><span class="pipe-num">1</span> Image / Vidéo</div>
-        <span class="pipe-arrow">→</span>
-        <div class="pipe-step"><span class="pipe-num">2</span> Classification</div>
-        <span class="pipe-arrow">→</span>
-        <div class="pipe-step"><span class="pipe-num">3</span> Détection</div>
-        <span class="pipe-arrow">→</span>
-        <div class="pipe-step"><span class="pipe-num">4</span> Segmentation</div>
-        <span class="pipe-arrow">→</span>
-        <div class="pipe-step pipe-video"><span class="pipe-num num-video">5</span> <i class="fas fa-video fa-xs"></i> Vidéo</div>
-        <span class="pipe-arrow">→</span>
-        <div class="pipe-step"><span class="pipe-num">6</span> Rapport</div>
+        <div class="pipeline-strip">
+            <div class="pipe-step"><span class="pipe-num">1</span> Image / Video</div>
+            <span class="pipe-arrow">→</span>
+            <div class="pipe-step"><span class="pipe-num">2</span> Classification</div>
+            <span class="pipe-arrow">→</span>
+            <div class="pipe-step"><span class="pipe-num">3</span> Detection</div>
+            <span class="pipe-arrow">→</span>
+            <div class="pipe-step"><span class="pipe-num">4</span> Segmentation</div>
+            <span class="pipe-arrow">→</span>
+            <div class="pipe-step pipe-video"><span class="pipe-num num-video">5</span> <i class="fas fa-video fa-xs"></i> Video</div>
+            <span class="pipe-arrow">→</span>
+            <div class="pipe-step"><span class="pipe-num">6</span> Report</div>
+        </div>
     </div>
 </div>
 
@@ -679,11 +930,11 @@
      SECTION LABEL
 ══════════════════════════════════════════════════════ -->
 <div class="section-label reveal">
-    <span>Outils d'analyse disponibles</span>
+    <span>Available analysis tools</span>
 </div>
 
 <!-- ══════════════════════════════════════════════════════
-     GRILLE MODÈLES (3 cartes + carte vidéo pleine largeur)
+     MODELS GRID (3 cards + full-width video card)
 ══════════════════════════════════════════════════════ -->
 <div class="models-layout">
 
@@ -692,16 +943,16 @@
         <div class="card-icon"><i class="fas fa-tag"></i></div>
         <div class="card-tag">Classification</div>
         <div class="card-model-name">EfficientNet-B3</div>
-        <div class="card-title">Identifier la nature de la blessure</div>
+        <div class="card-title">Identify injury type</div>
         <p class="card-desc">
-            Classe la blessure parmi des catégories médicales — brûlure,
-            lacération, contusion — avec un score de confiance pour chaque
-            diagnostic possible. Seuil Urgent abaissé à 35 %.
+            Classifies injuries into medical categories — burn,
+            laceration, contusion — with a confidence score for each
+            possible diagnosis. Urgent threshold lowered to 35%.
         </p>
         <div class="card-stats">
             <div>
                 <div class="stat-val">94.2%</div>
-                <div class="stat-lbl">Précision Top-1</div>
+                <div class="stat-lbl">Top-1 Accuracy</div>
             </div>
             <div>
                 <div class="stat-val">3</div>
@@ -709,24 +960,28 @@
             </div>
             <div>
                 <div class="stat-val">~0.3s</div>
-                <div class="stat-lbl">Inférence</div>
+                <div class="stat-lbl">Inference</div>
             </div>
         </div>
         <span class="btn btn-gold btn-sm">
-            <i class="fas fa-arrow-right"></i> Tester le modèle
+            <i class="fas fa-arrow-right"></i> Test the model
         </span>
+        <div class="model-card-illustration">
+            🩸
+        </div>
+        <div class="card-blood-stain"></div>
     </a>
 
-    <!-- ── Détection ────────────────────────────────────── -->
+    <!-- ── Detection ────────────────────────────────────── -->
     <a href="{% url 'blessures:detection' %}" class="model-card card-detect reveal reveal-delay-2">
         <div class="card-icon"><i class="fas fa-crosshairs"></i></div>
-        <div class="card-tag">Détection</div>
+        <div class="card-tag">Detection</div>
         <div class="card-model-name">YOLOv8s</div>
-        <div class="card-title">Localiser les zones affectées</div>
+        <div class="card-title">Locate affected areas</div>
         <p class="card-desc">
-            Détecte et encadre chaque blessure par une boîte englobante
-            avec un score de confiance en temps réel, même sur des images
-            multi-lésions. Conf. seuil 0.10 avec fallback centre.
+            Detects and frames each injury with a bounding box
+            and a real-time confidence score, even on multi-lesion
+            images. Conf. threshold 0.10 with center fallback.
         </p>
         <div class="card-stats">
             <div>
@@ -735,16 +990,20 @@
             </div>
             <div>
                 <div class="stat-val">15ms</div>
-                <div class="stat-lbl">Vitesse GPU</div>
+                <div class="stat-lbl">GPU Speed</div>
             </div>
             <div>
                 <div class="stat-val">Multi</div>
-                <div class="stat-lbl">Objets</div>
+                <div class="stat-lbl">Objects</div>
             </div>
         </div>
         <span class="btn btn-gold btn-sm">
-            <i class="fas fa-arrow-right"></i> Tester le modèle
+            <i class="fas fa-arrow-right"></i> Test the model
         </span>
+        <div class="model-card-illustration">
+            🩹
+        </div>
+        <div class="card-blood-stain"></div>
     </a>
 
     <!-- ── Segmentation ─────────────────────────────────── -->
@@ -752,11 +1011,11 @@
         <div class="card-icon"><i class="fas fa-scissors"></i></div>
         <div class="card-tag">Segmentation</div>
         <div class="card-model-name">U-Net · ResNet-34</div>
-        <div class="card-title">Délimiter pixel par pixel</div>
+        <div class="card-title">Pixel-perfect delineation</div>
         <p class="card-desc">
-            Génère un masque de segmentation précis au pixel pour évaluer
-            la surface exacte de la lésion. Seuil adaptatif dynamique
-            et nettoyage morphologique anti-bruit.
+            Generates a precise pixel-wise segmentation mask to evaluate
+            the exact surface area of the lesion. Dynamic adaptive threshold
+            with morphological cleaning for noise reduction.
         </p>
         <div class="card-stats">
             <div>
@@ -765,23 +1024,27 @@
             </div>
             <div>
                 <div class="stat-val">256px</div>
-                <div class="stat-lbl">Résolution</div>
+                <div class="stat-lbl">Resolution</div>
             </div>
             <div>
                 <div class="stat-val">px</div>
-                <div class="stat-lbl">Précision</div>
+                <div class="stat-lbl">Precision</div>
             </div>
         </div>
         <span class="btn btn-gold btn-sm">
-            <i class="fas fa-arrow-right"></i> Tester le modèle
+            <i class="fas fa-arrow-right"></i> Test the model
         </span>
+        <div class="model-card-illustration">
+            🔬
+        </div>
+        <div class="card-blood-stain"></div>
     </a>
 
-    <!-- ══ CARTE VIDÉO — PLEINE LARGEUR ════════════════════ -->
+    <!-- ══ VIDEO CARD — FULL WIDTH ════════════════════════ -->
     <div class="model-card-video-row reveal reveal-delay-4">
         <a href="{% url 'blessures:video_analysis' %}" class="model-card-video">
 
-            <!-- Panneau visuel gauche -->
+            <!-- Left visual panel -->
             <div class="video-card-visual">
                 <div class="video-rings">
                     <div class="video-ring"></div>
@@ -792,18 +1055,18 @@
                     <i class="fas fa-play"></i>
                 </div>
                 <div class="video-frame-deco">
-                    {% for i in "12345678901234567890" %}
+                    {% for i in "12345678901234567890"|slice:":20" %}
                     <div class="frame-tick"></div>
                     {% endfor %}
                 </div>
             </div>
 
-            <!-- Contenu -->
+            <!-- Content -->
             <div class="video-card-content">
                 <div class="video-card-header">
                     <div class="video-tag">
                         <span class="live-dot"></span>
-                        Nouveau · Analyse Vidéo
+                        New · Video Analysis
                     </div>
                     <div class="video-model-chips">
                         <span class="video-chip">EfficientNet-B3</span>
@@ -813,24 +1076,24 @@
                 </div>
 
                 <div class="video-card-title">
-                    3 modèles sur chaque <em>frame</em>
+                    3 models on every <em>frame</em>
                 </div>
                 <p class="video-card-desc">
-                    Chargez une vidéo mp4 — les trois modèles s'exécutent en séquence
-                    sur chaque frame : classification de l'urgence, détection des zones
-                    par bounding box et masque de segmentation pixel par pixel.
-                    La vidéo annotée est téléchargeable en sortie.
+                    Upload an mp4 video — all three models run sequentially
+                    on each frame: urgency classification, bounding box area
+                    detection, and pixel-perfect segmentation mask.
+                    The annotated video is downloadable as output.
                 </p>
 
                 <div class="video-stats">
                     <div class="video-stat">
                         <div class="video-stat-val">×3</div>
-                        <div class="video-stat-lbl">Modèles actifs</div>
+                        <div class="video-stat-lbl">Active models</div>
                     </div>
                     <div class="video-stats-divider"></div>
                     <div class="video-stat">
                         <div class="video-stat-val">mp4</div>
-                        <div class="video-stat-lbl">Format sortie</div>
+                        <div class="video-stat-lbl">Output format</div>
                     </div>
                     <div class="video-stats-divider"></div>
                     <div class="video-stat">
@@ -840,17 +1103,17 @@
                     <div class="video-stats-divider"></div>
                     <div class="video-stat">
                         <div class="video-stat-val">300</div>
-                        <div class="video-stat-lbl">Frames max</div>
+                        <div class="video-stat-lbl">Max frames</div>
                     </div>
                 </div>
             </div>
 
             <!-- CTA -->
-            <a href="{% url 'blessures:video_analysis' %}" class="btn-video">
+            <div class="btn-video">
                 <i class="fas fa-play-circle"></i>
-                Analyser une vidéo
+                Analyze a video
                 <i class="fas fa-arrow-right fa-xs"></i>
-            </a>
+            </div>
 
         </a>
     </div>
@@ -859,30 +1122,30 @@
 </div>
 
 <!-- ══════════════════════════════════════════════════════
-     PIPELINE COMPLET
+     COMPLETE PIPELINE
 ══════════════════════════════════════════════════════ -->
 <div class="pipeline-card reveal">
     <div class="pipeline-left">
-        <h3>Pipeline <em>Complet</em></h3>
+        <h3><em>Complete</em> Pipeline</h3>
         <p>
-            Exécutez les trois modèles en séquence sur une image pour obtenir
-            un rapport d'analyse exhaustif — classification, localisation et
-            délimitation précise — en une seule passe.
+            Run all three models sequentially on an image to get
+            a comprehensive analysis report — classification, localization,
+            and precise delineation — in a single pass.
         </p>
         <div class="pipeline-nodes">
             <div class="pipe-node"><i class="fas fa-tag"></i> Classification</div>
             <span class="pipe-plus">+</span>
-            <div class="pipe-node"><i class="fas fa-crosshairs"></i> Détection</div>
+            <div class="pipe-node"><i class="fas fa-crosshairs"></i> Detection</div>
             <span class="pipe-plus">+</span>
             <div class="pipe-node"><i class="fas fa-scissors"></i> Segmentation</div>
             <span class="pipe-eq">=</span>
-            <div class="pipe-node"><i class="fas fa-file-medical"></i> Rapport complet</div>
+            <div class="pipe-node"><i class="fas fa-file-medical"></i> Complete report</div>
             <span class="pipe-plus" style="opacity:.4">·</span>
-            <div class="pipe-node node-video"><i class="fas fa-video"></i> Vidéo dispo</div>
+            <div class="pipe-node node-video"><i class="fas fa-video"></i> Video available</div>
         </div>
     </div>
     <a href="{% url 'blessures:full_pipeline' %}" class="btn btn-gold">
-        <i class="fas fa-rocket"></i> Lancer le pipeline complet
+        <i class="fas fa-rocket"></i> Launch complete pipeline
     </a>
 </div>
 

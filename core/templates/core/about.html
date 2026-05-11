@@ -1,39 +1,780 @@
 {% extends "core/base.html" %}
+
+{% block extra_css %}
+<style>
+  /* ── Improved Environment Section Styles ── */
+  :root {
+    --env-primary: #2E7D32;
+    --env-secondary: #66BB6A;
+    --env-accent: #FFC107;
+    --env-warning: #FF7043;
+    --env-danger: #E53935;
+    --env-sky: #81D4FA;
+    --env-leaf: #81C784;
+  }
+
+  /* Hero Welcome Banner */
+  .welcome-banner {
+    background: linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%);
+    border-radius: 28px;
+    padding: 2rem 2.5rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+    color: white;
+  }
+
+  .welcome-banner::before {
+    content: '👋';
+    position: absolute;
+    right: 30px;
+    bottom: 20px;
+    font-size: 5rem;
+    opacity: 0.1;
+  }
+
+  .welcome-banner h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .welcome-banner p {
+    opacity: 0.9;
+    font-size: 0.9rem;
+  }
+
+  /* Real-time indicator */
+  .live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255,255,255,0.2);
+    border-radius: 40px;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.7rem;
+    margin-top: 1rem;
+  }
+
+  .live-dot {
+    width: 8px;
+    height: 8px;
+    background: #4ade80;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.2); }
+  }
+
+  /* Stats Cards - Modern Design */
+  .environment-header {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .env-stat-card {
+    background: white;
+    border-radius: 24px;
+    padding: 1.2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    border: 1px solid rgba(46,125,50,0.1);
+  }
+
+  .env-stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 28px rgba(46,125,50,0.15);
+    border-color: var(--env-primary);
+  }
+
+  .env-stat-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .env-stat-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--env-primary);
+    line-height: 1;
+  }
+
+  .env-stat-lbl {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #6B7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0.3rem;
+  }
+
+  /* Floor Plan - Cleaner Design */
+  .floor-plan {
+    background: #F9FAFB;
+    border-radius: 28px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid #E5E7EB;
+  }
+
+  .floor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .floor-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #1F2937;
+  }
+
+  .risk-legends {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .risk-legend {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+  }
+
+  .risk-legend.high { background: rgba(229,57,53,0.1); color: #E53935; }
+  .risk-legend.medium { background: rgba(224,90,40,0.1); color: #e05a28; }
+  .risk-legend.low { background: rgba(46,125,50,0.1); color: #2E7D32; }
+
+  .floor-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+
+  .room {
+    background: white;
+    border-radius: 20px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid #E5E7EB;
+    position: relative;
+  }
+
+  .room:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    border-color: var(--env-primary);
+  }
+
+  .room.active {
+    border-color: var(--env-primary);
+    background: #F0FDF4;
+    box-shadow: 0 4px 12px rgba(46,125,50,0.15);
+  }
+
+  .room-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .room-name {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #1F2937;
+    margin-bottom: 0.25rem;
+  }
+
+  .room-occupancy {
+    font-size: 0.7rem;
+    color: #6B7280;
+    margin-bottom: 0.75rem;
+  }
+
+  .room-avatars {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+
+  .avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: white;
+    transition: all 0.2s;
+  }
+
+  .avatar.safe { background: linear-gradient(135deg, #6d8a2a, #8bc34a); }
+  .avatar.medium-risk { background: linear-gradient(135deg, #e05a28, #f5a623); }
+  .avatar.high-risk { background: linear-gradient(135deg, #E53935, #FF7043); animation: pulseRisk 1.5s infinite; }
+
+  @keyframes pulseRisk {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); box-shadow: 0 0 0 2px rgba(229,57,53,0.3); }
+  }
+
+  .avatar.more {
+    background: #9CA3AF;
+    font-size: 0.55rem;
+  }
+
+  /* Details Panel */
+  .room-details-panel {
+    background: white;
+    border-radius: 24px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    display: none;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+
+  .room-details-panel.show {
+    display: block;
+    animation: slideIn 0.3s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #E5E7EB;
+  }
+
+  .panel-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--env-primary);
+  }
+
+  .children-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1rem;
+    max-height: 350px;
+    overflow-y: auto;
+  }
+
+  .child-card {
+    background: #F9FAFB;
+    border-radius: 16px;
+    padding: 0.8rem;
+    text-align: center;
+    transition: all 0.2s;
+    border: 1px solid #E5E7EB;
+  }
+
+  .child-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  .child-avatar-lg {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: white;
+    margin: 0 auto 0.5rem;
+  }
+
+  .child-name {
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: #1F2937;
+  }
+
+  .child-status {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 20px;
+    display: inline-block;
+    margin-top: 0.3rem;
+  }
+
+  /* About Cards */
+  .about-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .about-card {
+    background: white;
+    border-radius: 24px;
+    padding: 1.5rem;
+    border: 1px solid #E5E7EB;
+    transition: all 0.3s;
+  }
+
+  .about-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  }
+
+  .about-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(46,125,50,0.1);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    color: var(--env-primary);
+    margin-bottom: 1rem;
+  }
+
+  .about-card h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1F2937;
+    margin-bottom: 0.5rem;
+  }
+
+  .about-card p {
+    font-size: 0.85rem;
+    color: #6B7280;
+    line-height: 1.5;
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    cursor: pointer;
+    color: #9CA3AF;
+    transition: color 0.2s;
+  }
+
+  .close-btn:hover {
+    color: #1F2937;
+  }
+
+  /* Animations */
+  .fade-up {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 0.5s ease forwards;
+  }
+
+  @keyframes fadeUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .fade-up-1 { animation-delay: 0.05s; }
+  .fade-up-2 { animation-delay: 0.1s; }
+  .fade-up-3 { animation-delay: 0.15s; }
+  .fade-up-4 { animation-delay: 0.2s; }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .environment-header {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .floor-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .about-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .environment-header {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .floor-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="card animate-up" style="margin-bottom: 1.5rem;">
-    <div class="card-header">
-        <h2><i class="fas fa-circle-info"></i> A propos de ShelterCare AI</h2>
-    </div>
-    <div class="card-body" style="line-height: 1.8; color: #2d3748;">
-        <p>
-            ShelterCare AI est une plateforme d'aide a la decision pour renforcer la protection
-            des enfants en refuge grace a l'IA.
-        </p>
-        <p style="margin-top: 1rem;">
-            Le module de detection comportementale permet d'analyser des videos, d'estimer le
-            niveau de risque et de fournir une alerte interpretable pour les equipes terrain.
-        </p>
-    </div>
+
+<!-- Welcome Banner -->
+<div class="welcome-banner fade-up">
+  <h2>Welcome back, Supervisor 👋</h2>
+  <p>Here's what's happening in your shelter today. Children are counting on you.</p>
+  <div class="live-badge">
+    <span class="live-dot"></span>
+    <span>LIVE DATA · Echo Verse Real-time Protection</span>
+  </div>
 </div>
 
-<div class="grid-2">
-    <div class="card animate-left">
-        <div class="card-header">
-            <h3><i class="fas fa-hand-holding-heart"></i> Notre mission</h3>
-        </div>
-        <div class="card-body">
-            <p>Fournir des outils fiables, rapides et accessibles pour la securite des enfants.</p>
-        </div>
+<!-- About Section -->
+<div class="about-grid">
+  <div class="about-card fade-up fade-up-1">
+    <div class="about-icon"><i class="fas fa-robot"></i></div>
+    <h3>Echo Verse AI</h3>
+    <p>AI-powered decision support platform for child protection in shelters. Real-time behavioral analysis and risk detection.</p>
+  </div>
+  <div class="about-card fade-up fade-up-2">
+    <div class="about-icon"><i class="fas fa-hand-holding-heart"></i></div>
+    <h3>Our Mission</h3>
+    <p>Provide reliable, fast, and accessible tools to keep every child safe.</p>
+  </div>
+  <div class="about-card fade-up fade-up-3">
+    <div class="about-icon"><i class="fas fa-envelope"></i></div>
+    <h3>Contact</h3>
+    <p>Echo Verse Team<br>support@echoverse.ai</p>
+  </div>
+</div>
+
+<!-- Shelter Overview -->
+<div class="fade-up fade-up-4">
+  <div class="floor-plan">
+    <div class="floor-header">
+      <div class="floor-title">🏠 Echo Verse Shelter Map — Click any room to see details</div>
+      <div class="risk-legends">
+        <span class="risk-legend high">🔴 High Risk</span>
+        <span class="risk-legend medium">🟠 Medium Risk</span>
+        <span class="risk-legend low">🟢 Safe</span>
+      </div>
     </div>
 
-    <div class="card animate-right">
-        <div class="card-header">
-            <h3><i class="fas fa-envelope"></i> Contact</h3>
-        </div>
-        <div class="card-body">
-            <p>Equipe ShelterCare AI</p>
-            <p>Email: support@sheltercare.local</p>
-        </div>
+    <!-- Stats Cards with Real-time Data -->
+    <div class="environment-header" id="statsContainer">
+      <div class="env-stat-card">
+        <div class="env-stat-icon">👧👦</div>
+        <div class="env-stat-val" id="totalChildren">42</div>
+        <div class="env-stat-lbl">Total Children</div>
+      </div>
+      <div class="env-stat-card">
+        <div class="env-stat-icon">🏠</div>
+        <div class="env-stat-val" id="activeRooms">8</div>
+        <div class="env-stat-lbl">Active Rooms</div>
+      </div>
+      <div class="env-stat-card">
+        <div class="env-stat-icon">📊</div>
+        <div class="env-stat-val" id="occupancyRate">84</div>
+        <div class="env-stat-lbl">Occupancy %</div>
+      </div>
+      <div class="env-stat-card">
+        <div class="env-stat-icon">🟢</div>
+        <div class="env-stat-val" id="safetyRate">89</div>
+        <div class="env-stat-lbl">Safety Rate %</div>
+      </div>
+      <div class="env-stat-card">
+        <div class="env-stat-icon">🌍</div>
+        <div class="env-stat-val" style="font-size:1rem;" id="shelterLocation">Monrovia</div>
+        <div class="env-stat-lbl">Location</div>
+      </div>
     </div>
+
+    <!-- Rooms Grid with Real-time Risk Updates -->
+    <div class="floor-grid" id="roomsGrid">
+      <!-- Rooms will be populated/updated dynamically -->
+    </div>
+
+    <!-- Room Details Panel -->
+    <div class="room-details-panel" id="roomDetailsPanel">
+      <div class="panel-header">
+        <div class="panel-title" id="selectedRoomName">Bedroom 1</div>
+        <button class="close-btn" onclick="closeRoomDetails()">✕</button>
+      </div>
+      <div style="font-size:0.8rem; color:#6B7280; margin-bottom:1rem;">
+        <span id="selectedRoomCount">6</span> children · Last activity: <span id="lastActivity">just now</span>
+      </div>
+      <div class="children-list" id="childrenList">
+        <!-- Dynamic content -->
+      </div>
+    </div>
+  </div>
 </div>
+
+<script>
+// ============================================
+// REAL-TIME SHELTER SIMULATION - ECHO VERSE
+// ============================================
+
+// Shelter data structure
+let shelterData = {
+  name: "Echo Verse Shelter",
+  location: "Monrovia, Liberia",
+  totalCapacity: 50,
+  rooms: [
+    { id: "bedroom1", name: "Bedroom 1", icon: "🛏️", baseOccupancy: 6, currentChildren: 6, riskLevel: "low", children: [
+      { id: "C1", name: "Emma", status: "Safe", risk: "low" },
+      { id: "C2", name: "Lucas", status: "Safe", risk: "low" },
+      { id: "C3", name: "Amara", status: "Needs attention", risk: "medium" },
+      { id: "C4", name: "David", status: "Safe", risk: "low" },
+      { id: "C5", name: "Sophie", status: "Safe", risk: "low" },
+      { id: "C6", name: "Marcus", status: "Safe", risk: "low" }
+    ] },
+    { id: "bedroom2", name: "Bedroom 2", icon: "🛏️", baseOccupancy: 5, currentChildren: 5, riskLevel: "low", children: [
+      { id: "C7", name: "Grace", status: "Safe", risk: "low" },
+      { id: "C8", name: "James", status: "Safe", risk: "low" },
+      { id: "C9", name: "Nia", status: "Safe", risk: "low" },
+      { id: "C10", name: "Thomas", status: "Needs attention", risk: "medium" },
+      { id: "C11", name: "Zoe", status: "Safe", risk: "low" }
+    ] },
+    { id: "common", name: "Common Area", icon: "🪑", baseOccupancy: 12, currentChildren: 12, riskLevel: "high", children: [
+      { id: "C12", name: "Alex", status: "Safe", risk: "low" },
+      { id: "C13", name: "Bella", status: "Safe", risk: "low" },
+      { id: "C14", name: "Kobe", status: "⚠️ URGENT", risk: "high" },
+      { id: "C15", name: "Nina", status: "Safe", risk: "low" },
+      { id: "C16", name: "Victor", status: "Safe", risk: "low" },
+      { id: "C17", name: "+7 more", status: "Mixed", risk: "low", isGroup: true }
+    ] },
+    { id: "study", name: "Study Room", icon: "📚", baseOccupancy: 8, currentChildren: 8, riskLevel: "low", children: [
+      { id: "C23", name: "Oliver", status: "Safe", risk: "low" },
+      { id: "C24", name: "Iris", status: "Safe", risk: "low" },
+      { id: "C25", name: "Leo", status: "Safe", risk: "low" },
+      { id: "C26", name: "Mia", status: "Safe", risk: "low" },
+      { id: "C27", name: "Noah", status: "Safe", risk: "low" },
+      { id: "C28", name: "+3 more", status: "Mixed", risk: "low", isGroup: true }
+    ] },
+    { id: "sports", name: "Sports Hall", icon: "⚽", baseOccupancy: 7, currentChildren: 7, riskLevel: "medium", children: [
+      { id: "C31", name: "Jordan", status: "Safe", risk: "low" },
+      { id: "C32", name: "Lena", status: "Safe", risk: "low" },
+      { id: "C33", name: "Ryan", status: "Needs attention", risk: "medium" },
+      { id: "C34", name: "Sara", status: "Safe", risk: "low" },
+      { id: "C35", name: "Tyler", status: "Safe", risk: "low" },
+      { id: "C36", name: "+2 more", status: "Mixed", risk: "low", isGroup: true }
+    ] },
+    { id: "dining", name: "Dining Hall", icon: "🍴", baseOccupancy: 0, currentChildren: 0, riskLevel: "safe", children: [] },
+    { id: "medical", name: "Medical Room", icon: "🏥", baseOccupancy: 2, currentChildren: 2, riskLevel: "medium", children: [
+      { id: "C40", name: "Faith", status: "Needs attention", risk: "medium" },
+      { id: "C41", name: "Hope", status: "Recovering", risk: "low" }
+    ] },
+    { id: "office", name: "Staff Office", icon: "👔", baseOccupancy: 0, currentChildren: 0, riskLevel: "safe", children: [] }
+  ]
+};
+
+// Risk levels for randomization
+const riskLevels = ['low', 'medium', 'high'];
+const riskColors = { low: 'safe', medium: 'medium-risk', high: 'high-risk' };
+
+// Function to get random risk level with weighted probabilities
+function getRandomRisk() {
+  const rand = Math.random();
+  if (rand < 0.7) return 'low';      // 70% safe
+  if (rand < 0.9) return 'medium';    // 20% medium
+  return 'high';                       // 10% high
+}
+
+// Function to update room risk levels
+function updateRoomRisks() {
+  shelterData.rooms.forEach(room => {
+    if (room.children.length > 0 && !room.children[0]?.isGroup) {
+      // Update each child's risk individually
+      room.children.forEach(child => {
+        if (!child.isGroup) {
+          const newRisk = getRandomRisk();
+          child.risk = newRisk;
+          if (newRisk === 'low') child.status = 'Safe';
+          else if (newRisk === 'medium') child.status = 'Needs attention';
+          else child.status = '⚠️ URGENT';
+        }
+      });
+      
+      // Update room risk level based on highest child risk
+      const hasHigh = room.children.some(c => c.risk === 'high');
+      const hasMedium = room.children.some(c => c.risk === 'medium');
+      if (hasHigh) room.riskLevel = 'high';
+      else if (hasMedium) room.riskLevel = 'medium';
+      else room.riskLevel = 'low';
+    }
+  });
+}
+
+// Function to update occupancy (simulate children moving)
+function updateOccupancy() {
+  shelterData.rooms.forEach(room => {
+    if (room.baseOccupancy > 0) {
+      // Simulate small fluctuations in occupancy
+      const variation = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
+      let newOccupancy = room.baseOccupancy + variation;
+      newOccupancy = Math.max(0, Math.min(room.baseOccupancy + 3, newOccupancy));
+      room.currentChildren = newOccupancy;
+    }
+  });
+  
+  // Update total children
+  const totalChildren = shelterData.rooms.reduce((sum, room) => sum + room.currentChildren, 0);
+  const occupancyRate = Math.round((totalChildren / shelterData.totalCapacity) * 100);
+  
+  // Update safety rate based on risk distribution
+  const highRiskRooms = shelterData.rooms.filter(r => r.riskLevel === 'high').length;
+  const safetyRate = Math.max(60, 100 - (highRiskRooms * 5));
+  
+  return { totalChildren, occupancyRate, safetyRate };
+}
+
+// Function to render the rooms grid
+function renderRoomsGrid() {
+  const container = document.getElementById('roomsGrid');
+  if (!container) return;
+  
+  container.innerHTML = shelterData.rooms.map(room => `
+    <div class="room fade-up" data-room="${room.id}" onclick="selectRoom(this, '${room.id}')">
+      <div class="room-icon">${room.icon}</div>
+      <div class="room-name">${room.name}</div>
+      <div class="room-occupancy">${room.currentChildren} children</div>
+      <div class="room-avatars">
+        ${room.children.slice(0, 5).map(child => {
+          const riskClass = child.isGroup ? 'more' : (child.risk === 'high' ? 'high-risk' : (child.risk === 'medium' ? 'medium-risk' : 'safe'));
+          return `<div class="avatar ${riskClass}">${child.id}</div>`;
+        }).join('')}
+        ${room.children.length > 5 ? `<div class="avatar more">+${room.children.length - 5}</div>` : ''}
+        ${room.children.length === 0 && room.currentChildren === 0 ? '<span style="font-size:0.7rem; color:#9CA3AF;">—</span>' : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+// Function to update stats display
+function updateStatsDisplay(stats) {
+  document.getElementById('totalChildren').textContent = stats.totalChildren;
+  document.getElementById('occupancyRate').textContent = stats.occupancyRate;
+  document.getElementById('safetyRate').textContent = stats.safetyRate;
+}
+
+// Function to update the selected room details
+function updateSelectedRoomDetails(roomId) {
+  const room = shelterData.rooms.find(r => r.id === roomId);
+  if (!room) return;
+  
+  document.getElementById('selectedRoomName').innerHTML = `${room.icon} ${room.name}`;
+  document.getElementById('selectedRoomCount').textContent = room.currentChildren;
+  document.getElementById('lastActivity').textContent = 'just now';
+  
+  const childrenHTML = room.children.map(child => {
+    let bgColor, textColor;
+    if (child.risk === 'high') {
+      bgColor = 'linear-gradient(135deg, #E53935, #FF7043)';
+      textColor = '#E53935';
+    } else if (child.risk === 'medium') {
+      bgColor = 'linear-gradient(135deg, #e05a28, #f5a623)';
+      textColor = '#e05a28';
+    } else {
+      bgColor = 'linear-gradient(135deg, #6d8a2a, #8bc34a)';
+      textColor = '#6d8a2a';
+    }
+    return `
+      <div class="child-card">
+        <div class="child-avatar-lg" style="background:${bgColor};">${child.id}</div>
+        <div class="child-name">${child.name}</div>
+        <div class="child-status" style="background:${bgColor}20; color:${textColor};">${child.status}</div>
+      </div>
+    `;
+  }).join('');
+  
+  document.getElementById('childrenList').innerHTML = childrenHTML || '<div style="text-align:center; padding:2rem; color:#9CA3AF;">✨ No children in this area</div>';
+}
+
+// Global variable to track selected room
+let currentSelectedRoomId = null;
+
+// Override selectRoom function to work with dynamic data
+window.selectRoom = function(element, roomId) {
+  document.querySelectorAll('.room').forEach(room => room.classList.remove('active'));
+  element.classList.add('active');
+  currentSelectedRoomId = roomId;
+  updateSelectedRoomDetails(roomId);
+  
+  const panel = document.getElementById('roomDetailsPanel');
+  panel.classList.remove('show');
+  setTimeout(() => panel.classList.add('show'), 10);
+};
+
+// Close details panel
+window.closeRoomDetails = function() {
+  const panel = document.getElementById('roomDetailsPanel');
+  panel.classList.remove('show');
+  document.querySelectorAll('.room').forEach(room => room.classList.remove('active'));
+  currentSelectedRoomId = null;
+};
+
+// Real-time simulation update
+function realTimeUpdate() {
+  // Update risks
+  updateRoomRisks();
+  
+  // Update occupancy
+  const stats = updateOccupancy();
+  
+  // Re-render the rooms grid
+  renderRoomsGrid();
+  
+  // Update stats display
+  updateStatsDisplay(stats);
+  
+  // If a room is selected, update its details
+  if (currentSelectedRoomId) {
+    const selectedElement = document.querySelector(`.room[data-room="${currentSelectedRoomId}"]`);
+    if (selectedElement) {
+      updateSelectedRoomDetails(currentSelectedRoomId);
+    } else {
+      // Room no longer exists or was deselected
+      currentSelectedRoomId = null;
+      closeRoomDetails();
+    }
+  }
+  
+  // Add visual feedback for update
+  const liveBadge = document.querySelector('.live-dot');
+  if (liveBadge) {
+    liveBadge.style.animation = 'none';
+    setTimeout(() => {
+      liveBadge.style.animation = 'pulse 1.5s infinite';
+    }, 10);
+  }
+}
+
+// Initial render
+renderRoomsGrid();
+
+// Calculate initial stats
+const initialStats = updateOccupancy();
+updateStatsDisplay(initialStats);
+
+// Start real-time simulation (update every 5 seconds)
+setInterval(realTimeUpdate, 5000);
+
+// Also update on page visibility (when tab becomes active again)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    realTimeUpdate();
+  }
+});
+</script>
+
 {% endblock %}

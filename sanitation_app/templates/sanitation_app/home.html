@@ -1,8 +1,8 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Risques Sanitaires — ShelterCare AI{% endblock %}
-{% block page_title %}Risques Sanitaires{% endblock %}
-{% block page_subtitle %}YOLO11s · Détection en temps réel · Score d'hygiène{% endblock %}
+{% block title %}Sanitary Risks — ShelterCare AI{% endblock %}
+{% block page_title %}Sanitary Risks{% endblock %}
+{% block page_subtitle %}YOLO11s · Real-time detection · Hygiene score{% endblock %}
 
 {% block extra_css %}
 /* ── Hero ─────────────────────────────────────────────────── */
@@ -30,6 +30,74 @@
     border: 36px solid rgba(196,150,60,.08);
     pointer-events: none;
 }
+
+/* Animated sanitary icons */
+.san-hero-icons {
+    position: absolute;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    opacity: 0.6;
+}
+
+.san-hero-icons i {
+    font-size: 2rem;
+    animation: floatSanIcon 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 5px rgba(0,150,100,0.3));
+}
+
+.san-hero-icons i:nth-child(1) { animation-delay: 0s; color: #2ecc71; }
+.san-hero-icons i:nth-child(2) { animation-delay: 0.5s; color: #27ae60; }
+.san-hero-icons i:nth-child(3) { animation-delay: 1s; color: #1abc9c; }
+.san-hero-icons i:nth-child(4) { animation-delay: 1.5s; color: #2ecc71; }
+
+@keyframes floatSanIcon {
+    0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.6; }
+    50% { transform: translateY(-12px) rotate(5deg); opacity: 1; }
+}
+
+/* Floating bacteria particles */
+.san-particles {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.san-particle {
+    position: absolute;
+    bottom: -10px;
+    width: 6px;
+    height: 6px;
+    background: radial-gradient(circle, #27ae60, #1abc9c);
+    border-radius: 50%;
+    animation: riseSan 3s ease-out infinite;
+    opacity: 0;
+}
+
+@keyframes riseSan {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 0.6;
+    }
+    100% {
+        transform: translateY(-200px) scale(0.3);
+        opacity: 0;
+    }
+}
+
+/* Droplet animation */
+@keyframes droplet {
+    0%, 100% { transform: translateY(0); opacity: 0.5; }
+    50% { transform: translateY(-8px); opacity: 1; }
+}
+
 .hero-badge {
     display: inline-flex; align-items: center; gap: .5rem;
     background: rgba(196,150,60,.2);
@@ -92,26 +160,26 @@
     text-decoration: none; color: inherit;
     transition: transform .25s var(--ease), box-shadow .25s;
 }
-.model-solo:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: rgba(196,150,60,.3); }
+.model-solo:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: rgba(46,204,113,.3); }
 .model-solo::before {
     content: '';
     position: absolute; top: -35px; right: -35px;
     width: 110px; height: 110px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(196,150,60,.18) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(46,204,113,.18) 0%, transparent 70%);
     pointer-events: none;
 }
 .model-icon {
     width: 64px; height: 64px; flex-shrink: 0;
     border-radius: var(--r-md);
-    background: rgba(196,150,60,.15);
+    background: rgba(46,204,113,.15);
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.75rem; color: var(--gold);
+    font-size: 1.75rem; color: #27ae60;
 }
 .model-body { flex: 1; }
 .card-tag {
     display: inline-flex; align-items: center;
-    background: rgba(196,150,60,.12); color: var(--gold-deep);
-    border: 1px solid rgba(196,150,60,.2);
+    background: rgba(46,204,113,.12); color: #27ae60;
+    border: 1px solid rgba(46,204,113,.2);
     border-radius: var(--r-full);
     font-size: .62rem; font-weight: 600;
     letter-spacing: .06em; padding: .18rem .65rem;
@@ -149,6 +217,14 @@
     font-size: .6rem; font-weight: 600;
     color: var(--text-soft); text-transform: uppercase; letter-spacing: .06em;
 }
+.btn-sanitary {
+    background: linear-gradient(135deg, #27ae60, #1abc9c);
+    color: white;
+}
+.btn-sanitary:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+}
 
 /* ── Classes grid ─────────────────────────────────────────── */
 .classes-grid {
@@ -165,14 +241,28 @@
     transition: transform .2s var(--ease), box-shadow .2s;
 }
 .class-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.class-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #27ae60, #1abc9c, #27ae60);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+.class-card:hover::after {
+    transform: scaleX(1);
+}
 .class-icon {
     width: 40px; height: 40px; border-radius: var(--r-sm);
     display: flex; align-items: center; justify-content: center;
     font-size: 1.1rem; margin-bottom: .85rem;
 }
 .cc-roach .class-icon { background: rgba(200,70,50,.12); color: #c84632; }
-.cc-trash .class-icon { background: rgba(196,150,60,.12); color: var(--gold); }
-.cc-wet   .class-icon { background: rgba(50,130,200,.12); color: #2878c8; }
+.cc-trash .class-icon { background: rgba(241,196,15,.12); color: #f1c40f; }
+.cc-wet   .class-icon { background: rgba(52,152,219,.12); color: #3498db; }
 
 .class-name {
     font-size: .82rem; font-weight: 700;
@@ -190,31 +280,44 @@
 }
 .map-bar-fill { height: 100%; border-radius: var(--r-full); }
 .cc-roach .map-bar-fill { background: #c84632; width: 90.4%; }
-.cc-trash .map-bar-fill { background: var(--grad-gold); width: 70.9%; }
-.cc-wet   .map-bar-fill { background: #2878c8; width: 84.3%; }
+.cc-trash .map-bar-fill { background: #f1c40f; width: 70.9%; }
+.cc-wet   .map-bar-fill { background: #3498db; width: 84.3%; }
+
+/* Animated water drop icon */
+.fa-droplet {
+    animation: droplet 2s ease-in-out infinite;
+    display: inline-block;
+}
 {% endblock %}
 
 {% block content %}
 
 <!-- Hero -->
 <div class="san-hero reveal">
-    <div class="hero-badge">
-        <span class="pulse-dot"></span> Modèle actif · YOLO11s
+    <div class="san-particles" id="sanParticles"></div>
+    <div class="san-hero-icons">
+        <i class="fas fa-biohazard"></i>
+        <i class="fas fa-bacteria"></i>
+        <i class="fas fa-droplet"></i>
+        <i class="fas fa-recycle"></i>
     </div>
-    <h2>Détection des <em>Risques</em><br>Sanitaires par IA</h2>
+    <div class="hero-badge">
+        <span class="pulse-dot"></span> Active model · YOLO11s
+    </div>
+    <h2><em>Sanitary Risk</em><br>Detection by AI</h2>
     <p>
-        Un modèle YOLO11s entraîné sur 6 040 images détecte en temps réel
-        les cafards, déchets et surfaces mouillées dans les espaces de refuge,
-        et génère un score de risque hygiénique par image.
+        A YOLO11s model trained on 6,040 images detects in real-time
+        cockroaches, trash, and wet surfaces in shelter spaces,
+        and generates a hygienic risk score per image.
     </p>
     <div class="pipeline-strip">
         <div class="pipe-step"><span class="pipe-num">1</span> Image</div>
         <span class="pipe-arrow">→</span>
-        <div class="pipe-step"><span class="pipe-num">2</span> Détection YOLO11s</div>
+        <div class="pipe-step"><span class="pipe-num">2</span> YOLO11s Detection</div>
         <span class="pipe-arrow">→</span>
-        <div class="pipe-step"><span class="pipe-num">3</span> Score hygiénique</div>
+        <div class="pipe-step"><span class="pipe-num">3</span> Hygiene score</div>
         <span class="pipe-arrow">→</span>
-        <div class="pipe-step"><span class="pipe-num">4</span> Rapport</div>
+        <div class="pipe-step"><span class="pipe-num">4</span> Report</div>
     </div>
 </div>
 
@@ -222,22 +325,22 @@
 <a href="{% url 'sanitation_app:detection' %}" class="model-solo reveal reveal-delay-1">
     <div class="model-icon"><i class="fas fa-shield-virus"></i></div>
     <div class="model-body">
-        <div class="card-tag">Détection sanitaire</div>
+        <div class="card-tag">Sanitary detection</div>
         <div class="card-model-name">YOLO11s · 9.4M params</div>
-        <div class="model-title">Identifier et localiser les risques d'hygiène</div>
+        <div class="model-title">Identify and locate hygiene risks</div>
         <p class="model-desc">
-            Détecte les cafards, déchets et surfaces mouillées par bounding boxes
-            avec un score de confiance, puis calcule un indice de risque sanitaire
-            global pour guider les interventions de nettoyage.
+            Detects cockroaches, trash, and wet surfaces with bounding boxes
+            and confidence scores, then calculates a global sanitary risk index
+            to guide cleaning interventions.
         </p>
         <div class="card-stats">
             <div><div class="stat-val">81.9%</div><div class="stat-lbl">mAP@50</div></div>
-            <div><div class="stat-val">83.3%</div><div class="stat-lbl">Précision</div></div>
-            <div><div class="stat-val">74.9%</div><div class="stat-lbl">Rappel</div></div>
+            <div><div class="stat-val">83.3%</div><div class="stat-lbl">Precision</div></div>
+            <div><div class="stat-val">74.9%</div><div class="stat-lbl">Recall</div></div>
             <div><div class="stat-val">3</div><div class="stat-lbl">Classes</div></div>
         </div>
-        <span class="btn btn-gold btn-sm">
-            <i class="fas fa-arrow-right"></i> Lancer la détection
+        <span class="btn btn-sanitary btn-sm">
+            <i class="fas fa-arrow-right"></i> Start detection
         </span>
     </div>
 </a>
@@ -246,7 +349,7 @@
 <div class="section-head reveal reveal-delay-2">
     <div class="section-title">
         <div class="section-title-icon"><i class="fas fa-tags"></i></div>
-        Classes détectées
+        Detected classes
     </div>
 </div>
 
@@ -255,7 +358,7 @@
     <div class="class-card cc-roach">
         <div class="class-icon"><i class="fas fa-bug"></i></div>
         <div class="class-name">Cockroach</div>
-        <p class="class-desc">Présence de cafards — risque sanitaire élevé, vecteur de maladies.</p>
+        <p class="class-desc">Presence of cockroaches — high sanitary risk, disease vector.</p>
         <div class="class-map">0.904</div>
         <div class="class-map-lbl">mAP@50</div>
         <div class="map-bar-track"><div class="map-bar-fill"></div></div>
@@ -264,7 +367,7 @@
     <div class="class-card cc-trash">
         <div class="class-icon"><i class="fas fa-trash"></i></div>
         <div class="class-name">Trash</div>
-        <p class="class-desc">Accumulation de déchets — source de contamination et d'odeurs.</p>
+        <p class="class-desc">Waste accumulation — source of contamination and odors.</p>
         <div class="class-map">0.709</div>
         <div class="class-map-lbl">mAP@50</div>
         <div class="map-bar-track"><div class="map-bar-fill"></div></div>
@@ -273,7 +376,7 @@
     <div class="class-card cc-wet">
         <div class="class-icon"><i class="fas fa-droplet"></i></div>
         <div class="class-name">Wet Surface</div>
-        <p class="class-desc">Surfaces mouillées ou eau stagnante — risque de glissade et moisissures.</p>
+        <p class="class-desc">Wet surfaces or standing water — slipping hazard and mold risk.</p>
         <div class="class-map">0.843</div>
         <div class="class-map-lbl">mAP@50</div>
         <div class="map-bar-track"><div class="map-bar-fill"></div></div>
@@ -281,4 +384,27 @@
 
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Create floating sanitary particles
+function createSanParticles() {
+    const container = document.getElementById('sanParticles');
+    if (!container) return;
+    
+    for (let i = 0; i < 40; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('san-particle');
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 5 + 's';
+        particle.style.animationDuration = 2 + Math.random() * 3 + 's';
+        particle.style.width = (Math.random() * 8 + 3) + 'px';
+        particle.style.height = particle.style.width;
+        container.appendChild(particle);
+    }
+}
+
+createSanParticles();
+</script>
 {% endblock %}

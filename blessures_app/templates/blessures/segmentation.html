@@ -3,7 +3,7 @@
 {% block content %}
 <div class="card">
     <div class="card-header">
-        <h2><i class="fas fa-chart-line"></i> Segmentation de Plaie</h2>
+        <h2><i class="fas fa-chart-line"></i> Wound Segmentation</h2>
         <span class="badge-right">U-Net ResNet34</span>
     </div>
     <div class="card-body">
@@ -11,7 +11,7 @@
             {% csrf_token %}
             <div class="upload-area" onclick="document.getElementById('imageInput').click()">
                 <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea;"></i>
-                <p>Cliquez pour télécharger une image</p>
+                <p>Click to upload an image</p>
                 <input type="file" name="image" id="imageInput" accept="image/*" style="display: none;" onchange="this.form.submit()">
             </div>
         </form>
@@ -21,21 +21,21 @@
             <div class="stats-header">
                 <div class="stat-card">
                     <div class="stat-value">{{ result.area_percentage|floatformat:1|default:"0" }}%</div>
-                    <div class="stat-label">Surface affectée</div>
+                    <div class="stat-label">Affected area</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value">{{ result.area_pixels|default:"0" }}</div>
-                    <div class="stat-label">Pixels affectés</div>
+                    <div class="stat-label">Affected pixels</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value">{{ result.num_lesions|default:"1" }}</div>
-                    <div class="stat-label">Blessures détectées</div>
+                    <div class="stat-label">Injuries detected</div>
                 </div>
             </div>
 
             <div class="segmentation-grid">
                 <div class="image-section">
-                    <h4><i class="fas fa-image"></i> Image originale</h4>
+                    <h4><i class="fas fa-image"></i> Original image</h4>
                     <div class="image-container">
                         <img src="data:image/jpeg;base64,{{ image_data }}" alt="Original">
                     </div>
@@ -48,7 +48,7 @@
                         {% else %}
                         <div class="no-segmentation">
                             <i class="fas fa-eye-slash"></i>
-                            <p>Aucune segmentation détectée</p>
+                            <p>No segmentation detected</p>
                         </div>
                         {% endif %}
                     </div>
@@ -58,7 +58,7 @@
             {% if result.roi_coverage %}
             <div class="info-note">
                 <i class="fas fa-info-circle"></i>
-                <strong>Zone d'intérêt:</strong> La segmentation couvre {{ result.roi_coverage|floatformat:1 }}% de la région détectée.
+                <strong>Region of interest:</strong> Segmentation covers {{ result.roi_coverage|floatformat:1 }}% of the detected region.
             </div>
             {% endif %}
         </div>

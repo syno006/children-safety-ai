@@ -1,7 +1,7 @@
 {% extends 'core/base.html' %}
 {% load static %}
 
-{% block title %}YOLO - Détection de Chutes | ShelterCare{% endblock %}
+{% block title %}YOLO - Fall Detection | ShelterCare{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -83,17 +83,17 @@
 
 {% block content %}
 <div class="container my-5">
-    <!-- En-tête -->
+    <!-- Header -->
     <div class="text-center mb-4">
-        <h1 class="display-5 fw-bold text-primary">Detection CNN</h1>
-        <p class="text-muted">Detection et localisation precise des chutes avec boite englobante</p>
+        <h1 class="display-5 fw-bold text-primary">YOLO Detection</h1>
+        <p class="text-muted">Precise fall detection and localization with bounding boxes</p>
     </div>
 
     <div class="row">
         <div class="col-lg-5 mx-auto">
             <div class="card shadow-sm border-0 rounded-4">
                 <div class="card-header bg-primary text-white rounded-top-4">
-                    <h5 class="mb-0"><i class="fas fa-cloud-upload-alt me-2"></i> Importer une image</h5>
+                    <h5 class="mb-0"><i class="fas fa-cloud-upload-alt me-2"></i> Upload an image</h5>
                 </div>
                 <div class="card-body p-4">
                     {% if error %}
@@ -107,10 +107,10 @@
                         
                         <div id="dropZone" class="upload-area mb-3">
                             <i class="fas fa-cloud-upload-alt fa-3x text-secondary mb-3"></i>
-                            <p class="mb-2 fw-semibold">Deposez votre image ici</p>
-                            <p class="text-muted small mb-2">ou</p>
+                            <p class="mb-2 fw-semibold">Drop your image here</p>
+                            <p class="text-muted small mb-2">or</p>
                             <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('imageInput').click()">
-                                <i class="fas fa-folder-open me-1"></i> Parcourir
+                                <i class="fas fa-folder-open me-1"></i> Browse
                             </button>
                             <input type="file" name="image" id="imageInput" class="d-none" accept="image/jpeg,image/png,image/jpg">
                             <p class="text-muted small mt-2 mb-0">Formats: JPG, PNG — Maximum 10MB</p>
@@ -122,7 +122,7 @@
                         </div>
                         
                         <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold" id="submitBtn" disabled>
-                            <i class="fas fa-microchip me-2"></i> Lancer la detection
+                            <i class="fas fa-microchip me-2"></i> Start detection
                         </button>
                     </form>
                 </div>
@@ -130,26 +130,26 @@
         </div>
     </div>
     
-    <!-- Resultats -->
+    <!-- Results -->
     {% if result %}
     <div class="row mt-5 result-card">
         <div class="col-lg-8 mx-auto">
-            <!-- Carte resultat -->
+            <!-- Result card -->
             <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
                 <div class="card-header text-center py-3 {% if result.prediction == 'FALL' %}bg-danger{% else %}bg-success{% endif %} text-white">
                     <h3 class="mb-0 fw-bold">
                         {% if result.prediction == 'FALL' %}
-                            <i class="fas fa-exclamation-triangle me-2"></i> CHUTE DETECTEE
+                            <i class="fas fa-exclamation-triangle me-2"></i> FALL DETECTED
                         {% else %}
-                            <i class="fas fa-check-circle me-2"></i> SITUATION NORMALE
+                            <i class="fas fa-check-circle me-2"></i> NORMAL SITUATION
                         {% endif %}
                     </h3>
                 </div>
                 
                 <div class="card-body p-4">
-                    <!-- Confiance -->
+                    <!-- Confidence -->
                     <div class="text-center mb-4">
-                        <h6 class="text-muted text-uppercase small fw-semibold">Niveau de confiance</h6>
+                        <h6 class="text-muted text-uppercase small fw-semibold">Confidence level</h6>
                         <div class="display-1 fw-bold {% if result.prediction == 'FALL' %}text-danger{% else %}text-success{% endif %}">
                             {{ result.confidence|floatformat:1 }}<small class="fs-4">%</small>
                         </div>
@@ -159,38 +159,38 @@
                         </div>
                     </div>
                     
-                    <!-- Probabilites -->
+                    <!-- Probabilities -->
                     <div class="row mb-4 g-3">
                         <div class="col-md-6">
                             <div class="stat-card">
                                 <i class="fas fa-user-shield fa-2x text-success mb-2"></i>
-                                <h6 class="mb-1">Situation normale</h6>
+                                <h6 class="mb-1">Normal situation</h6>
                                 <span class="h3 text-success fw-bold">{{ result.probabilities.normal|floatformat:1 }}%</span>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="stat-card">
                                 <i class="fas fa-exclamation-triangle fa-2x text-danger mb-2"></i>
-                                <h6 class="mb-1">Risque de chute</h6>
+                                <h6 class="mb-1">Fall risk</h6>
                                 <span class="h3 text-danger fw-bold">{{ result.probabilities.fall|floatformat:1 }}%</span>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Badge statut -->
+                    <!-- Status badge -->
                     <div class="text-center mb-3">
                         {% if result.prediction == 'FALL' %}
-                            <span class="badge-urgent"><i class="fas fa-bell me-1"></i> Intervention requise</span>
+                            <span class="badge-urgent"><i class="fas fa-bell me-1"></i> Intervention required</span>
                         {% else %}
-                            <span class="badge-safe"><i class="fas fa-shield-alt me-1"></i> Situation securitaire</span>
+                            <span class="badge-safe"><i class="fas fa-shield-alt me-1"></i> Safe situation</span>
                         {% endif %}
                     </div>
                     
-                    <!-- Recommandations -->
+                    <!-- Recommendations -->
                     {% if result.safety_tips %}
                     <div class="alert alert-light border rounded-3">
                         <i class="fas fa-clipboard-list me-2 text-secondary"></i>
-                        <strong class="small text-uppercase">Recommandations</strong>
+                        <strong class="small text-uppercase">Recommendations</strong>
                         <ul class="mt-2 mb-0 ps-3">
                             {% for tip in result.safety_tips %}
                             <li class="small text-muted">{{ tip }}</li>
@@ -201,27 +201,27 @@
                 </div>
             </div>
             
-            <!-- Image avec bounding box -->
+            <!-- Image with bounding box -->
             {% if image_data %}
             <div class="card shadow-sm border-0 rounded-4 mt-4 overflow-hidden">
                 <div class="card-header bg-dark text-white">
-                    <h6 class="mb-0"><i class="fas fa-image me-2"></i> Analyse visuelle - Boite englobante</h6>
+                    <h6 class="mb-0"><i class="fas fa-image me-2"></i> Visual analysis - Bounding box</h6>
                 </div>
                 <div class="card-body text-center p-3">
                     <img src="data:image/jpeg;base64,{{ image_data }}" class="img-fluid rounded shadow-sm" style="max-height: 450px; cursor: pointer;" onclick="window.open(this.src, '_blank')">
                     <div class="mt-3">
-                        <span class="badge bg-secondary">Boite rouge = zone de chute detectee</span>
-                        <span class="badge bg-secondary ms-2"><i class="fas fa-search-plus me-1"></i> Cliquer pour agrandir</span>
+                        <span class="badge bg-secondary">Red box = detected fall zone</span>
+                        <span class="badge bg-secondary ms-2"><i class="fas fa-search-plus me-1"></i> Click to enlarge</span>
                     </div>
                 </div>
             </div>
             {% endif %}
             
-            <!-- Bouton alerte si chute -->
+            <!-- Alert button if fall -->
             {% if result.prediction == 'FALL' %}
             <div class="text-center mt-4">
-                <button class="btn btn-danger btn-lg px-5 shadow" onclick="alert('Alerte envoyee au personnel du shelter. Intervention requise immediatement.')">
-                    <i class="fas fa-bell me-2"></i> Alerter le shelter
+                <button class="btn btn-danger btn-lg px-5 shadow" onclick="alert('Alert sent to shelter staff. Immediate intervention required.')">
+                    <i class="fas fa-bell me-2"></i> Alert shelter
                 </button>
             </div>
             {% endif %}
@@ -258,11 +258,11 @@ imageInput.addEventListener('change', (e) => {
 
 function handleFile(file) {
     if (!file.type.match('image.*')) {
-        alert('Format non supporte. Veuillez choisir une image JPG ou PNG.');
+        alert('Unsupported format. Please choose a JPG or PNG image.');
         return;
     }
     if (file.size > 10*1024*1024) {
-        alert('Fichier trop volumineux. Maximum 10MB.');
+        alert('File too large. Maximum 10MB.');
         return;
     }
     selectedFile = file;
@@ -275,7 +275,7 @@ function handleFile(file) {
 }
 document.getElementById('uploadForm').addEventListener('submit', function() {
     if(selectedFile) {
-        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analyse en cours...';
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analysis in progress...';
         submitBtn.disabled = true;
     }
 });
